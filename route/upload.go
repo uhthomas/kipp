@@ -30,8 +30,11 @@ func (s *server) Upload(w http.ResponseWriter, r *http.Request) {
 	}
 	for {
 		p, err := mr.NextPart()
-		if err != nil {
+		if err == io.EOF {
 			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		} else if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		if name = p.FileName(); name != "" && p.FormName() == "file" {
