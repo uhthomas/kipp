@@ -44,7 +44,7 @@ func (x *ctr) XORKeyStream(dst, src []byte) {
 func (x *ctr) refill() {
 	copy(x.ctr, x.iv)
 	x.buf = x.buf[:cap(x.buf)]
-	n := (x.p + int64(x.l)) / int64(x.b.BlockSize())
+	n := (x.p / int64(x.b.BlockSize())) + int64(x.l)
 	for i := len(x.ctr) - 1; i >= 0; i-- {
 		x.ctr[i] = uint8(uint(n) >> uint(8*(len(x.ctr)-i-1)))
 	}
