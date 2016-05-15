@@ -2,7 +2,7 @@
 A secure, temporary file storage site
 
 ## Disclaimer
-Conf uses an experiment stream cipher which may or may not be cryptographically secure. Please use at your own risk.
+Conf uses an experimental stream cipher which may or may not be cryptographically secure. Please use at your own risk.
 
 ## Installation
 ```
