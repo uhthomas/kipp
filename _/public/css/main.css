@@ -1,0 +1,337 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  background: #282c35;
+  font-family: 'Roboto', arial, sans-serif;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.mdi.preload {
+  visibility: hidden;
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+}
+
+.content {
+  max-width: 840px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+}
+
+.modal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  /*border: 1px dashed white;*/
+  height: 200px;
+  box-sizing: border-box;
+  padding: 20px;
+  font-size: 25px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -webkit-transition: all .2s ease;
+  -moz-transition: all .2s ease;
+  -ms-transition: all .2s ease;
+  -o-transition: all .2s ease;
+  transition: all .2s ease;
+}
+
+.modal::after {
+  content: 'Drag and drop a file or click here to upload';
+}
+
+.modal.hover,
+.modal:hover {
+  background: #323742;
+}
+
+.modal .hidden {
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.files {
+  margin-top: 10px;
+}
+
+.files .file {
+  display: flex;
+  position: relative;
+  min-height: 0;
+  max-height: 0;
+  overflow: hidden;
+  -webkit-transition: all .2s ease;
+  -moz-transition: all .2s ease;
+  -ms-transition: all .2s ease;
+  -o-transition: all .2s ease;
+  transition: all .2s ease;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin-bottom: 10px;
+  background-color: #323742;
+  flex-direction: column;
+  text-decoration: none;
+  color: white;
+  outline: 0;
+  height: 0;
+}
+
+.files .file.hidden {
+  background-image: none!important;
+}
+
+/*.files .file.hidden {
+  visibility: hidden!important;
+  background-image: none!important;
+}
+
+.files .file.hidden > * {
+  display: none!important;
+}*/
+
+.files .file[rendered] {
+  min-height: 86px;
+  max-height: 800px;
+  height: auto;
+}
+
+.files .file[large] {
+  max-height: none;
+}
+
+.files .file[large]::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0px, transparent 150px);
+}
+
+.files .file[large]::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.6) 0px, transparent 150px);
+  opacity: 0;
+  -webkit-transition: all .2s ease;
+  -moz-transition: all .2s ease;
+  -ms-transition: all .2s ease;
+  -o-transition: all .2s ease;
+  transition: all .2s ease;
+}
+
+.files .file[large]:not([state="uploading"]):not([state="complete"])::after {
+  opacity: 1;
+}
+
+.files .file[state="uploading"] *,
+.files .file[state="zipping"] * {
+  color: #03A9F4;
+}
+
+.files .file[state="error"] * {
+  color: #F44336;
+}
+
+.files .file[state="complete"] * {
+  color: #00E676;
+}
+
+.files .file[state="uploading"] .info .progress,
+.files .file[state="zipping"] .info .progress {
+  background: #03A9F4;
+}
+
+.files .file[state="error"] .info .progress {
+  background: #F44336;
+}
+
+.files .file[state="complete"] .info .progress {
+  background: #00E676;
+  width: 100%;
+}
+
+.files .file * {
+  color: white;
+  -webkit-transition: all .2s ease;
+  -moz-transition: all .2s ease;
+  -ms-transition: all .2s ease;
+  -o-transition: all .2s ease;
+  transition: all .2s ease;
+}
+
+.files .file .info {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  z-index: 1;
+  box-sizing: border-box;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.files .file .info .head {
+  display: flex;
+  margin-bottom: auto;
+  overflow: hidden;
+}
+
+.files .file .info .head .meta {
+  font-size: 25px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.files .file .info .head .meta > * {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.files .file .info .head .meta .name {
+  color: white;
+}
+
+.files .file .info .head .meta .size {
+  color: #e0e0e0;
+  font-size: 15px;
+  display: block;
+}
+
+.files .file .info .head .status {
+  width: 54px;
+  height: 46px;
+  font-size: 24px;
+  /*line-height: 46px;*/
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.files .file .info .progress {
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+}
+
+.files .file .info .message {
+  font-size: 24px;
+  overflow: hidden;
+  max-height: 0;
+  word-wrap: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-transition: all .2s ease;
+  -moz-transition: all .2s ease;
+  -ms-transition: all .2s ease;
+  -o-transition: all .2s ease;
+  transition: all .2s ease;
+}
+
+.files .file .info .message.showing {
+  max-height: 96px;
+  margin-top: 16px;
+}
+
+.confirmation-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  z-index: 2;
+  display: flex;
+  box-sizing: border-box;
+  padding: 20px;
+}
+
+.confirmation {
+  padding: 20px;
+  background: #282c35;
+  border-radius: 5px;
+  color: #f2f2f2;
+  margin: auto;
+}
+
+.confirmation .title {
+  font-size: 22px;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.confirmation .buttons {
+  display: flex;
+  margin-top: 50px;
+}
+
+.confirmation .button {
+  flex: 1;
+  margin: 10px;
+  padding: 20px;
+  text-align: center;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 2px;
+  box-sizing: border-box;
+  -webkit-transition: all .2s ease;
+  -ms-transition: all .2s ease;
+  transition: all .2s ease;
+}
+
+/*.confirmation .button:hover {
+  background: rgba(0,0,0,0.1);
+}*/
+
+.confirmation .button.yes {
+  border: 1px solid #2196f3;
+}
+
+.confirmation .button.yes:hover {
+  background: #2196f3;
+}
+
+.confirmation .button.no {
+  border: 1px solid #FF5722;
+}
+
+.confirmation .button.no:hover {
+  background: #FF5722;
+}
