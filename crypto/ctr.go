@@ -1,6 +1,9 @@
 package crypto
 
-import "crypto/cipher"
+import (
+	"crypto/cipher"
+	"math/big"
+)
 
 const streamBufferSize = 512
 
@@ -10,7 +13,6 @@ type ctr struct {
 	buf []byte
 	ctr []byte
 	iv  []byte
-	l   uint32
 	p   int64
 }
 
@@ -22,11 +24,7 @@ func newCTR(block cipher.Block, iv []byte) *ctr {
 	if bs := block.BlockSize(); bs > buffer {
 		buffer = bs
 	}
-	var l uint32
-	for i := len(iv) - 1; i >= 0; i-- {
-		l += uint32(iv[i]) << uint(8*(len(iv)-i-1))
-	}
-	return &ctr{0, block, make([]byte, 0, buffer), Duplicate(iv), Duplicate(iv), l, 0}
+	return &ctr{0, block, make([]byte, 0, buffer), Duplicate(iv), Duplicate(iv), 0}
 }
 
 func (x *ctr) XORKeyStream(dst, src []byte) {
@@ -44,10 +42,12 @@ func (x *ctr) XORKeyStream(dst, src []byte) {
 func (x *ctr) refill() {
 	copy(x.ctr, x.iv)
 	x.buf = x.buf[:cap(x.buf)]
-	n := (x.p / int64(x.b.BlockSize())) + int64(x.l)
-	for i := len(x.ctr) - 1; i >= 0; i-- {
-		x.ctr[i] = uint8(uint(n) >> uint(8*(len(x.ctr)-i-1)))
-	}
+	b := &big.Int{}
+	x.ctr = b.
+		SetBytes(x.ctr).
+		Add(b, big.NewInt(x.p/int64(x.b.BlockSize()))).
+		Bytes()
+	x.ctr = append(make([]byte, x.b.BlockSize()-len(x.ctr)), x.ctr...)
 	for i := 0; i < streamBufferSize; i += x.b.BlockSize() {
 		x.b.Encrypt(x.buf[i:], x.ctr)
 		x.increment()
