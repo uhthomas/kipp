@@ -1,5 +1,3 @@
-(function(e){e.fn.replaceTagName=function(t){var n=[],r=this.length;while(r--){var i=document.createElement(t),s=this[r],o=s.attributes;for(var u=o.length-1;u>=0;u--){var a=o[u];i.setAttribute(a.name,a.value)}i.innerHTML=s.innerHTML;e(s).after(i).remove();n[r]=i}return e(n)}})(window.jQuery);
-
 $(document).on({
   dragover: drag,
   dragenter: drag,

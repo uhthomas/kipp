@@ -40,14 +40,13 @@ func (x *ctr) XORKeyStream(dst, src []byte) {
 }
 
 func (x *ctr) refill() {
-	copy(x.ctr, x.iv)
-	x.buf = x.buf[:cap(x.buf)]
 	b := &big.Int{}
 	x.ctr = b.
-		SetBytes(x.ctr).
+		SetBytes(x.iv).
 		Add(b, big.NewInt(x.p/int64(x.b.BlockSize()))).
 		Bytes()
 	x.ctr = append(make([]byte, x.b.BlockSize()-len(x.ctr)), x.ctr...)
+	x.buf = x.buf[:cap(x.buf)]
 	for i := 0; i < streamBufferSize; i += x.b.BlockSize() {
 		x.b.Encrypt(x.buf[i:], x.ctr)
 		x.increment()
