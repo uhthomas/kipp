@@ -27,8 +27,7 @@ func (d *Decrypter) Read(p []byte) (n int, err error) {
 func (d *Decrypter) Seek(offset int64, whence int) (ret int64, err error) {
 	if r, ok := d.R.(io.ReadSeeker); ok {
 		ret, err = r.Seek(offset, whence)
-		d.p = ret
-		d.refill()
+		d.seek(ret)
 	}
 	return
 }

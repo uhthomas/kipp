@@ -47,29 +47,6 @@ func BenchmarkDecrypter(b *testing.B) {
 
 func BenchmarkStdDecrypter(b *testing.B) {
 	var buf bytes.Buffer
-	e, err := NewEncrypter(&buf, decrypt.key, decrypt.iv)
-	if err != nil {
-		b.Fatal(err)
-	}
-	if _, err := io.Copy(e, bytes.NewReader(decrypt.data)); err != nil {
-		b.Fatal(err)
-	}
-	data := buf.Bytes()
-	discard := make([]byte, len(data))
-	b.SetBytes(5 << 20)
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		block, err := aes.NewCipher(decrypt.key)
-		if err != nil {
-			b.Fatal(err)
-		}
-		s := cipher.NewCTR(block, decrypt.iv)
-		s.XORKeyStream(discard, data)
-	}
-}
-
-func BenchmarkStdStreamDecrypter(b *testing.B) {
-	var buf bytes.Buffer
 	block, err := aes.NewCipher(decrypt.key)
 	if err != nil {
 		b.Fatal(err)
@@ -81,6 +58,10 @@ func BenchmarkStdStreamDecrypter(b *testing.B) {
 	b.SetBytes(5 << 20)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
+		block, err := aes.NewCipher(decrypt.key)
+		if err != nil {
+			b.Fatal(err)
+		}
 		r := &cipher.StreamReader{S: cipher.NewCTR(block, decrypt.iv), R: &buf}
 		if _, err := io.Copy(ioutil.Discard, r); err != nil {
 			b.Fatal(err)

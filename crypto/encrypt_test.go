@@ -5,6 +5,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"io"
+	"io/ioutil"
 	"testing"
 )
 
@@ -24,11 +25,10 @@ func init() {
 
 func BenchmarkEncrypter(b *testing.B) {
 	r := bytes.NewReader(encrypt.data)
-	var buf bytes.Buffer
 	b.SetBytes(5 << 20)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		e, err := NewEncrypter(&buf, encrypt.key, encrypt.iv)
+		e, err := NewEncrypter(ioutil.Discard, encrypt.key, encrypt.iv)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -39,22 +39,7 @@ func BenchmarkEncrypter(b *testing.B) {
 }
 
 func BenchmarkStdEncrypter(b *testing.B) {
-	discard := make([]byte, len(encrypt.data))
-	b.SetBytes(5 << 20)
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		block, err := aes.NewCipher(encrypt.key)
-		if err != nil {
-			b.Fatal(err)
-		}
-		s := cipher.NewCTR(block, encrypt.iv)
-		s.XORKeyStream(discard, encrypt.data)
-	}
-}
-
-func BenchmarkStdStreamEncrypter(b *testing.B) {
 	r := bytes.NewReader(encrypt.data)
-	var buf bytes.Buffer
 	b.SetBytes(5 << 20)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -62,7 +47,7 @@ func BenchmarkStdStreamEncrypter(b *testing.B) {
 		if err != nil {
 			b.Fatal(err)
 		}
-		s := &cipher.StreamWriter{S: cipher.NewCTR(block, encrypt.iv), W: &buf}
+		s := &cipher.StreamWriter{S: cipher.NewCTR(block, encrypt.iv), W: ioutil.Discard}
 		if _, err := io.Copy(s, r); err != nil {
 			b.Fatal(err)
 		}

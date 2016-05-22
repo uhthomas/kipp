@@ -27,8 +27,7 @@ func (e *Encrypter) Write(b []byte) (n int, err error) {
 func (e *Encrypter) Seek(offset int64, whence int) (ret int64, err error) {
 	if w, ok := e.W.(io.WriteSeeker); ok {
 		ret, err = w.Seek(offset, whence)
-		e.p = ret
-		e.refill()
+		e.seek(ret)
 	}
 	return
 }

@@ -16,7 +16,7 @@ func (s *server) View(w http.ResponseWriter, r *http.Request) {
 	slug := strings.Split(mux.Vars(r)["slug"], ".")[0]
 	var c model.Content
 	if model.DB.First(&c, "slug = ?", slug).RecordNotFound() {
-		http.Error(w, "not found", http.StatusNotFound)
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
 	f, err := os.Open(filepath.Join("_", "files", c.Hash))
