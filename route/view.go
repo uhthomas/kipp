@@ -29,6 +29,7 @@ func (s *server) View(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("filename=%q", c.Name))
 	http.ServeContent(w, r, c.Name, c.CreatedAt, d)
 }
