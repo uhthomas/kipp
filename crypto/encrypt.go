@@ -24,6 +24,23 @@ func (e *Encrypter) Write(b []byte) (n int, err error) {
 	return e.W.Write(c)
 }
 
+func (e *Encrypter) ReadFrom(r io.Reader) (n int64, err error) {
+	b := make([]byte, 0, 32<<10)
+	for {
+		nr, err := r.Read(b[:cap(b)])
+		n += int64(nr)
+		switch {
+		case err == io.EOF:
+			return n, nil
+		case err != nil:
+			return n, err
+		}
+		if _, err := e.Write(b[:nr]); err != nil {
+			return n, err
+		}
+	}
+}
+
 func (e *Encrypter) Seek(offset int64, whence int) (ret int64, err error) {
 	if w, ok := e.W.(io.WriteSeeker); ok {
 		ret, err = w.Seek(offset, whence)

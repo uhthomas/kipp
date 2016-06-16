@@ -14,7 +14,7 @@ type server struct {
 func Listen() error {
 	s, r := &server{150 << 20}, mux.NewRouter()
 	r.HandleFunc("/c{slug}", s.View)
-	r.HandleFunc("/_/upload", s.Upload).Methods("POST")
+	r.HandleFunc("/_/upload", s.Upload)
 	r.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir(filepath.Join("_", "public")))))
 	return http.ListenAndServe(":1337", r)
 }

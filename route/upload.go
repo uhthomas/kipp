@@ -15,6 +15,14 @@ import (
 )
 
 func (s *server) Upload(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	switch {
+	case r.Method == http.MethodOptions:
+		return
+	case r.Method != http.MethodPost:
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
 	if r.ContentLength > s.UploadSize {
 		http.Error(w, http.StatusText(http.StatusRequestEntityTooLarge), http.StatusRequestEntityTooLarge)
 		return

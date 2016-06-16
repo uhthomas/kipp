@@ -44,7 +44,7 @@ body {
   height: 200px;
   box-sizing: border-box;
   padding: 20px;
-  font-size: 25px;
+  font-size: 20px;
   text-align: center;
   cursor: pointer;
   user-select: none;
@@ -185,6 +185,11 @@ body {
   width: 100%;
 }
 
+.files .file[state="uploading"] .info .status,
+.files .file[state="zipping"] .info .status {
+  font-size: 20px!important;
+}
+
 .files .file * {
   color: white;
   -webkit-transition: all .2s ease;
@@ -212,7 +217,7 @@ body {
 }
 
 .files .file .info .head .meta {
-  font-size: 25px;
+  font-size: 20px;
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -241,6 +246,11 @@ body {
   /*line-height: 46px;*/
   text-align: right;
   flex-shrink: 0;
+  -webkit-transition: font-size 1ms;
+  -moz-transition: font-size 1ms;
+  -ms-transition: font-size 1ms;
+  -o-transition: font-size 1ms;
+  transition: font-size 1ms;
 }
 
 .files .file .info .progress {

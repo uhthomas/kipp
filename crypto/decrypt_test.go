@@ -6,36 +6,36 @@ import (
 	"crypto/cipher"
 	"io"
 	"io/ioutil"
+	"os"
 	"testing"
 )
 
 type decryptTest struct {
-	key, iv, data []byte
+	key, iv []byte
+	r       io.ReadSeeker
 }
 
 var decrypt decryptTest
 
 func init() {
-	b, err := Random((50 << 20) + 48)
+	b, err := Random((5 << 20) + 48)
 	if err != nil {
 		panic(err)
 	}
-	decrypt = decryptTest{b[:32], b[32:48], b[48:]}
+	key, iv := b[:32], b[32:48]
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err)
+	}
+	newCTR(block, iv).XORKeyStream(b[48:], b[48:])
+	decrypt = decryptTest{key, iv, bytes.NewReader(b[48:])}
 }
 
 func BenchmarkDecrypter(b *testing.B) {
-	var buf bytes.Buffer
-	e, err := NewEncrypter(&buf, decrypt.key, decrypt.iv)
-	if err != nil {
-		b.Fatal(err)
-	}
-	if _, err := io.Copy(e, bytes.NewReader(decrypt.data)); err != nil {
-		b.Fatal(err)
-	}
 	b.SetBytes(5 << 20)
-	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		d, err := NewDecrypter(&buf, decrypt.key, decrypt.iv)
+		decrypt.r.Seek(0, os.SEEK_SET)
+		d, err := NewDecrypter(decrypt.r, decrypt.key, decrypt.iv)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -46,23 +46,14 @@ func BenchmarkDecrypter(b *testing.B) {
 }
 
 func BenchmarkStdDecrypter(b *testing.B) {
-	var buf bytes.Buffer
-	block, err := aes.NewCipher(decrypt.key)
-	if err != nil {
-		b.Fatal(err)
-	}
-	s := &cipher.StreamWriter{S: cipher.NewCTR(block, decrypt.iv), W: &buf}
-	if _, err := io.Copy(s, bytes.NewReader(decrypt.data)); err != nil {
-		b.Fatal(err)
-	}
 	b.SetBytes(5 << 20)
-	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
+		decrypt.r.Seek(0, os.SEEK_SET)
 		block, err := aes.NewCipher(decrypt.key)
 		if err != nil {
 			b.Fatal(err)
 		}
-		r := &cipher.StreamReader{S: cipher.NewCTR(block, decrypt.iv), R: &buf}
+		r := &cipher.StreamReader{S: cipher.NewCTR(block, decrypt.iv), R: decrypt.r}
 		if _, err := io.Copy(ioutil.Discard, r); err != nil {
 			b.Fatal(err)
 		}

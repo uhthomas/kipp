@@ -24,6 +24,23 @@ func (d *Decrypter) Read(p []byte) (n int, err error) {
 	return
 }
 
+func (d *Decrypter) WriteTo(w io.Writer) (n int64, err error) {
+	b := make([]byte, 0, 32<<10)
+	for {
+		nr, err := d.Read(b[:cap(b)])
+		n += int64(nr)
+		switch {
+		case err == io.EOF:
+			return n, nil
+		case err != nil:
+			return n, err
+		}
+		if _, err := w.Write(b[:nr]); err != nil {
+			return n, err
+		}
+	}
+}
+
 func (d *Decrypter) Seek(offset int64, whence int) (ret int64, err error) {
 	if r, ok := d.R.(io.ReadSeeker); ok {
 		ret, err = r.Seek(offset, whence)

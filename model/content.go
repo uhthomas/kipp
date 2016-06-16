@@ -1,10 +1,11 @@
 package model
 
 import (
+	"conf/crypto"
+	"encoding/hex"
 	"time"
 
 	"github.com/jinzhu/gorm"
-	"github.com/rs/xid"
 )
 
 type Content struct {
@@ -20,5 +21,7 @@ type Content struct {
 }
 
 func (c *Content) BeforeCreate(tx *gorm.DB) {
-	c.Slug = xid.New().String()
+	// c.Slug = xid.New().String()
+	b, _ := crypto.Random(10)
+	c.Slug = hex.EncodeToString(b)
 }

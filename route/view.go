@@ -4,10 +4,13 @@ import (
 	"conf/crypto"
 	"conf/model"
 	"fmt"
+	"math"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -29,7 +32,11 @@ func (s *server) View(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if c.Expires != nil {
+		w.Header().Set("Cache-Control", fmt.Sprintf("private, max-age=%d", int(math.Abs(time.Since(*c.Expires).Seconds()))))
+	}
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("filename=%q", c.Name))
+	w.Header().Set("Etag", strconv.Quote(c.Hash))
 	http.ServeContent(w, r, c.Name, c.CreatedAt, d)
 }

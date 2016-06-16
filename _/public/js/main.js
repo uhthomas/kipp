@@ -46,7 +46,7 @@ function upload(files) {
     }
 
     var zip = new JSZip();
-    var c = create(new File([], 'bundle.zip'));
+    var c = create(new Blob());
     c.setState('zipping');
     c.setMessage('zipping');
     var bytes = 0;
@@ -58,10 +58,7 @@ function upload(files) {
       var blob = zip.generate({
         type: 'blob'
       });
-      c.setFile(new File([blob], 'bundle-' + ('00000' + Math.random().toString(36)).slice(-5) + '.zip', {
-        type: 'application/zip',
-        lastModified: (new Date()).getTime()
-      }));
+      c.setFile(blob, 'bundle-' + ('00000' + Math.random().toString(36)).slice(-5) + '.zip');
       c.hideMessage();
       c.upload();
     }
@@ -120,7 +117,8 @@ var contents = [];
 function content(file) {
   var self = this;
 
-  self.__file_ = void 0;
+  self.__file__ = void 0;
+  self.__name__ = void 0;
   self.image = void 0;
   self.state = 'uploading';
   self.progress = 0;
@@ -218,13 +216,14 @@ function content(file) {
     return f();
   }
 
-  self.setFile = function(file) {
+  self.setFile = function(file, name) {
     self.__file__ = file;
-    self.setName(file.name);
+    self.setName(name || file.name);
     self.setSize(file.size);
   }
 
   self.setName = function(name) {
+    self.__name__ = name;
     self.element.find('.meta .name').text(name);
   }
 
@@ -283,7 +282,7 @@ function content(file) {
     self.setProgress(0);
 
     var data = new FormData();
-    data.append('file', self.__file__);
+    data.append('file', self.__file__, self.__name__);
     var req = new XMLHttpRequest();
     req.upload.onprogress = function(e) {
       if (!e.lengthComputable) return;
