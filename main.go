@@ -1,13 +1,14 @@
 package main
 
 import (
-	"conf/route"
-	_ "conf/worker"
 	"encoding/json"
 	"log"
 	"mime"
 	"os"
 	"path/filepath"
+
+	"github.com/6f7262/conf/route"
+	_ "github.com/6f7262/conf/worker"
 )
 
 func initmimes() error {
