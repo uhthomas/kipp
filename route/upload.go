@@ -63,12 +63,12 @@ func (s *server) Upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	k, iv, h := k[:32], k[32:], sha256.New()
-	e, err := crypto.NewEncrypter(tf, k, iv)
+	cw, err := crypto.NewWriter(tf, k, iv)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	n, err := io.Copy(io.MultiWriter(e, h), http.MaxBytesReader(w, f, s.UploadSize))
+	n, err := io.Copy(io.MultiWriter(cw, h), http.MaxBytesReader(w, f, s.UploadSize))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

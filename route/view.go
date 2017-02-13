@@ -28,7 +28,7 @@ func (s *server) View(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	d, err := crypto.NewDecrypter(f, c.Key, c.IV)
+	cr, err := crypto.NewReader(f, c.Key, c.IV)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -39,5 +39,5 @@ func (s *server) View(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("filename=%q", c.Name))
 	w.Header().Set("Etag", strconv.Quote(c.Hash))
-	http.ServeContent(w, r, c.Name, c.CreatedAt, d)
+	http.ServeContent(w, r, c.Name, c.CreatedAt, cr)
 }
