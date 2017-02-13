@@ -23,7 +23,7 @@ func (s *server) View(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
-	f, err := os.Open(filepath.Join("_", "files", c.Hash))
+	f, err := os.Open(filepath.Join("_/files", c.Hash))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

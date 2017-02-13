@@ -51,7 +51,7 @@ func (s *server) Upload(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	tf, err := ioutil.TempFile(filepath.Join("_", "tmp"), "conf-upload")
+	tf, err := ioutil.TempFile(filepath.Join("_/files/tmp"), "conf-upload")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -76,7 +76,7 @@ func (s *server) Upload(w http.ResponseWriter, r *http.Request) {
 	hs := hex.EncodeToString(h.Sum(nil))
 	var c model.Content
 	if model.DB.First(&c, "hash = ?", hs).RecordNotFound() {
-		if err := os.Rename(tf.Name(), filepath.Join("_", "files", hs)); err != nil {
+		if err := os.Rename(tf.Name(), filepath.Join("_/files", hs)); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

@@ -36,9 +36,8 @@ func check(err error) {
 }
 
 func main() {
-	check(os.MkdirAll(filepath.Join("_", "files"), 0777))
-	check(os.RemoveAll(filepath.Join("_", "tmp")))
-	check(os.MkdirAll(filepath.Join("_", "tmp"), 0777))
+	check(os.RemoveAll("_/files/tmp"))
+	check(os.MkdirAll("_/files/tmp", 0777))
 	check(initmimes())
 	check(route.Listen())
 }
