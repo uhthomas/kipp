@@ -1,13 +1,14 @@
 package worker
 
 import (
-	"conf/model"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"sync"
 	"time"
+
+	"github.com/6f7262/conf/model"
 )
 
 func init() {

@@ -1,8 +1,6 @@
 package route
 
 import (
-	"conf/crypto"
-	"conf/model"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -12,6 +10,9 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/6f7262/conf/crypto"
+	"github.com/6f7262/conf/model"
 )
 
 func (s *server) Upload(w http.ResponseWriter, r *http.Request) {
@@ -22,8 +23,7 @@ func (s *server) Upload(w http.ResponseWriter, r *http.Request) {
 	case r.Method != http.MethodPost:
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
-	}
-	if r.ContentLength > s.UploadSize {
+	case r.ContentLength > s.UploadSize:
 		http.Error(w, http.StatusText(http.StatusRequestEntityTooLarge), http.StatusRequestEntityTooLarge)
 		return
 	}

@@ -42,8 +42,8 @@ func (d *Decrypter) WriteTo(w io.Writer) (n int64, err error) {
 }
 
 func (d *Decrypter) Seek(offset int64, whence int) (ret int64, err error) {
-	if r, ok := d.R.(io.ReadSeeker); ok {
-		ret, err = r.Seek(offset, whence)
+	if s, ok := d.R.(io.Seeker); ok {
+		ret, err = s.Seek(offset, whence)
 		d.seek(ret)
 	}
 	return

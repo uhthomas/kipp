@@ -1,8 +1,6 @@
 package route
 
 import (
-	"conf/crypto"
-	"conf/model"
 	"fmt"
 	"math"
 	"net/http"
@@ -11,6 +9,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/6f7262/conf/crypto"
+	"github.com/6f7262/conf/model"
 
 	"github.com/gorilla/mux"
 )

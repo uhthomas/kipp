@@ -1,9 +1,10 @@
 package model
 
 import (
-	"conf/crypto"
 	"encoding/hex"
 	"time"
+
+	"github.com/6f7262/conf/crypto"
 
 	"github.com/jinzhu/gorm"
 )

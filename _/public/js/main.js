@@ -47,33 +47,58 @@ function upload(files) {
 
     var zip = new JSZip();
     var c = create(new Blob());
+    c.setName('bundle.zip');
     c.setState('zipping');
     c.setMessage('zipping');
+    // var bytes = 0;
+    // var count = 0;
+    // function done() {
+    //   c.setSize(bytes);
+    //   c.setProgress(count / files.length * 100);
+    //   if (++count !== files.length) return;
+    //   var blob = zip.generate({
+    //     type: 'blob'
+    //   });
+    //   c.setFile(blob, 'bundle-' + ('00000' + Math.random().toString(36)).slice(-5) + '.zip');
+    //   c.hideMessage();
+    //   c.upload();
+    // }
+
+    // for (var i = 0; i < files.length; i++) (function(i) {
+    //   var file = files[i];
+    //   c.setImage(file, true);
+    //   var r = new FileReader();
+    //   r.onload = function(e) {
+    //     bytes += e.total;
+    //     zip.file(file.name, this.result);
+    //     done();
+    //   }
+    //   r.readAsArrayBuffer(file);
+    // })(i);
+
     var bytes = 0;
     var count = 0;
-    function done() {
-      c.setSize(bytes);
-      c.setProgress(count / files.length * 100);
-      if (++count !== files.length) return;
-      var blob = zip.generate({
-        type: 'blob'
-      });
-      c.setFile(blob, 'bundle-' + ('00000' + Math.random().toString(36)).slice(-5) + '.zip');
-      c.hideMessage();
-      c.upload();
-    }
-
-    for (var i = 0; i < files.length; i++) (function(i) {
-      var file = files[i];
+    var q = async.queue(function(file, callback) {
       c.setImage(file, true);
       var r = new FileReader();
       r.onload = function(e) {
-        bytes += e.total;
-        zip.file(file.name, this.result);
-        done();
+        callback(file, this.result);
       }
       r.readAsArrayBuffer(file);
-    })(i);
+    }, 5);
+    q.drain = function() {
+      var blob = zip.generate({
+        type: 'blob'
+      });
+      c.setFile(blob, `bundle-${randomString(10)}.zip`);
+      c.hideMessage()
+      c.upload();
+    }
+    q.push($.makeArray(files), function(file, result) {
+      zip.file(file.name, result);
+      c.setSize(bytes += result.byteLength);
+      c.setProgress((++count) / files.length * 100);
+    });
   });
 }
 
@@ -123,6 +148,8 @@ function content(file) {
   self.state = 'uploading';
   self.progress = 0;
   self.message = '';
+  self.expires = void 0;
+  self.expired = false;
 
   self.element = $(`
     <a class="file" state="uploading" target="_blank">
@@ -160,7 +187,9 @@ function content(file) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0);
-        self.setImage(URIBlob(canvas.toDataURL('image/png', 1)), false, true);
+        canvas.toBlob(function(blob) {
+          self.setImage(blob, false, true);
+        }, 'image/png', 1);
         URL.revokeObjectURL(u);
       }
       video.src = u;
@@ -190,15 +219,17 @@ function content(file) {
       img.onload = function() {
         var canvas = document.createElement('canvas');
         canvas.width = 800;
-        canvas.height = Math.min(canvas.width / (16 / 19), canvas.width / (this.width / this.height));
+        canvas.height = Math.min(canvas.width / (16 / 9), canvas.width / (this.width / this.height));
         canvas.getContext('2d').drawImage(this, 0, 0, canvas.width, canvas.width / (this.width / this.height));
         URL.revokeObjectURL(u);
-        var u = URL.createObjectURL(URIBlob(canvas.toDataURL('image/png', 1)));
-        self.element.css('background-image', `url(${u})`).attr('large', true);
-        var img = new Image();
-        img.src = u;
-        self.image = img;
-        self.processingImage = false;
+        canvas.toBlob(function(blob) {
+          var u = URL.createObjectURL(blob);
+          self.element.css('background-image', `url(${u})`).attr('large', true);
+          var img = new Image();
+          img.src = u;
+          self.image = img;
+          self.processingImage = false;
+        }, 'image/png', 1);
       }
       img.src = u;
     }
@@ -218,7 +249,7 @@ function content(file) {
 
   self.setFile = function(file, name) {
     self.__file__ = file;
-    self.setName(name || file.name);
+    self.setName(name || file.name || 'unknown');
     self.setSize(file.size);
   }
 
@@ -231,9 +262,10 @@ function content(file) {
     self.element.find('.meta .size').text(filesize(size));
   }
 
-  self.setProgress = function(progress) {
+  self.setProgress = function(progress) {    
     progress = Math.min(progress, 100);
     self.progress = progress;
+    if (self.state === 'complete') return;
     self.element.find('.progress').css('width', progress + '%');
     if (['uploading', 'zipping'].indexOf(self.state) === -1) return;
     self.element.find('.head .status').text(~~progress);
@@ -349,9 +381,10 @@ function content(file) {
       var res = JSON.parse(req.responseText);
       var ext = res.name.split('.').splice(-1) != res.name ? res.name.split('.').splice(-1) : '';
       self.element.attr('href', '/c' + res.slug + res.extension);
+      self.expires = res.expires && new Date(res.expires);
     }
 
-    req.open('POST', '/_/upload', true);
+    req.open('POST', '/_/upload' + location.search, true);
     try { req.send(data); } catch(e) { console.warn(e); }
   }
 
@@ -360,26 +393,17 @@ function content(file) {
   return self;
 }
 
-function URIBlob(uri) {
-  var byteString = (uri.split(',')[0].indexOf('base64') >= 0)
-    ? atob(uri.split(',')[1])
-    : unescape(uri.split(',')[1]);
-  var mimeString = uri.split(',')[0].split(':')[1].split(';')[0];
-  var ia = new Uint8Array(byteString.length);
-  for (var i = 0; i < byteString.length; i++) {
-      ia[i] = byteString.charCodeAt(i);
-  }
-  return new Blob([ia], {type:mimeString});
-}
-
-window.URL = (URL || webkitURL);
-window.requestAnimationFrame = requestAnimationFrame || webkitRequestAnimationFrame;
-
 (function() {
   function isVisible(elm) {
     var rect = elm.getBoundingClientRect();
     var viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight);
     return !(rect.bottom < 0 || rect.top - viewHeight >= 0);
+  }
+  function expire(c) {
+    c.expired = true;
+    c.setState('error');
+    c.setMessage('Expired');
+    c.element.removeAttr('href');
   }
   function sizer() {
     requestAnimationFrame(sizer);
@@ -389,14 +413,61 @@ window.requestAnimationFrame = requestAnimationFrame || webkitRequestAnimationFr
         c.element.removeClass('hidden');
       else
         c.element.addClass('hidden');
+      if (c.expires && !c.expired && c.expires < new Date()) expire(c);
       var img = c.image;
       if (!img) continue;
       var w = c.element.width();
       var h = ($(window).height() - 300) / Math.min(3, contents.length);
       h = Math.min(h - 10, w / (img.width / img.height));
-      if (~~c.element.height() === ~~h)  continue;
-      c.element.css('min-height', h);
+      if ((c.element.height()|0) === (h|0)) continue;
+      c.element.css('min-height', h + 'px');
     }
   }
   sizer();
 })();
+
+function random(n) {
+  var arr = new Uint8Array(n);
+  if (crypto)
+    crypto.getRandomValues(arr);
+  else
+    for (var i = 0; i < n; i++)
+      arr[i] = (Math.random() * 256)|0;
+  return arr;
+}
+
+function randomString(n) {
+  return random(n).reduce(function(prev, cur) {
+    return prev + cur.toString(16);
+  });
+}
+
+window.URL = (URL || webkitURL);
+window.requestAnimationFrame = requestAnimationFrame || webkitRequestAnimationFrame;
+window.HTMLCanvasElement.prototype.toBlob = HTMLCanvasElement.prototype.toBlob || function(callback, mimeType, qualityArgument) {
+  var uri = this.toDataURL(mimeType, qualityArgument);
+  var byteString = (uri.split(',')[0].indexOf('base64') >= 0)
+    ? atob(uri.split(',')[1])
+    : unescape(uri.split(',')[1]);
+  var mimeString = uri.split(',')[0].split(':')[1].split(';')[0];
+  var ia = new Uint8Array(byteString.length);
+  for (var i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+  }
+  callback(new Blob([ia], {type:mimeString}));
+}
+
+
+
+
+
+
+
+// $('.modal').opentip('TEST', {
+//     showOn: 'mouseover',
+//     tipJoint: 'top',
+//     borderColor: '#323742',
+//     background: '#323742',
+//     className: 'conf',
+//     target: true
+// });

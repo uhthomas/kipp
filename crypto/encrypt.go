@@ -42,8 +42,8 @@ func (e *Encrypter) ReadFrom(r io.Reader) (n int64, err error) {
 }
 
 func (e *Encrypter) Seek(offset int64, whence int) (ret int64, err error) {
-	if w, ok := e.W.(io.WriteSeeker); ok {
-		ret, err = w.Seek(offset, whence)
+	if s, ok := e.W.(io.Seeker); ok {
+		ret, err = s.Seek(offset, whence)
 		e.seek(ret)
 	}
 	return

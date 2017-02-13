@@ -34,7 +34,7 @@ body {
   max-height: 100%;
 }
 
-.modal {
+.dropzone {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -58,18 +58,18 @@ body {
   opacity: .6;
 }
 
-.modal::after {
+.dropzone::after {
   content: 'Drag and drop a file or click here to upload';
 }
 
-.modal.hover,
-.modal:hover {
+.dropzone.hover,
+.dropzone:hover {
   background: #323742;
   opacity: 1;
   box-shadow: rgba(0, 0, 0, 0.298039) 0px 19px 60px, rgba(0, 0, 0, 0.219608) 0px 15px 20px;
 }
 
-.modal .hidden {
+.dropzone .hidden {
   opacity: 0;
   position: absolute;
   top: 0;
@@ -315,56 +315,59 @@ body {
   display: flex;
   box-sizing: border-box;
   padding: 20px;
+  display: none;
 }
 
 .confirmation {
+  padding: 20px;
   background: #282c35;
-  border-radius: 2px;
+  border-radius: 5px;
   color: #f2f2f2;
   margin: auto;
-  overflow: hidden;
 }
 
 .confirmation .title {
-  font-size: 18px;
+  font-size: 22px;
   width: 100%;
   box-sizing: border-box;
   text-align: center;
-  padding: 24px;
-  color: #eee;
 }
 
 .confirmation .buttons {
   display: flex;
+  margin-top: 50px;
 }
 
 .confirmation .button {
   flex: 1;
-  height: 48px;
-  padding: 16px;
+  margin: 10px;
+  padding: 20px;
   text-align: center;
   font-size: 16px;
   cursor: pointer;
+  border-radius: 2px;
   box-sizing: border-box;
-  -webkit-transition: background-color .2s ease;
-  -ms-transition: background-color .2s ease;
-  transition: background-color .2s ease;
-  text-transform: uppercase;
+  -webkit-transition: all .2s ease;
+  -ms-transition: all .2s ease;
+  transition: all .2s ease;
 }
 
-.confirmation .button:hover {
-  background-color: rgba(0,0,0,0.25);
-}
+/*.confirmation .button:hover {
+  background: rgba(0,0,0,0.1);
+}*/
 
 .confirmation .button.yes {
-  color: #2196f3;
-}
-.confirmation .button.no {
-  color: #FF5722;
+  border: 1px solid #2196f3;
 }
 
-.opentip-container.style-conf .opentip {
-    color: white;
-    text-shadow: none;
-    box-shadow: rgba(0, 0, 0, 0.156863) 0px 3px 10px, rgba(0, 0, 0, 0.227451) 0px 3px 10px;
+.confirmation .button.yes:hover {
+  background: #2196f3;
+}
+
+.confirmation .button.no {
+  border: 1px solid #FF5722;
+}
+
+.confirmation .button.no:hover {
+  background: #FF5722;
 }
