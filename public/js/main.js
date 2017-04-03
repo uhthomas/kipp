@@ -380,11 +380,11 @@ function content(file) {
       self.setProgress(100);
       var res = JSON.parse(req.responseText);
       var ext = res.name.split('.').splice(-1) != res.name ? res.name.split('.').splice(-1) : '';
-      self.element.attr('href', '/c' + res.slug + res.extension);
+      self.element.attr('href', res.slug + res.extension);
       self.expires = res.expires && new Date(res.expires);
     }
 
-    req.open('POST', '/_/upload' + location.search, true);
+    req.open('POST', '/upload' + location.search, true);
     try { req.send(data); } catch(e) { console.warn(e); }
   }
 
