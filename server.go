@@ -38,7 +38,7 @@ func (s Server) Cleanup() error {
 		if err != nil {
 			return err
 		}
-		if filepath.Dir(path) != s.FilePath {
+		if f.IsDir() || filepath.Dir(path) != s.FilePath {
 			return nil
 		}
 		if !s.DB.Where("hash = ?", f.Name()).Find(&Content{}).RecordNotFound() {

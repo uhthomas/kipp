@@ -32,7 +32,7 @@ type Content struct {
 	Model
 	Name      string     `json:"name"`
 	Extension string     `json:"extension"`
-	Slug      string     `json:"slug"`
+	Slug      string     `json:"slug" sql:"unique"`
 	Hash      string     `json:"hash"`
 	Size      int64      `json:"size"`
 	Expires   *time.Time `json:"expires"`
