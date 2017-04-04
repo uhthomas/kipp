@@ -28,11 +28,3 @@ Flags:
 ### Notes
 * FilePath and TempPath must be located on the same drive as conf uploads files to it's TempPath and then will move that file to the FilePath.
 * It is **Highly** Recommended that extra mime types are added as go's standard set of types is very limited. This can be done by running conf with `--mime /path/to/mime.json`
-* conf's default structure looks like:
-```
-conf/
-	files/
-		tmp/
-	public/
-	mime.json
-```
