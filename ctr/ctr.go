@@ -52,13 +52,6 @@ func (x *ctr) seek(offset int64) {
 		c >>= 8
 	}
 
-	// // slow but clear
-	// b := &big.Int{}
-	// x.ctr = b.SetBytes(x.iv).
-	// 	Add(b, big.NewInt(offset/int64(x.b.BlockSize()))).
-	// 	Bytes()
-	// x.ctr = append(make([]byte, x.b.BlockSize()-len(x.ctr)), x.ctr...)
-
 	x.outUsed = len(x.out)
 	x.refill()
 	x.outUsed = int(offset) % x.b.BlockSize()

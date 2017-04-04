@@ -46,7 +46,7 @@ func loadMimeTypes(path string) error {
 	}
 	for k, v := range m {
 		for _, vv := range v {
-			mime.AddExtensionType(k, vv)
+			mime.AddExtensionType(vv, k)
 		}
 	}
 	return nil
