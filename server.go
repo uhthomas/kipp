@@ -31,7 +31,7 @@ type Server struct {
 // Cleanup will delete expired content and remove files associated with it as
 // long as it is not used by any other content.
 func (s Server) Cleanup() error {
-	if err := s.DB.Delete(Content{}, "expires < ?", time.Now()).Error; err != nil {
+	if err := s.DB.Delete(&Content{}, "expires < ?", time.Now()).Error; err != nil {
 		return err
 	}
 	return filepath.Walk(s.FilePath, func(path string, f os.FileInfo, err error) error {
@@ -41,7 +41,7 @@ func (s Server) Cleanup() error {
 		if filepath.Dir(path) != s.FilePath {
 			return nil
 		}
-		if !s.DB.Where("hash = ?", f.Name()).Find(Content{}).RecordNotFound() {
+		if !s.DB.Where("hash = ?", f.Name()).Find(&Content{}).RecordNotFound() {
 			return nil
 		}
 		return os.Remove(filepath.Join(s.FilePath, f.Name()))
@@ -58,7 +58,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case hasPrefix("/upload"):
 		s.UploadHandler(w, r)
 	case r.URL.Path == "/", hasPrefix("/css"), hasPrefix("/fonts"), hasPrefix("/js"):
-		http.ServeFile(w, r, path.Join("public", r.URL.Path))
+		http.ServeFile(w, r, path.Join(s.PublicPath, r.URL.Path))
 	default:
 		s.ContentHandler(w, r)
 	}
@@ -143,6 +143,8 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	// If the file is uploaded successfully and renamed this operation will fail.
+	defer os.Remove(tf.Name())
 	defer tf.Close()
 	// Generate a random key and iv. key + iv + slug = 32 + 16 + 10
 	k := make([]byte, 58)
@@ -171,7 +173,6 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		k, iv = c.Key, c.IV
-		defer os.Remove(tf.Name())
 	}
 	c = Content{
 		Name:      name,
