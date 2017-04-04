@@ -4,9 +4,7 @@ A secure, temporary file storage site.
 ## Usage
 ```
 $ go get github.com/6f7262/conf
-$ mkdir conf
-$ cp $GOPATH/src/github.com/6f7262/conf/public conf/public
-$ cp $GOPATH/src/github.com/6f7262/conf/mime.json conf/mime.json
+$ cp -r $GOPATH/src/github.com/6f7262/conf/default conf
 $ conf --mime="conf/mime.json"
 ```
 
