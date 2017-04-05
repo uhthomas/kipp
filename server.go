@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"math"
+	"mime"
 	"net/http"
 	"os"
 	"path"
@@ -88,12 +89,23 @@ func (s Server) ContentHandler(w http.ResponseWriter, r *http.Request) {
 		d := int(math.Abs(time.Since(*c.Expires).Seconds()))
 		w.Header().Set("Cache-Control", fmt.Sprintf("private, max-age=%d", d))
 	}
-	// Don't serve html files
-	if ext := filepath.Ext(c.Name); strings.HasPrefix(ext, ".htm") {
-		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	// Detect content type before serving content to filter html files
+	ctype := mime.TypeByExtension(filepath.Ext(c.Name))
+	if ctype == "" {
+		var b [512]byte
+		n, _ := io.ReadFull(cr, b[:])
+		ctype = http.DetectContentType(b[:n])
+		if _, err := cr.Seek(0, io.SeekStart); err != nil {
+			http.Error(w, "seeker can't seek", http.StatusInternalServerError)
+		}
+	}
+	// catches text/html and text/html; charset=utf-8
+	if strings.HasPrefix(ctype, "text/html") {
+		ctype = "text/plain; charset=utf-8"
 	}
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("filename=%q", c.Name))
+	w.Header().Set("Content-Type", ctype)
 	w.Header().Set("Etag", strconv.Quote(c.Hash))
 	http.ServeContent(w, r, c.Name, c.CreatedAt, cr)
 }
