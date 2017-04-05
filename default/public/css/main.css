@@ -9,7 +9,7 @@ html, body {
 }
 
 body {
-  background: #31343d;
+  background: #212121;
   font-family: 'Roboto', arial, sans-serif;
   color: white;
   display: flex;
@@ -64,7 +64,7 @@ body {
 
 .modal.hover,
 .modal:hover {
-  background: #3b3e48;
+  background: #303030;
   opacity: 1;
   box-shadow: rgba(0, 0, 0, 0.298039) 0px 19px 60px, rgba(0, 0, 0, 0.219608) 0px 15px 20px;
 }
@@ -94,14 +94,13 @@ body {
   background-position: center;
   background-repeat: no-repeat;
   margin-bottom: 10px;
-  background-color: #3b3e48;
+  background-color: #303030;
   flex-direction: column;
   text-decoration: none;
   color: white;
   outline: 0;
   height: 0;
   box-shadow: rgba(0, 0, 0, 0.156863) 0px 3px 10px, rgba(0, 0, 0, 0.227451) 0px 3px 10px;
-  opacity: .6;
 }
 
 .files .file:first-child {
@@ -110,7 +109,7 @@ body {
 
 .files .file:hover {
   box-shadow: rgba(0, 0, 0, 0.298039) 0px 19px 60px, rgba(0, 0, 0, 0.219608) 0px 15px 20px;
-  opacity: 1;
+  background: #424242;
 }
 
 .files .file.hidden {
@@ -318,7 +317,7 @@ body {
 }
 
 .confirmation {
-  background: #31343d;
+  background: #212121;
   border-radius: 2px;
   color: #f2f2f2;
   margin: auto;
