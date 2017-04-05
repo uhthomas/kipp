@@ -88,6 +88,10 @@ func (s Server) ContentHandler(w http.ResponseWriter, r *http.Request) {
 		d := int(math.Abs(time.Since(*c.Expires).Seconds()))
 		w.Header().Set("Cache-Control", fmt.Sprintf("private, max-age=%d", d))
 	}
+	// Don't serve html files
+	if ext := filepath.Ext(c.Name); strings.HasPrefix(ext, ".htm") {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	}
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("filename=%q", c.Name))
 	w.Header().Set("Etag", strconv.Quote(c.Hash))
@@ -158,7 +162,7 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	// Hash the file and create the save the content model.
+	// Hash the file then create and save the content model.
 	n, err := io.Copy(io.MultiWriter(cw, h), http.MaxBytesReader(w, f, s.Max))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
