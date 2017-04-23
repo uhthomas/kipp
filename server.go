@@ -24,6 +24,7 @@ import (
 // Server is used to serve http requests and acts as a config.
 type Server struct {
 	DB         *DB
+	Expiration time.Duration
 	Max        int64
 	FilePath   string
 	TempPath   string
@@ -216,8 +217,8 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		Key:       k,
 		IV:        iv,
 	}
-	if r.URL.Query().Get("permanent") != "true" {
-		e := time.Now().Add(24 * time.Hour)
+	if s.Expiration > 0 && r.URL.Query().Get("permanent") != "true" {
+		e := time.Now().Add(s.Expiration)
 		c.Expires = &e
 	}
 	if err := s.DB.Create(&c).Error; err != nil {

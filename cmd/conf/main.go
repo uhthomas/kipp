@@ -74,6 +74,10 @@ func main() {
 		Flag("mime", "A json formatted collection of extensions and mime types.").
 		String()
 	kingpin.
+		Flag("expiration", "File expiration time.").
+		Default("24h").
+		DurationVar(&s.Expiration)
+	kingpin.
 		Flag("max", "The maximum file size limit for uploads.").
 		Default("150MB").
 		BytesVar((*units.Base2Bytes)(&s.Max))
@@ -115,8 +119,10 @@ func main() {
 	}
 
 	// Start cleanup worker
-	w := worker(*cleanupInterval)
-	go w.Do(context.Background(), s.Cleanup)
+	if s.Expiration > 0 {
+		w := worker(*cleanupInterval)
+		go w.Do(context.Background(), s.Cleanup)
+	}
 
 	// Output a message so users know when the server has been started.
 	log.Printf("Listening on %s", *addr)
