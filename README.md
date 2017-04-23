@@ -22,18 +22,16 @@ $ conf --help
 usage: conf [<flags>]
 
 Flags:
-  --help                        Show context-sensitive help (also try --help-long and
-                                --help-man).
-  --addr=":1337"                Server listen address.
-  --cleanup-interval=5m         Cleanup interval for deleting expired file
-  --driver="sqlite3"            Available database drivers: mysql, postgres, sqlite3 and mssql
-  --driver-source="conf.db"  
-                                Database driver source. mysql example: user:pass@/database
-  --mime="mime.json"       A json formatted collection of extensions and mime types.
-  --max=150MB                   The maximum file size
-  --file-path="files"      The path to store uploaded files
-  --temp-path="files/tmp"  The path to store uploading files
-  --public-path="public"   The path where web resources are located.
+  --help                     Show context-sensitive help (also try --help-long and --help-man).
+  --addr=":1337"             Server listen address.
+  --cleanup-interval=5m      Cleanup interval for deleting expired file
+  --driver="sqlite3"         Available database drivers: mysql, postgres, sqlite3 and mssql
+  --driver-source="conf.db"  Database driver source. mysql example: user:pass@/database
+  --mime="mime.json"         A json formatted collection of extensions and mime types.
+  --max=150MB                The maximum file size
+  --file-path="files"        The path to store uploaded files
+  --temp-path="files/tmp"    The path to store uploading files
+  --public-path="public"     The path where web resources are located.
 ```
 
 ## Notes
