@@ -59,15 +59,15 @@ func main() {
 		Default(":1337").
 		String()
 	cleanupInterval := kingpin.
-		Flag("cleanup-interval", "Cleanup interval for deleting expired file").
+		Flag("cleanup-interval", "Cleanup interval for deleting expired files.").
 		Default("5m").
 		Duration()
 	driver := kingpin.
-		Flag("driver", "Available database drivers: mysql, postgres, sqlite3 and mssql").
+		Flag("driver", "Available database drivers: mysql, postgres, sqlite3 and mssql.").
 		Default("sqlite3").
 		String()
 	driverSource := kingpin.
-		Flag("driver-source", "Database driver source. mysql example: user:pass@/database").
+		Flag("driver-source", "Database driver source. mysql example: user:pass@/database.").
 		Default("conf.db").
 		String()
 	mime := kingpin.
@@ -75,15 +75,15 @@ func main() {
 		Default("mime.json").
 		String()
 	kingpin.
-		Flag("max", "The maximum file size").
+		Flag("max", "The maximum file size limit for uploads.").
 		Default("150MB").
 		BytesVar((*units.Base2Bytes)(&s.Max))
 	kingpin.
-		Flag("file-path", "The path to store uploaded files").
+		Flag("file-path", "The path to store uploaded files.").
 		Default("files").
 		StringVar(&s.FilePath)
 	kingpin.
-		Flag("temp-path", "The path to store uploading files").
+		Flag("temp-path", "The path to store uploading files.").
 		Default("files/tmp").
 		StringVar(&s.TempPath)
 	kingpin.
