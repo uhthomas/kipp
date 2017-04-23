@@ -18,22 +18,22 @@ func NewReader(r io.Reader, key, iv []byte) (*Reader, error) {
 	return &Reader{newCTR(b, iv), r}, nil
 }
 
-func (d *Reader) Read(p []byte) (n int, err error) {
-	n, err = d.R.Read(p)
-	d.XORKeyStream(p[:n], p[:n])
+func (r *Reader) Read(p []byte) (n int, err error) {
+	n, err = r.R.Read(p)
+	r.XORKeyStream(p[:n], p[:n])
 	return
 }
 
-func (d *Reader) Seek(offset int64, whence int) (ret int64, err error) {
-	if s, ok := d.R.(io.Seeker); ok {
+func (r *Reader) Seek(offset int64, whence int) (ret int64, err error) {
+	if s, ok := r.R.(io.Seeker); ok {
 		ret, err = s.Seek(offset, whence)
-		d.seek(ret)
+		r.seek(ret)
 	}
 	return
 }
 
-func (d *Reader) Close() (err error) {
-	if c, ok := d.R.(io.Closer); ok {
+func (r *Reader) Close() (err error) {
+	if c, ok := r.R.(io.Closer); ok {
 		err = c.Close()
 	}
 	return
@@ -52,22 +52,22 @@ func NewWriter(w io.Writer, key, iv []byte) (*Writer, error) {
 	return &Writer{newCTR(b, iv), w}, nil
 }
 
-func (e *Writer) Write(b []byte) (n int, err error) {
+func (w *Writer) Write(b []byte) (n int, err error) {
 	c := make([]byte, len(b))
-	e.XORKeyStream(c, b)
-	return e.W.Write(c)
+	w.XORKeyStream(c, b)
+	return w.W.Write(c)
 }
 
-func (e *Writer) Seek(offset int64, whence int) (ret int64, err error) {
-	if s, ok := e.W.(io.Seeker); ok {
+func (w *Writer) Seek(offset int64, whence int) (ret int64, err error) {
+	if s, ok := w.W.(io.Seeker); ok {
 		ret, err = s.Seek(offset, whence)
-		e.seek(ret)
+		w.seek(ret)
 	}
 	return
 }
 
-func (e *Writer) Close() (err error) {
-	if c, ok := e.W.(io.Closer); ok {
+func (w *Writer) Close() (err error) {
+	if c, ok := w.W.(io.Closer); ok {
 		err = c.Close()
 	}
 	return
