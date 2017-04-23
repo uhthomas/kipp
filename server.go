@@ -56,7 +56,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return strings.HasPrefix(r.URL.Path, s)
 	}
 	switch {
-	case hasPrefix("/upload"):
+	case r.URL.Path == "/upload":
 		s.UploadHandler(w, r)
 	case r.URL.Path == "/", hasPrefix("/css"), hasPrefix("/fonts"), hasPrefix("/js"):
 		http.ServeFile(w, r, path.Join(s.PublicPath, r.URL.Path))
@@ -65,14 +65,28 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Content will query the database for the given slug. If the slug doesn't exist it
+// ContentHandler will query the database for the given slug. If the slug doesn't exist it
 // will return 404 otherwise it will decrypt the file and serve it.
 func (s Server) ContentHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET")
+	switch {
+	case r.Method == http.MethodOptions:
+		return
+	case r.Method != http.MethodGet:
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
 	// split the path to allow for extensions
 	slug := strings.Split(r.URL.Path, ".")[0][1:]
 	var c Content
 	if s.DB.First(&c, "slug = ?", slug).RecordNotFound() {
 		http.NotFound(w, r)
+		return
+	}
+	// method not allowed for non GET requests on existing content
+	if r.Method != http.MethodGet {
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
 	f, err := os.Open(filepath.Join(s.FilePath, c.Hash))
@@ -97,26 +111,27 @@ func (s Server) ContentHandler(w http.ResponseWriter, r *http.Request) {
 		ctype = http.DetectContentType(b[:n])
 		if _, err := cr.Seek(0, io.SeekStart); err != nil {
 			http.Error(w, "seeker can't seek", http.StatusInternalServerError)
+			return
 		}
 	}
 	// catches text/html and text/html; charset=utf-8
 	if strings.HasPrefix(ctype, "text/html") {
 		ctype = "text/plain; charset=utf-8"
 	}
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Disposition", fmt.Sprintf("filename=%q", c.Name))
 	w.Header().Set("Content-Type", ctype)
 	w.Header().Set("Etag", strconv.Quote(c.Hash))
 	http.ServeContent(w, r, c.Name, c.CreatedAt, cr)
 }
 
-// Upload serves as a handler for uploading files to conf. It will read the body
+// UploadHandler serves as a handler for uploading files to conf. It will read the body
 // of a http request, generate a blake2 hash and generate a random key and iv,
 // encrypting it using conf/ctr. It will then create the content model
 // and insert it into conf's database before returning that model as the
 // response.
 func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
 	// Reject invalid requests
 	switch {
 	case r.Method == http.MethodOptions:
@@ -143,16 +158,17 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		if err == io.EOF {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
-		} else if err != nil {
+		}
+		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		if name = p.FileName(); name != "" && p.FormName() == "file" {
 			f = p
-			defer f.Close()
 			break
 		}
 	}
+	defer f.Close()
 	// Create temporary file to be used for storing uploads.
 	tf, err := ioutil.TempFile(s.TempPath, "conf-upload")
 	if err != nil {

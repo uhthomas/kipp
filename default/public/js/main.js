@@ -8,26 +8,44 @@ $(document).on({
 
 function drag(e) {
   e.preventDefault();
-  $('.modal').addClass('hover');
+  $('body.ready .modal').addClass('hover');
   return false;
 }
 
 function dragLeave(e) {
   e.preventDefault();
-  $('.modal').removeClass('hover');
+  $('body.ready .modal').removeClass('hover');
   return false;
 }
 
 function drop(e) {
   e.preventDefault();
-  $('.modal').removeClass('hover');
-  upload((e.dataTransfer || e.originalEvent.dataTransfer).files);
+  $('body.ready .modal').removeClass('hover');
+  process(e.dataTransfer || e.originalEvent.dataTransfer);
   return false;
 }
 
 $('input').on('change', function() {
   upload(this.files);
 });
+
+function process(dataTransfer) {
+    if (dataTransfer.files.length) return upload(dataTransfer.files);
+    if (!dataTransfer.items.length) return;
+    var item = dataTransfer.items[0];
+    switch (item.kind) {
+    case 'string':
+        return item.getAsString(function(s) {
+            var b = new Blob([s], { type: 'text/plain' });
+            b.name = `text-${randomString(10)}.txt`;
+            upload([b]);
+        });
+    case 'file':
+        var f = item.getAsFile();
+        f.name = `file-${randomString(10)}.${f.type.split('/')[1]}`;
+        return upload([f]);
+    }
+}
 
 function upload(files) {
   if (!files.length) return;
@@ -37,7 +55,7 @@ function upload(files) {
     return;
   }
 
-  confirm('Would you like to bundle these files into a zip?', function(confirmed) {
+  confirm(function(confirmed) {
     if (!confirmed) {
       for (var i = 0; i < files.length; i++) {
         create(files[i]).upload();
@@ -48,8 +66,8 @@ function upload(files) {
     var zip = new JSZip();
     var c = create(new Blob());
     c.setName('bundle.zip');
-    c.setState('zipping');
-    c.setMessage('zipping');
+    c.setState('bundling');
+    c.setMessage('bundling');
     // var bytes = 0;
     // var count = 0;
     // function done() {
@@ -108,6 +126,7 @@ function create(file) {
   c.element.prependTo('.files');
   setTimeout(function() {
     c.element.attr('rendered', true);
+    $('body').addClass('ready');
     setTimeout(function() {      
       c.element.hide().show(0);
     }, 300);
@@ -115,25 +134,28 @@ function create(file) {
   return c;
 }
 
-function confirm(text, callback) {
+function confirm(callback) {
   var ele = $(`
     <div class="confirmation-modal">
       <div class="confirmation">
-        <div class="title">${text}</div>
+        <div class="title">Bundle these files?</div>
+        <div class="text">An archive of files will be created and uploaded rather than uploading each file individually.</div>
         <div class="buttons">
-          <div class="button yes">Yes</div><div class="button no">No</div>
+          <div class="button no">NO THANKS</div><div class="button yes">BUNDLE</div>
         </div>
       </div>
     </div>
   `);
   ele.find('.button.yes').on('click', function() {
-    $('.confirmation-modal').remove();
     callback(true);
   });
   ele.find('.button.no').on('click', function() {
-    $('.confirmation-modal').remove();
     callback(false);
-  })
+  });
+  ele.on('click', function(e) {
+    if (!$(e.target).hasClass('button') && e.target !== this) return;
+    $('.confirmation-modal').remove();
+  });
   $('body').append(ele);
 }
 
@@ -151,17 +173,28 @@ function content(file) {
   self.expires = void 0;
   self.expired = false;
 
+  // self.element = $(`
+  //   <a class="file" state="uploading" target="_blank">
+  //     <div class="info">
+  //       <div class="head">
+  //         <div class="meta">
+  //           <div class="name">${file.name}</div>
+  //           <div class="size">${filesize(file.size)}</div>
+  //         </div>
+  //         <div class="status">0</div>
+  //       </div>
+  //       <div class="progress"></div>
+  //     </div>
+  //   </a>
+  // `);
+
   self.element = $(`
     <a class="file" state="uploading" target="_blank">
-      <div class="info">
-        <div class="head">
-          <div class="meta">
-            <div class="name">${file.name}</div>
-            <div class="size">${filesize(file.size)}</div>
-          </div>
-          <div class="status">0</div>
-        </div>
-        <div class="progress"></div>
+      <div class="status mdi"></div>
+      <div class="meta">
+        <div class="name"></div>
+        <div class="size"></div>
+        <div class="message"></div>
       </div>
     </a>
   `);
@@ -197,20 +230,20 @@ function content(file) {
 
     function audio() {
       musicmetadata(file, function(err, info) {
+        self.processingImage = false;
         if (err || info.picture.length < 1) return;
         var image = info.picture[0];
         self.setImage(new Blob([image.data], {
           type: 'image/' + image.format
         }));
         URL.revokeObjectURL(u);
-        self.processingImage = false;
       });
     }
 
     function image() {
       var img = new Image();
       if (['jpeg', 'jpg', 'png', 'webp', 'bmp'].indexOf(s[1]) === -1) {
-        self.element.css('background-image', `url(${u})`).attr('large', true);
+        self.element.attr('large', true).find('.meta').css('background-image', `url(${u})`);
         img.src = u;
         self.image = img;
         self.processingImage = false;
@@ -224,7 +257,7 @@ function content(file) {
         URL.revokeObjectURL(u);
         canvas.toBlob(function(blob) {
           var u = URL.createObjectURL(blob);
-          self.element.css('background-image', `url(${u})`).attr('large', true);
+          self.element.attr('large', true).find('.meta').css('background-image', `url(${u})`);
           var img = new Image();
           img.src = u;
           self.image = img;
@@ -235,7 +268,7 @@ function content(file) {
     }
 
     function none() {
-      self.element.css('background-image', 'none').removeAttr('large'); 
+      self.element.removeAttr('large').find('.meta').css('background-image', 'none'); 
       self.processingImage = false;
     }
 
@@ -267,16 +300,16 @@ function content(file) {
     self.progress = progress;
     if (self.state === 'complete') return;
     self.element.find('.progress').css('width', progress + '%');
-    if (['uploading', 'zipping'].indexOf(self.state) === -1) return;
-    self.element.find('.head .status').text(~~progress);
+    if (['uploading', 'bundling'].indexOf(self.state) === -1) return;
+    self.element.find('.status').text(~~progress);
   }
 
   self.setState = function(state) {
     self.state = state;
     self.element.attr('state', state);
-    self.element.find('.head .status').text(['uploading', 'zipping'].indexOf(state) > -1 ? self.progress : '')[0].className = ['status'].concat({
+    self.element.find('.status').text(['uploading', 'bundling'].indexOf(state) > -1 ? self.progress : '')[0].className = ['status'].concat({
       'error': ['mdi', 'mdi-close'],
-      'zipping': [],
+      'bundling': [],
       'uploading': [],
       'complete': ['mdi', 'mdi-check']
     }[state] || []).join(' ');
@@ -324,7 +357,7 @@ function content(file) {
     req.onreadystatechange = function(e) {
       if (req.status === 200 || req.readyState !== 3) return;
       self.setState('error');
-      self.setMessage({
+      self.setMessage(req.statusText || {
         200: 'OK',
         201: 'Created',
         202: 'Accepted',
@@ -366,13 +399,13 @@ function content(file) {
       }[req.status]);
     }
 
-    req.onerror = req.onabort = function(e) {
-      self.setState('error');
-      console.info(e.target);
-      var err = e.target.statusText || 'Error';
-      if ([400, 500].indexOf(e.target.status) > -1) err = e.target.responseText || err;
-      self.setMessage(err);
-    }
+    // req.onerror = req.onabort = function(e) {
+    //   self.setState('error');
+    //   console.info(e.target);
+    //   var err = e.target.statusText || 'Error';
+    //   if ([400, 413, 500].indexOf(e.target.status) > -1) err = e.target.responseText || err;
+    //   self.setMessage(err);
+    // }
 
     req.onload = function(e) {
       if (e.target.status !== 200) return req.onerror(e);
@@ -417,8 +450,8 @@ function content(file) {
       var img = c.image;
       if (!img) continue;
       var w = c.element.width();
-      var h = ($(window).height() - 300) / Math.min(3, contents.length);
-      h = Math.min(h - 10, w / (img.width / img.height));
+      var h = ($(window).height() - 200) / Math.min(3, contents.length);
+      h = Math.min(h - 10, (w - 80) / (img.width / img.height));
       if ((c.element.height()|0) === (h|0)) continue;
       c.element.css('min-height', h + 'px');
     }
@@ -457,7 +490,24 @@ window.HTMLCanvasElement.prototype.toBlob = HTMLCanvasElement.prototype.toBlob |
   callback(new Blob([ia], {type:mimeString}));
 }
 
-
+document.getElementsByTagName('body')[0].addEventListener('paste', function(e) {
+    process(e.clipboardData);
+    // e.preventDefault();
+    // var cb = e.clipboardData;
+    // if (cb.items.length) {
+    //     var files = [];
+    //     for (var i = 0; i < cb.items.length; i++) {
+    //         files[i] = cb.items[i].getAsFile();
+    //     }
+    //     return upload(files);
+    // }
+    // var data = (e.clipboardData || window.clipboardData).getData('text/plain');
+    // if (!data) return;
+    // var c = create(new Blob([data]));
+    // c.setName(`paste-${randomString(10)}.txt`)
+    // c.upload();
+    // e.preventDefault();
+});
 
 
 

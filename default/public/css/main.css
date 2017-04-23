@@ -9,14 +9,18 @@ html, body {
 }
 
 body {
-  background: #212121;
   font-family: 'Roboto', arial, sans-serif;
   color: white;
   display: flex;
   justify-content: center;
   align-items: center;
+  background: #303030;
+  transition: all .2s ease;
 }
 
+body.ready {
+  background: #212121;
+}
 .mdi.preload {
   visibility: hidden;
   position: absolute;
@@ -25,13 +29,14 @@ body {
 }
 
 .content {
-  max-width: 840px;
+  max-width: 800px;
   width: 100%;
   box-sizing: border-box;
-  padding: 20px;
+  padding: 20px 0;
   display: flex;
   flex-direction: column;
   max-height: 100%;
+  transition: all .2s ease;
 }
 
 .modal {
@@ -39,8 +44,6 @@ body {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  position: relative;
-  /*border: 1px dashed white;*/
   height: 200px;
   box-sizing: border-box;
   padding: 20px;
@@ -55,18 +58,24 @@ body {
   -ms-transition: all .2s ease;
   -o-transition: all .2s ease;
   transition: all .2s ease;
-  opacity: .6;
+  background: #303030;
+  z-index: 0;
 }
 
 .modal::after {
   content: 'Drag and drop a file or click here to upload';
 }
 
-.modal.hover,
-.modal:hover {
-  background: #303030;
-  opacity: 1;
+body.ready .modal {
+  position: relative;
+  box-shadow: rgba(0, 0, 0, 0.156863) 0px 3px 10px, rgba(0, 0, 0, 0.227451) 0px 3px 10px;
+} 
+
+body.ready .modal.hover,
+body.ready .modal:hover {
+  background: #424242;
   box-shadow: rgba(0, 0, 0, 0.298039) 0px 19px 60px, rgba(0, 0, 0, 0.219608) 0px 15px 20px;
+  z-index: 1;
 }
 
 .modal .hidden {
@@ -95,21 +104,37 @@ body {
   background-repeat: no-repeat;
   margin-bottom: 10px;
   background-color: #303030;
-  flex-direction: column;
+  flex-direction: row;
   text-decoration: none;
   color: white;
   outline: 0;
   height: 0;
   box-shadow: rgba(0, 0, 0, 0.156863) 0px 3px 10px, rgba(0, 0, 0, 0.227451) 0px 3px 10px;
+  z-index: 0;
 }
 
 .files .file:first-child {
   margin-top: 10px;
 }
 
+@media only screen and (max-width: 800px) {
+  body {
+    background: #303030!important;
+  }
+  .content {
+    padding: 0!important;
+  }
+  .modal,
+  .files .file {
+    margin: 0!important;
+    box-shadow: none!important;
+  }
+}
+
 .files .file:hover {
   box-shadow: rgba(0, 0, 0, 0.298039) 0px 19px 60px, rgba(0, 0, 0, 0.219608) 0px 15px 20px;
   background-color: #424242;
+  z-index: 1;
 }
 
 .files .file.hidden {
@@ -126,7 +151,7 @@ body {
 }*/
 
 .files .file[rendered] {
-  min-height: 86px;
+  min-height: 80px;
   max-height: 800px;
   height: auto;
 }
@@ -135,7 +160,7 @@ body {
   max-height: none;
 }
 
-.files .file[large]::before {
+.files .file[large] .meta::before {
   content: '';
   position: absolute;
   width: 100%;
@@ -146,7 +171,7 @@ body {
   background: linear-gradient(to bottom, rgba(0,0,0,.8) 0px, transparent 150px);
 }
 
-.files .file[large]::after {
+.files .file[large] .meta::after {
   content: '';
   position: absolute;
   width: 100%;
@@ -163,33 +188,38 @@ body {
   transition: all .2s ease;
 }
 
-.files .file[large]:not([state="uploading"]):not([state="complete"])::after {
+.files .file[large]:not([state="uploading"]):not([state="complete"]) .meta::after {
   opacity: 1;
 }
 
-.files .file[state="uploading"] .info .head .status,
-.files .file[state="zipping"] .info .head .status,
-.files .file[state="uploading"] .info .message,
-.files .file[state="zipping"] .info .message {
-  color: #03A9F4;
-}
-
-.files .file[state="error"] .info .head .status,
-.files .file[state="error"] .info .message {
-  color: #F44336;
-}
-
-.files .file[state="complete"] .info .head .status,
-.files .file[state="complete"] .info .message {
-  color: #00E676;
-}
-
-.files .file[state="uploading"] .info .progress,
-.files .file[state="zipping"] .info .progress {
+.files .file[state="uploading"] .status,
+.files .file[state="bundling"] .status {
   background: #03A9F4;
 }
 
-.files .file[state="error"] .info .progress {
+.files .file[state="error"] .status {
+  background: #F44336;
+}
+
+.files .file[state="complete"] .status {
+  background: #4CAF50;
+}
+
+.files .file[state="uploading"] .message,
+.files .file[state="bundling"] .message {
+  color: #03A9F4;
+}
+
+.files .file[state="error"] .message {
+  color: #F44336;
+}
+
+.files .file[state="uploading"] .progress,
+.files .file[state="bundling"] .progress {
+  background: #03A9F4;
+}
+
+.files .file[state="error"] .progress {
   background: #F44336;
   -webkit-transition: width .2s cubic-bezier(.22,.81,.01,.99) .6s, left .4s cubic-bezier(.22,.81,.01,.99) 1s;
   -moz-transition: width .2s cubic-bezier(.22,.81,.01,.99) .6s, left .4s cubic-bezier(.22,.81,.01,.99) 1s;
@@ -201,96 +231,62 @@ body {
 }
 
 .files .file[state="complete"] .info .progress {
-  background: #00E676;
+  background: #4CAF50;
   right: 0;
   left: auto;
   transition: background .2s ease, width .4s cubic-bezier(.22,.81,.01,.99);
   width: 0!important;
 }
 
-.files .file[state="uploading"] .info .status,
-.files .file[state="zipping"] .info .status {
-  font-size: 20px!important;
+.files .file .status {
+  min-width: 81px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
 }
 
-.files .file * {
-  color: white;
-  -webkit-transition: all .2s ease;
-  -moz-transition: all .2s ease;
-  -ms-transition: all .2s ease;
-  -o-transition: all .2s ease;
-  transition: all .2s ease;
-}
-
-.files .file .info {
+.files .file .meta {
   flex: 1;
+  display: flex;
   position: relative;
-  width: 100%;
-  z-index: 1;
+  flex-direction: column;
   box-sizing: border-box;
   padding: 20px;
-  display: flex;
-  flex-direction: column;
-}
-
-.files .file .info .head {
-  display: flex;
-  margin-bottom: auto;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   overflow: hidden;
 }
 
-.files .file .info .head .meta {
-  font-size: 20px;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.files .file .info .head .meta > * {
+.files .file .meta .name,
+.files .file .meta .size,
+.files .file .meta .message {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+  z-index: 1;
+  position: relative;
 }
 
-.files .file .info .head .meta .name {
-  color: white;
+.files .file .meta .name {
+  font-size: 20px;
 }
 
-.files .file .info .head .meta .size {
+.files .file .meta .size {
+  font-size: 14px;
   color: #e0e0e0;
-  font-size: 15px;
-  display: block;
+  margin-bottom: auto;
 }
 
-.files .file .info .head .status {
-  width: 54px;
-  height: 46px;
-  font-size: 24px;
-  /*line-height: 46px;*/
-  text-align: right;
-  flex-shrink: 0;
-  -webkit-transition: font-size 1ms;
-  -moz-transition: font-size 1ms;
-  -ms-transition: font-size 1ms;
-  -o-transition: font-size 1ms;
-  transition: font-size 1ms;
-}
-
-.files .file .info .progress {
-  height: 2px;
-  bottom: 0;
-  left: 0;
-  position: absolute;
-  transition: background .2s ease;
-}
-
-.files .file .info .message {
+.files .file .meta .message {
   font-size: 20px;
   overflow: hidden;
   max-height: 0;
   word-wrap: break-word;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-transform: uppercase;
   -webkit-transition: all .4s ease;
   -moz-transition: all .4s ease;
   -ms-transition: all .4s ease;
@@ -298,9 +294,9 @@ body {
   transition: all .4s ease;
 }
 
-.files .file .info .message.showing {
+.files .file .meta .message.showing {
   max-height: 96px;
-  /*margin-top: 16px;*/
+  margin-top: 16px;
 }
 
 .confirmation-modal {
@@ -317,49 +313,38 @@ body {
 }
 
 .confirmation {
-  background: #212121;
-  border-radius: 2px;
-  color: #f2f2f2;
-  margin: auto;
-  overflow: hidden;
+    width: 280px;
+    margin: auto;
+    overflow: hidden;
+    background: #212121;
 }
 
 .confirmation .title {
-  font-size: 18px;
-  width: 100%;
-  box-sizing: border-box;
-  text-align: center;
-  padding: 24px;
-  color: #eee;
+    font-size: 22px;
+    padding: 24px 24px 20px 24px;
+
+}
+
+.confirmation .text {
+    font-size: 16px;
+    opacity: .6;
+    box-sizing: border-box;
+    padding: 0 24px 24px 24px;
 }
 
 .confirmation .buttons {
-  display: flex;
+    display: flex;
+    justify-content: flex-end;
 }
 
-.confirmation .button {
-  flex: 1;
-  height: 48px;
-  padding: 16px;
-  text-align: center;
-  font-size: 16px;
-  cursor: pointer;
-  box-sizing: border-box;
-  -webkit-transition: background-color .2s ease;
-  -ms-transition: background-color .2s ease;
-  transition: background-color .2s ease;
-  text-transform: uppercase;
-}
-
-.confirmation .button:hover {
-  background-color: rgba(0,0,0,0.25);
-}
-
-.confirmation .button.yes {
-  color: #2196f3;
-}
-.confirmation .button.no {
-  color: #FF5722;
+.confirmation .buttons .button {
+    display: flex;
+    align-items: center;
+    color: #03A9F4;
+    padding: 0 8px;
+    margin: 8px;
+    cursor: pointer;
+    height: 36px;
 }
 
 .opentip-container.style-conf .opentip {

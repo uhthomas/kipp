@@ -68,11 +68,11 @@ func main() {
 		String()
 	driverSource := kingpin.
 		Flag("driver-source", "Database driver source. mysql example: user:pass@/database").
-		Default("conf/conf.db").
+		Default("conf.db").
 		String()
 	mime := kingpin.
 		Flag("mime", "A json formatted collection of extensions and mime types.").
-		Default("conf/mime.json").
+		Default("mime.json").
 		String()
 	kingpin.
 		Flag("max", "The maximum file size").
@@ -80,15 +80,15 @@ func main() {
 		BytesVar((*units.Base2Bytes)(&s.Max))
 	kingpin.
 		Flag("file-path", "The path to store uploaded files").
-		Default("conf/files").
+		Default("files").
 		StringVar(&s.FilePath)
 	kingpin.
 		Flag("temp-path", "The path to store uploading files").
-		Default("conf/files/tmp").
+		Default("files/tmp").
 		StringVar(&s.TempPath)
 	kingpin.
 		Flag("public-path", "The path where web resources are located.").
-		Default("conf/public").
+		Default("public").
 		StringVar(&s.PublicPath)
 	kingpin.Parse()
 
