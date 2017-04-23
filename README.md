@@ -1,4 +1,4 @@
-# conf
+adm# conf
 A secure, temporary file storage site.
 
 ## Features
@@ -39,7 +39,8 @@ Flags:
 ### Notes
 * FilePath and TempPath must be located on the same drive as conf uploads files to it's TempPath and then will move that file to the FilePath.
 * It is **highly** Recommended that extra mime types are added as go's standard set of types is very limited. This can be done by running conf with `--mime /path/to/mime.json`
-* For performance critical servers it's recommended to use nginx as a proxy to serve content. For instance, conf will only handle requests for content and uploading whereas nginx will handle serving static files such as its index, js or css. nginx configuration snippet: ```
+* For performance critical servers it's recommended to use nginx as a proxy to serve content. For instance, conf will only handle requests for content and uploading whereas nginx will handle serving static files such as its index, js or css. nginx configuration snippet:
+```
 server {
     server_name conf.6f.io;
     listen 80;
