@@ -32,7 +32,8 @@ type Model struct {
 	DeletedAt *time.Time `json:"-" sql:"index"`
 }
 
-// Content is the model used for storing conf content information.
+// Content will store information about an uploaded file such as its name, hash,
+// expiration date and slug.
 type Content struct {
 	Model
 	Name      string     `json:"name"`
