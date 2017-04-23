@@ -6,8 +6,6 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-//go:generate env GOARCH=js gopherjs build github.com/6f7262/conf/gopherjs -o default/public/js/gopher.js -m
-
 type DB struct {
 	*gorm.DB
 }
