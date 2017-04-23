@@ -10,7 +10,7 @@ A secure, temporary file storage site.
 
 ## Installation and usage
 ```
-$ go get github.com/6f7262/conf
+$ go get github.com/6f7262/conf/cmd/conf
 $ cp -r $GOPATH/src/github.com/6f7262/conf/default conf
 $ cd conf
 $ conf --mime="mime.json"
