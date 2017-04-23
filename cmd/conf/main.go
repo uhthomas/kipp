@@ -72,7 +72,6 @@ func main() {
 		String()
 	mime := kingpin.
 		Flag("mime", "A json formatted collection of extensions and mime types.").
-		Default("mime.json").
 		String()
 	kingpin.
 		Flag("max", "The maximum file size limit for uploads.").
@@ -118,6 +117,9 @@ func main() {
 	// Start cleanup worker
 	w := worker(*cleanupInterval)
 	go w.Do(context.Background(), s.Cleanup)
+
+	// Output a message so users know when the server has been started.
+	log.Printf("Listening on %s", *addr)
 
 	// Start HTTP server
 	if err := http.ListenAndServe(*addr, s); err != nil {
