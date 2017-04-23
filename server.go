@@ -21,6 +21,7 @@ import (
 	blake2b "github.com/minio/blake2b-simd"
 )
 
+// Server is used to serve http requests and acts as a config.
 type Server struct {
 	DB         *DB
 	Max        int64
