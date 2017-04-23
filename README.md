@@ -1,4 +1,4 @@
-adm# conf
+reamadm# conf
 A secure, temporary file storage site.
 
 ## Features
@@ -54,7 +54,8 @@ server {
     location @proxy {
         proxy_pass http://127.0.0.1:1337;
     }
-}```
+}
+```
 
 ### TODO
 * Rewrite the frontend in gopherjs.
