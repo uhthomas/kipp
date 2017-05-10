@@ -412,8 +412,7 @@ function content(file) {
       self.setState('complete');
       self.setProgress(100);
       var res = JSON.parse(req.responseText);
-      var ext = res.name.split('.').splice(-1) != res.name ? res.name.split('.').splice(-1) : '';
-      self.element.attr('href', res.slug + res.extension);
+      self.element.attr('href', res.path);
       self.expires = res.expires && new Date(res.expires);
     }
 
@@ -440,6 +439,7 @@ function content(file) {
   }
   function sizer() {
     requestAnimationFrame(sizer);
+    var clen = contents.filter(function(a) { return a.image }).length;
     for (var i = 0; i < contents.length; i++) {
       var c = contents[i];
       if (isVisible(c.element[0]))
@@ -450,7 +450,7 @@ function content(file) {
       var img = c.image;
       if (!img) continue;
       var w = c.element.width();
-      var h = ($(window).height() - 200) / Math.min(3, contents.length);
+      var h = ($(window).height() - 200) / Math.min(3, clen);
       h = Math.min(h - 10, (w - 80) / (img.width / img.height));
       if ((c.element.height()|0) === (h|0)) continue;
       c.element.css('min-height', h + 'px');

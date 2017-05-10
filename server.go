@@ -1,14 +1,17 @@
 package conf
 
 import (
+	"bytes"
+	"crypto/hmac"
 	"crypto/rand"
-	"encoding/hex"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math"
 	"mime"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path"
@@ -18,12 +21,13 @@ import (
 	"time"
 
 	"github.com/6f7262/conf/ctr"
+	"github.com/jinzhu/gorm"
 	blake2b "github.com/minio/blake2b-simd"
 )
 
 // Server is used to serve http requests and acts as a config.
 type Server struct {
-	DB         *DB
+	DB         *gorm.DB
 	Expiration time.Duration
 	Max        int64
 	FilePath   string
@@ -54,6 +58,8 @@ func (s Server) Cleanup() error {
 // ServeHTTP will serve HTTP requests. /, /css, /fonts, /js and /upload are all
 // static routes and any other route is considered a request for content.
 func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// TODO: version?
+	w.Header().Set("Server", "conf")
 	hasPrefix := func(s string) bool {
 		return strings.HasPrefix(r.URL.Path, s)
 	}
@@ -61,49 +67,79 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case r.URL.Path == "/upload":
 		s.UploadHandler(w, r)
 	case r.URL.Path == "/", hasPrefix("/css"), hasPrefix("/fonts"), hasPrefix("/js"):
-		http.ServeFile(w, r, path.Join(s.PublicPath, r.URL.Path))
+		s.StaticHandler(w, r)
 	default:
 		s.ContentHandler(w, r)
 	}
 }
 
+// StaticHandler will server static content given the url path.
+func (s Server) StaticHandler(w http.ResponseWriter, r *http.Request) {
+	switch {
+	case r.Method == http.MethodOptions:
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
+		return
+	case r.Method != http.MethodHead && r.Method != http.MethodGet:
+		w.Header().Set("Allow", "GET, HEAD, OPTIONS")
+		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+		return
+	}
+	http.ServeFile(w, r, path.Join(s.PublicPath, r.URL.Path))
+}
+
 // ContentHandler will query the database for the given slug. If the slug doesn't exist it
 // will return 404 otherwise it will decrypt the file and serve it.
 func (s Server) ContentHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, GET")
 	switch {
 	case r.Method == http.MethodOptions:
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
 		return
-	case r.Method != http.MethodGet:
+	case r.Method != http.MethodHead && r.Method != http.MethodGet:
+		w.Header().Set("Allow", "GET, HEAD, OPTIONS")
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
 	// split the path to allow for extensions
 	slug := strings.Split(r.URL.Path, ".")[0][1:]
-	var c Content
-	if s.DB.First(&c, "slug = ?", slug).RecordNotFound() {
+	b, err := base64.RawURLEncoding.DecodeString(slug)
+	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
-	// method not allowed for non GET requests on existing content
-	if r.Method != http.MethodGet {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+	// fragment:10 | sum:16 = 26
+	if len(b) != 26 {
+		http.NotFound(w, r)
 		return
+	}
+	var c Content
+	if s.DB.First(&c, "fragment = ?", b[:10]).RecordNotFound() {
+		http.NotFound(w, r)
+		return
+	}
+	// remove fragment:10 from b to make it sum:16
+	b = b[10:]
+	// verify sum is valid
+	h := hmac.New(sha256.New, c.Secret)
+	h.Write(b)
+	if !hmac.Equal(h.Sum(nil), c.MAC) {
+		http.NotFound(w, r)
+		return
+	}
+	k := make([]byte, 16)
+	for i := 0; i < 16; i++ {
+		k[i] = c.Secret[i] ^ b[i]
 	}
 	f, err := os.Open(filepath.Join(s.FilePath, c.Hash))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	cr, err := ctr.NewReader(f, c.Key, c.IV)
+	cr, err := ctr.NewReader(f, k, c.IV)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-	}
-	if c.Expires != nil {
-		d := int(math.Abs(time.Since(*c.Expires).Seconds()))
-		w.Header().Set("Cache-Control", fmt.Sprintf("private, max-age=%d", d))
 	}
 	// Detect content type before serving content to filter html files
 	ctype := mime.TypeByExtension(filepath.Ext(c.Name))
@@ -120,25 +156,41 @@ func (s Server) ContentHandler(w http.ResponseWriter, r *http.Request) {
 	if strings.HasPrefix(ctype, "text/html") {
 		ctype = "text/plain; charset=utf-8"
 	}
+	// 1 year
+	cache := "31536000"
+	if e := c.Expires; e != nil {
+		// duration in seconds until expiration
+		d := int(time.Until(*e).Seconds())
+		// if expired then the request should return 404 and send the content to
+		// the cleanup worker -- for now we won't do anything and we'll let the
+		// worker clean up content in its own time.
+		if d > 0 {
+			cache = fmt.Sprintf("private, must-revalidate, max-age=%d", d)
+		} else {
+			cache = "no-cache"
+		}
+	}
+	w.Header().Set("Cache-Control", cache)
 	w.Header().Set("Content-Disposition", fmt.Sprintf("filename=%q", c.Name))
 	w.Header().Set("Content-Type", ctype)
 	w.Header().Set("Etag", strconv.Quote(c.Hash))
+	w.Header().Set("X-Content-Type-Options", "nosniff")
 	http.ServeContent(w, r, c.Name, c.CreatedAt, cr)
 }
 
-// UploadHandler serves as a handler for uploading files to conf. It will read the body
-// of a http request, generate a blake2 hash and generate a random key and iv,
-// encrypting it using conf/ctr. It will then create the content model
-// and insert it into conf's database before returning that model as the
-// response.
+// UploadHandler serves as a handler for uploading files to conf. It will
+// generate a random key and iv then both hash and encrypt the body. After that,
+// conf generates a secret (sum[32:48] ^ key) as well as a MAC using the
+// secret as the key and sum[32:48] as the body. The expiration date and path is
+// then sent to the client in JSON form.
 func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
-	// Reject invalid requests
 	switch {
 	case r.Method == http.MethodOptions:
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
 		return
 	case r.Method != http.MethodPost:
+		w.Header().Set("Allow", "OPTIONS, POST")
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	case r.ContentLength > s.Max:
@@ -146,17 +198,14 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Find the multipart body to read from.
-	var (
-		f    io.ReadCloser
-		name string
-	)
 	mr, err := r.MultipartReader()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	var p *multipart.Part
 	for {
-		p, err := mr.NextPart()
+		p, err = mr.NextPart()
 		if err == io.EOF {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -165,12 +214,16 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		if name = p.FileName(); name != "" && p.FormName() == "file" {
-			f = p
+		if p.FormName() == "file" {
 			break
 		}
 	}
-	defer f.Close()
+	defer p.Close()
+	name := p.FileName()
+	if name == "" || len(name) > 255 {
+		http.Error(w, "invalid name", http.StatusBadRequest)
+		return
+	}
 	// Create temporary file to be used for storing uploads.
 	tf, err := ioutil.TempFile(s.TempPath, "conf-upload")
 	if err != nil {
@@ -180,44 +233,53 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	// If the file is uploaded successfully and renamed this operation will fail.
 	defer os.Remove(tf.Name())
 	defer tf.Close()
-	// Generate a random key and iv. key + iv + slug = 32 + 16 + 10
-	k := make([]byte, 58)
+	// Generate a random key and iv. key:16 | iv:16 = 32
+	k := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, k); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	k, iv, slug, h := k[:32], k[32:48], k[48:], blake2b.New256()
+	k, iv, h := k[:16], k[16:], blake2b.New512()
 	cw, err := ctr.NewWriter(tf, k, iv)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	// Hash the file then create and save the content model.
-	n, err := io.Copy(io.MultiWriter(cw, h), http.MaxBytesReader(w, f, s.Max))
+	// Hash and save the file.
+	n, err := io.Copy(io.MultiWriter(cw, h), http.MaxBytesReader(w, p, s.Max))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	hs := hex.EncodeToString(h.Sum(nil))
-	var c Content
-	if s.DB.First(&c, "hash = ?", hs).RecordNotFound() {
-		if err := os.Rename(tf.Name(), filepath.Join(s.FilePath, hs)); err != nil {
+	sum := h.Sum(nil)[:48]
+	// Find the content
+	c := Content{Hash: base64.RawURLEncoding.EncodeToString(sum[:32])}
+	// remove hash:32 from sum
+	sum = sum[32:]
+	if s.DB.First(&c, "hash = ?", c.Hash).RecordNotFound() {
+		p := filepath.Join(s.FilePath, c.Hash)
+		if err := os.Rename(tf.Name(), p); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-	} else {
-		k, iv = c.Key, c.IV
+		c.IV = iv
+		c.Secret = make([]byte, 16)
+		for i := 0; i < 16; i++ {
+			c.Secret[i] = k[i] ^ sum[i]
+		}
+		h := hmac.New(sha256.New, c.Secret)
+		h.Write(sum)
+		c.MAC = h.Sum(nil)
 	}
 	c = Content{
-		Name:      name,
-		Extension: filepath.Ext(name),
-		Slug:      hex.EncodeToString(slug),
-		Hash:      hs,
-		Size:      n,
-		Key:       k,
-		IV:        iv,
+		Hash:   c.Hash,
+		Name:   name,
+		Size:   n,
+		Secret: c.Secret,
+		IV:     c.IV,
+		MAC:    c.MAC,
 	}
-	if s.Expiration > 0 && r.URL.Query().Get("permanent") != "true" {
+	if s.Expiration > 0 {
 		e := time.Now().Add(s.Expiration)
 		c.Expires = &e
 	}
@@ -226,5 +288,16 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	json.NewEncoder(w).Encode(&c)
+	var b bytes.Buffer
+	e := base64.NewEncoder(base64.RawURLEncoding, &b)
+	e.Write(c.Fragment)
+	e.Write(sum)
+	e.Close()
+	if ext := filepath.Ext(c.Name); ext != "" {
+		b.WriteString(ext)
+	}
+	json.NewEncoder(w).Encode(struct {
+		Expires *time.Time `json:"expires,omitempty"`
+		Path    string     `json:"path"`
+	}{c.Expires, b.String()})
 }

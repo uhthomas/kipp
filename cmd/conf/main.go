@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"log"
 	"mime"
@@ -27,8 +28,9 @@ func (w worker) Do(ctx context.Context, f func() error) {
 		case <-ctx.Done():
 			return
 		case <-t:
-			// error omitted for now, otherwise log.Fatal
-			f()
+			if err := f(); err != nil {
+				log.Fatal(err)
+			}
 			t = time.After(time.Duration(w))
 		}
 	}
@@ -53,44 +55,67 @@ func loadMimeTypes(path string) error {
 }
 
 func main() {
-	var s conf.Server
+	var (
+		d conf.Driver
+		s conf.Server
+	)
 	addr := kingpin.
 		Flag("addr", "Server listen address.").
 		Default(":1337").
+		String()
+	secure := kingpin.
+		Flag("secure", "Enable https.").
+		Bool()
+	cert := kingpin.
+		Flag("cert", "TLS certificate path.").
+		Default("cert.pem").
+		String()
+	key := kingpin.
+		Flag("key", "TLS key path.").
+		Default("key.pem").
 		String()
 	cleanupInterval := kingpin.
 		Flag("cleanup-interval", "Cleanup interval for deleting expired files.").
 		Default("5m").
 		Duration()
-	driver := kingpin.
-		Flag("driver", "Available database drivers: mysql, postgres, sqlite3 and mssql.").
-		Default("sqlite3").
-		String()
-	driverSource := kingpin.
-		Flag("driver-source", "Database driver source. mysql example: user:pass@/database.").
-		Default("conf.db").
-		String()
 	mime := kingpin.
 		Flag("mime", "A json formatted collection of extensions and mime types.").
+		PlaceHolder("PATH").
 		String()
+	kingpin.
+		Flag("driver", "Available database drivers: mysql, postgres, sqlite3 and mssql.").
+		Default("sqlite3").
+		StringVar(&d.Dialect)
+	kingpin.
+		Flag("driver-username", "Database driver username.").
+		Default("conf").
+		StringVar(&d.Username)
+	kingpin.
+		Flag("driver-password", "Database driver password.").
+		PlaceHolder("PASSWORD").
+		StringVar(&d.Password)
+	kingpin.
+		Flag("driver-path", "Database driver path. ex: localhost:1337").
+		Default("conf.db").
+		StringVar(&d.Path)
 	kingpin.
 		Flag("expiration", "File expiration time.").
 		Default("24h").
 		DurationVar(&s.Expiration)
 	kingpin.
-		Flag("max", "The maximum file size limit for uploads.").
+		Flag("max", "The maximum file size  for uploads.").
 		Default("150MB").
 		BytesVar((*units.Base2Bytes)(&s.Max))
 	kingpin.
-		Flag("file-path", "The path to store uploaded files.").
+		Flag("files", "File path.").
 		Default("files").
 		StringVar(&s.FilePath)
 	kingpin.
-		Flag("temp-path", "The path to store uploading files.").
+		Flag("tmp", "Temp path for in-progress uploads.").
 		Default("files/tmp").
 		StringVar(&s.TempPath)
 	kingpin.
-		Flag("public-path", "The path where web resources are located.").
+		Flag("public", "Public path where web resources are located.").
 		Default("public").
 		StringVar(&s.PublicPath)
 	kingpin.Parse()
@@ -102,14 +127,6 @@ func main() {
 		}
 	}
 
-	// Load database
-	db, err := conf.NewDB(*driver, *driverSource)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-	s.DB = db
-
 	// Make paths for files and temp files
 	if err := os.MkdirAll(s.FilePath, 0755); err != nil {
 		log.Fatal(err)
@@ -117,6 +134,14 @@ func main() {
 	if err := os.MkdirAll(s.TempPath, 0755); err != nil {
 		log.Fatal(err)
 	}
+
+	// Connect to database
+	db, err := d.Open()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	s.DB = db
 
 	// Start cleanup worker
 	if s.Expiration > 0 {
@@ -128,7 +153,31 @@ func main() {
 	log.Printf("Listening on %s", *addr)
 
 	// Start HTTP server
-	if err := http.ListenAndServe(*addr, s); err != nil {
-		log.Fatal(err)
+	hs := &http.Server{
+		Addr:    *addr,
+		Handler: s,
+		TLSConfig: &tls.Config{
+			PreferServerCipherSuites: true,
+			CurvePreferences: []tls.CurveID{
+				tls.CurveP256,
+				tls.X25519,
+			},
+			MinVersion: tls.VersionTLS12,
+			CipherSuites: []uint16{
+				tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+				tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+				tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,
+				tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
+				tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+				tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+			},
+		},
+		// ReadTimeout:  5 * time.Second,
+		// WriteTimeout: 10 * time.Second,
+		IdleTimeout: 120 * time.Second,
 	}
+	if *secure {
+		log.Fatal(hs.ListenAndServeTLS(*cert, *key))
+	}
+	log.Fatal(hs.ListenAndServe())
 }
