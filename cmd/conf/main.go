@@ -115,7 +115,7 @@ func main() {
 		Default("files/tmp").
 		StringVar(&s.TempPath)
 	kingpin.
-		Flag("public", "Public path where web resources are located.").
+		Flag("public", "Public path for web resources.").
 		Default("public").
 		StringVar(&s.PublicPath)
 	kingpin.Parse()

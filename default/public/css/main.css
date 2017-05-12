@@ -209,6 +209,10 @@ body.ready .modal:hover {
   background: #03A9F4;
 }
 
+.files .file[state="expired"] .status {
+  background: #FF9800;
+}
+
 .files .file[state="error"] .status {
   background: #F44336;
 }
@@ -220,6 +224,10 @@ body.ready .modal:hover {
 .files .file[state="uploading"] .message,
 .files .file[state="bundling"] .message {
   color: #03A9F4;
+}
+
+.files .file[state="expired"] .message {
+  color: #FF9800;
 }
 
 .files .file[state="error"] .message {

@@ -309,6 +309,7 @@ function content(file) {
     self.element.attr('state', state);
     self.element.find('.status').text(['uploading', 'bundling'].indexOf(state) > -1 ? self.progress : '')[0].className = ['status'].concat({
       'error': ['mdi', 'mdi-close'],
+      'expired': ['mdi', 'mdi-timer'],
       'bundling': [],
       'uploading': [],
       'complete': ['mdi', 'mdi-check']
@@ -433,7 +434,7 @@ function content(file) {
   }
   function expire(c) {
     c.expired = true;
-    c.setState('error');
+    c.setState('expired');
     c.setMessage('Expired');
     c.element.removeAttr('href');
   }
@@ -492,32 +493,4 @@ window.HTMLCanvasElement.prototype.toBlob = HTMLCanvasElement.prototype.toBlob |
 
 document.getElementsByTagName('body')[0].addEventListener('paste', function(e) {
     process(e.clipboardData);
-    // e.preventDefault();
-    // var cb = e.clipboardData;
-    // if (cb.items.length) {
-    //     var files = [];
-    //     for (var i = 0; i < cb.items.length; i++) {
-    //         files[i] = cb.items[i].getAsFile();
-    //     }
-    //     return upload(files);
-    // }
-    // var data = (e.clipboardData || window.clipboardData).getData('text/plain');
-    // if (!data) return;
-    // var c = create(new Blob([data]));
-    // c.setName(`paste-${randomString(10)}.txt`)
-    // c.upload();
-    // e.preventDefault();
 });
-
-
-
-
-
-// $('.modal').opentip('TEST', {
-//     showOn: 'mouseover',
-//     tipJoint: 'top',
-//     borderColor: '#323742',
-//     background: '#323742',
-//     className: 'conf',
-//     target: true
-// });
