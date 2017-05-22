@@ -288,16 +288,16 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	var b bytes.Buffer
-	e := base64.NewEncoder(base64.RawURLEncoding, &b)
+	var buf bytes.Buffer
+	e := base64.NewEncoder(base64.RawURLEncoding, &buf)
 	e.Write(c.Fragment)
 	e.Write(sum)
 	e.Close()
 	if ext := filepath.Ext(c.Name); ext != "" {
-		b.WriteString(ext)
+		buf.WriteString(ext)
 	}
 	json.NewEncoder(w).Encode(struct {
 		Expires *time.Time `json:"expires,omitempty"`
 		Path    string     `json:"path"`
-	}{c.Expires, b.String()})
+	}{c.Expires, buf.String()})
 }

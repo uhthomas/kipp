@@ -41,12 +41,12 @@ Flags:
   --expiration=24h            File expiration time.
   --max=150MB                 The maximum file size for uploads.
   --files="files"             File path.
-  --temp="files/tmp"          Temp path for in-progress uploads.
-  --public="public"           Public path where web resources are located.
+  --tmp="files/tmp"           Temp path for in-progress uploads.
+  --public="public"           Public path for web resources.
 ```
 
 ## Notes
-* FilePath and TempPath must be located on the same drive as conf uploads files to it's TempPath and then will move that file to the FilePath.
+* FilePath and TempPath must be located on the same drive as conf uploads files to its TempPath and then will move that file to the FilePath.
 * It is **highly** recommended that extra mime types are added as go's standard set of types is very limited. This can be done by running conf with `--mime /path/to/mime.json`
 * For performance critical servers it's recommended to use nginx as a proxy to serve content. For instance, conf will only handle requests for content and uploading whereas nginx will handle serving static files such as its index, js or css. nginx configuration snippet:
 ```
@@ -71,4 +71,5 @@ server {
 
 ## TODO
 * Rewrite the frontend in gopherjs.
+* Compress JS and CSS.
 * Write tests.

@@ -153,15 +153,6 @@ body.ready .modal:hover {
   background-image: none!important;
 }
 
-/*.files .file.hidden {
-  visibility: hidden!important;
-  background-image: none!important;
-}
-
-.files .file.hidden > * {
-  display: none!important;
-}*/
-
 .files .file[rendered] {
   min-height: 80px;
   max-height: 800px;
@@ -172,26 +163,16 @@ body.ready .modal:hover {
   max-height: none;
 }
 
-.files .file[large] .meta::before {
-  content: '';
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  z-index: 0;
-  background: linear-gradient(to bottom, rgba(0,0,0,.8) 0px, transparent 80px);
-}
 
-.files .file[large] .meta::after {
-  content: '';
+.files .file .background {
   position: absolute;
-  width: 100%;
-  height: 100%;
   top: 0;
   left: 0;
-  z-index: 0;
-  background: linear-gradient(to top, rgba(0,0,0,.8) 0px, transparent 150px);
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   opacity: 0;
   -webkit-transition: all .2s ease;
   -moz-transition: all .2s ease;
@@ -200,11 +181,21 @@ body.ready .modal:hover {
   transition: all .2s ease;
 }
 
-.files .file[large]:not([state="uploading"]):not([state="complete"]) .meta::after {
+.files .file .background:before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 120px;
+  top: 0;
+  left: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,.8) 0px, transparent 120px);
+}
+
+.files .file[large] .background {
   opacity: 1;
 }
 
-.files .file[state="uploading"] .status,
+/*.files .file[state="uploading"] .status,
 .files .file[state="bundling"] .status {
   background: #03A9F4;
 }
@@ -219,51 +210,26 @@ body.ready .modal:hover {
 
 .files .file[state="complete"] .status {
   background: #4CAF50;
-}
+}*/
 
-.files .file[state="uploading"] .message,
-.files .file[state="bundling"] .message {
-  color: #03A9F4;
-}
-
-.files .file[state="expired"] .message {
-  color: #FF9800;
-}
-
-.files .file[state="error"] .message {
-  color: #F44336;
-}
-
-.files .file[state="uploading"] .progress,
-.files .file[state="bundling"] .progress {
-  background: #03A9F4;
-}
-
-.files .file[state="error"] .progress {
-  background: #F44336;
-  -webkit-transition: width .2s cubic-bezier(.22,.81,.01,.99) .6s, left .4s cubic-bezier(.22,.81,.01,.99) 1s;
-  -moz-transition: width .2s cubic-bezier(.22,.81,.01,.99) .6s, left .4s cubic-bezier(.22,.81,.01,.99) 1s;
-  -ms-transition: width .2s cubic-bezier(.22,.81,.01,.99) .6s, left .4s cubic-bezier(.22,.81,.01,.99) 1s;
-  -o-transition: width .2s cubic-bezier(.22,.81,.01,.99) .6s, left .4s cubic-bezier(.22,.81,.01,.99) 1s;
-  transition: width .2s cubic-bezier(.22,.81,.01,.99) .6s, left .4s cubic-bezier(.22,.81,.01,.99) 1s;
-  width: 100%!important;
-  left: 100%;
-}
-
-.files .file[state="complete"] .info .progress {
-  background: #4CAF50;
-  right: 0;
-  left: auto;
-  transition: background .2s ease, width .4s cubic-bezier(.22,.81,.01,.99);
-  width: 0!important;
-}
 
 .files .file .status {
-  min-width: 81px;
+  height: 80px;
+  min-width: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
+  z-index: 1;
+  -webkit-transition: all .2s ease;
+  -moz-transition: all .2s ease;
+  -ms-transition: all .2s ease;
+  -o-transition: all .2s ease;
+  transition: all .2s ease;
+}
+
+.files .file[large] .status {
+  background: transparent;
 }
 
 .files .file .meta {
@@ -272,16 +238,14 @@ body.ready .modal:hover {
   position: relative;
   flex-direction: column;
   box-sizing: border-box;
-  padding: 20px;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  padding: 20px 20px 20px 0;
   overflow: hidden;
+  max-height: 80px;
+  z-index: 1;
 }
 
 .files .file .meta .name,
-.files .file .meta .size,
-.files .file .meta .message {
+.files .file .meta .info {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
@@ -293,20 +257,13 @@ body.ready .modal:hover {
   font-size: 20px;
 }
 
-.files .file .meta .size {
-  font-size: 14px;
-  color: #e0e0e0;
-  margin-bottom: auto;
-}
-
-.files .file .meta .message {
+.files .file .meta .info {
   font-size: 20px;
   overflow: hidden;
-  max-height: 0;
   word-wrap: break-word;
-  overflow: hidden;
-  text-overflow: ellipsis;
   text-transform: uppercase;
+  font-size: 14px;
+  margin-bottom: auto;
   -webkit-transition: all .4s ease;
   -moz-transition: all .4s ease;
   -ms-transition: all .4s ease;
@@ -314,9 +271,30 @@ body.ready .modal:hover {
   transition: all .4s ease;
 }
 
-.files .file .meta .message.showing {
-  max-height: 96px;
-  margin-top: 16px;
+.files .file[state="uploading"] .info,
+.files .file[state="bundling"] .info {
+  color: #00B0FF;
+}
+
+.files .file[state="expired"] .info {
+  color: #FF9100;
+}
+
+.files .file[state="error"] .info {
+  color: #FF1744;
+}
+
+.files .file[state="complete"] .info {
+  color: #00E676;
+}
+
+.files .file .meta .info .size {
+  color: #e0e0e0;
+  text-transform: none;
+}
+
+.files .file .meta .info .size:after {
+  content: ' · ';
 }
 
 .confirmation-modal {
@@ -365,10 +343,4 @@ body.ready .modal:hover {
     margin: 8px;
     cursor: pointer;
     height: 36px;
-}
-
-.opentip-container.style-conf .opentip {
-    color: white;
-    text-shadow: none;
-    box-shadow: rgba(0, 0, 0, 0.156863) 0px 3px 10px, rgba(0, 0, 0, 0.227451) 0px 3px 10px;
 }

@@ -66,8 +66,7 @@ function upload(files) {
     var zip = new JSZip();
     var c = create(new Blob());
     c.setName('bundle.zip');
-    c.setState('bundling');
-    c.setMessage('bundling');
+    c.setMessageState('bundling');
     // var bytes = 0;
     // var count = 0;
     // function done() {
@@ -109,7 +108,6 @@ function upload(files) {
         type: 'blob'
       });
       c.setFile(blob, `bundle-${randomString(10)}.zip`);
-      c.hideMessage()
       c.upload();
     }
     q.push($.makeArray(files), function(file, result) {
@@ -190,11 +188,14 @@ function content(file) {
 
   self.element = $(`
     <a class="file" state="uploading" target="_blank">
+      <div class="background"></div>
       <div class="status mdi"></div>
       <div class="meta">
         <div class="name"></div>
-        <div class="size"></div>
-        <div class="message"></div>
+        <div class="info">
+          <span class="size"></span>
+          <span class="text">uploading</span>
+        </div>
       </div>
     </a>
   `);
@@ -243,7 +244,7 @@ function content(file) {
     function image() {
       var img = new Image();
       if (['jpeg', 'jpg', 'png', 'webp', 'bmp'].indexOf(s[1]) === -1) {
-        self.element.attr('large', true).find('.meta').css('background-image', `url(${u})`);
+        self.element.attr('large', true).find('.background').css('background-image', `url(${u})`);
         img.src = u;
         self.image = img;
         self.processingImage = false;
@@ -257,7 +258,7 @@ function content(file) {
         URL.revokeObjectURL(u);
         canvas.toBlob(function(blob) {
           var u = URL.createObjectURL(blob);
-          self.element.attr('large', true).find('.meta').css('background-image', `url(${u})`);
+          self.element.attr('large', true).find('.background').css('background-image', `url(${u})`);
           var img = new Image();
           img.src = u;
           self.image = img;
@@ -292,7 +293,7 @@ function content(file) {
   }
 
   self.setSize = function(size) {
-    self.element.find('.meta .size').text(filesize(size));
+    self.element.find('.info .size').text(filesize(size));
   }
 
   self.setProgress = function(progress) {    
@@ -318,22 +319,13 @@ function content(file) {
 
   self.setMessage = function(message) {
     self.message = message;
-    var el = self.element.find('.message');
-    if (!el.length) el = $('<div class="message"></div>').appendTo(self.element.find('.info'));
-    el.text(message);
-    self.showMessage();
+    self.element.find('.info .text').text(message);
   }
 
-  var showTimeout;
-  self.showMessage = function() {
-    showTimeout = setTimeout(function() {
-      self.element.find('.message').addClass('showing');
-    }, 500);
-  }
-
-  self.hideMessage = function() {
-    if (showTimeout) clearTimeout(showTimeout);
-    self.element.find('.message').removeClass('showing');
+  self.setMessageState = function(message, state) {
+    state = state || message;
+    self.setMessage(message);
+    self.setState(state);
   }
 
   self.read = function(callback) {
@@ -344,7 +336,7 @@ function content(file) {
   }
 
   self.upload = function() {
-    self.setState('uploading');
+    self.setMessageState('uploading');
     self.setProgress(0);
 
     var data = new FormData();
@@ -356,9 +348,16 @@ function content(file) {
     }
 
     req.onreadystatechange = function(e) {
-      if (req.status === 200 || req.readyState !== 3) return;
-      self.setState('error');
-      self.setMessage(req.statusText || {
+      if (req.readyState !== 4) return;
+      if (req.status === 200) {
+        self.setMessageState('done', 'complete');
+        self.setProgress(100);
+        var res = JSON.parse(req.responseText);
+        self.element.attr('href', res.path);
+        self.expires = res.expires && new Date(res.expires);
+        return;
+      }
+      self.setMessageState(req.statusText || {
         200: 'OK',
         201: 'Created',
         202: 'Accepted',
@@ -397,7 +396,7 @@ function content(file) {
         503: 'Service Unavailable',
         504: 'Gateway Timeout',
         505: 'HTTP Version Not Supported'
-      }[req.status]);
+      }[req.status] || 'error', 'error');
     }
 
     // req.onerror = req.onabort = function(e) {
@@ -408,17 +407,18 @@ function content(file) {
     //   self.setMessage(err);
     // }
 
-    req.onload = function(e) {
-      if (e.target.status !== 200) return req.onerror(e);
-      self.setState('complete');
-      self.setProgress(100);
-      var res = JSON.parse(req.responseText);
-      self.element.attr('href', res.path);
-      self.expires = res.expires && new Date(res.expires);
-    }
+    // req.onload = function(e) {
+    //   if (e.target.status !== 200) return req.onerror(e);
+    //   self.setMessage('done');
+    //   self.setState('complete');
+    //   self.setProgress(100);
+    //   var res = JSON.parse(req.responseText);
+    //   self.element.attr('href', res.path);
+    //   self.expires = res.expires && new Date(res.expires);
+    // }
 
     req.open('POST', '/upload' + location.search, true);
-    try { req.send(data); } catch(e) { console.warn(e); }
+    try { req.send(data); } catch(e) { console.warn('failed'); }
   }
 
   self.setFile(file);
@@ -452,7 +452,7 @@ function content(file) {
       if (!img) continue;
       var w = c.element.width();
       var h = ($(window).height() - 200) / Math.min(3, clen);
-      h = Math.min(h - 10, (w - 80) / (img.width / img.height));
+      h = Math.min(h - 10, w / (img.width / img.height));
       if ((c.element.height()|0) === (h|0)) continue;
       c.element.css('min-height', h + 'px');
     }
