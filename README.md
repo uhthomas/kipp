@@ -1,14 +1,7 @@
 # conf
 [![GoDoc](https://godoc.org/github.com/6f7262/conf?status.svg)](https://godoc.org/github.com/6f7262/conf)
 
-A secure, temporary file storage site.
-
-## Features
-* Secure - files are encrypted and stored on the disk.
-* Lightweight - Files aren't read into memory to be processed.
-* Fast - files are uploaded, hashed and encrypted at the same time.
-* Data deduplication - files are only stored once.
-* Self-sufficient - files are automatically deleted after their expiration.
+A temporary file storage server.
 
 ## Installation and usage
 ```
@@ -47,7 +40,7 @@ Flags:
 
 ## Notes
 * FilePath and TempPath must be located on the same drive as conf uploads files to its TempPath and then will move that file to the FilePath.
-* It is **highly** recommended that extra mime types are added as go's standard set of types is very limited. This can be done by running conf with `--mime /path/to/mime.json`
+* It's recommended that extra mime types are used. This can be done by running conf with `--mime /path/to/mime.json`
 * For performance critical servers it's recommended to use nginx as a proxy to serve content. For instance, conf will only handle requests for content and uploading whereas nginx will handle serving static files such as its index, js or css. nginx configuration snippet:
 ```
 server {
