@@ -35,7 +35,7 @@ type Server struct {
 // Cleanup will delete expired content and remove files associated with it as
 // long as it is not used by any other content.
 func (s Server) Cleanup() error {
-	if err := s.DB.Delete(Content{}, "expires < ?", time.Now()).Error; err != nil {
+	if err := s.DB.Delete(&Content{}, "expires < ?", time.Now()).Error; err != nil {
 		return err
 	}
 	return filepath.Walk(s.FilePath, func(path string, f os.FileInfo, err error) error {
@@ -45,7 +45,7 @@ func (s Server) Cleanup() error {
 		if f.IsDir() || filepath.Dir(path) != s.FilePath {
 			return nil
 		}
-		if !s.DB.Where("checksum = ?", f.Name()).Find(Content{}).RecordNotFound() {
+		if !s.DB.Where("checksum = ?", f.Name()).Find(&Content{}).RecordNotFound() {
 			return nil
 		}
 		return os.Remove(filepath.Join(s.FilePath, f.Name()))
@@ -217,7 +217,7 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	// is unlikely to be read by humans.
 	sum := base64.RawURLEncoding.EncodeToString(h.Sum(nil))
 	// Find the content
-	if s.DB.First(Content{}, "checksum = ?", sum).RecordNotFound() {
+	if s.DB.First(&Content{}, "checksum = ?", sum).RecordNotFound() {
 		p := filepath.Join(s.FilePath, sum)
 		if err := os.Rename(tf.Name(), p); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
