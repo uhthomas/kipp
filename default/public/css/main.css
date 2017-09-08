@@ -23,7 +23,11 @@ body {
   justify-content: center;
   align-items: center;
   background: #303030;
-  transition: all .2s ease;
+  -webkit-transition: background .2s ease;
+  -moz-transition: background .2s ease;
+  -ms-transition: background .2s ease;
+  -o-transition: background .2s ease;
+  transition: background .2s ease;
 }
 
 body.ready {
@@ -38,7 +42,6 @@ body.ready {
   display: flex;
   flex-direction: column;
   max-height: 100%;
-  transition: all .2s ease;
 }
 
 .modal {
@@ -60,6 +63,11 @@ body.ready {
   -ms-transition: all .2s ease;
   -o-transition: all .2s ease;
   transition: all .2s ease;
+  -webkit-transition-property: background, width, height, box-shadow;
+  -moz-transition-property: background, width, height, box-shadow;
+  -ms-transition-property: background, width, height, box-shadow;
+  -o-transition-property: background, width, height, box-shadow;
+  transition-property: background, width, height, box-shadow;
   background: #303030;
   z-index: 0;
   flex-shrink: 1;
