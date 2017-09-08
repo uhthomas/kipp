@@ -19,15 +19,17 @@ $ conf --help
 usage: conf [<flags>]
 
 Flags:
-  --help                      Show context-sensitive help (also try --help-long and
-                              --help-man).
+  --help                      Show context-sensitive help (also try --help-long
+                              and --help-man).
   --addr=":1337"              Server listen address.
-  --secure                    Enable https.
+  --insecure                  Disable https.
   --cert="cert.pem"           TLS certificate path.
   --key="key.pem"             TLS key path.
   --cleanup-interval=5m       Cleanup interval for deleting expired files.
-  --mime=PATH                 A json formatted collection of extensions and mime types.
-  --driver="sqlite3"          Available database drivers: mysql, postgres, sqlite3 and mssql.
+  --mime=PATH                 A json formatted collection of extensions and mime
+                              types.
+  --driver="sqlite3"          Available database drivers: mysql, postgres,
+                              sqlite3 and mssql.
   --driver-username="conf"    Database driver username.
   --driver-password=PASSWORD  Database driver password.
   --driver-path="conf.db"     Database driver path. ex: localhost:1337

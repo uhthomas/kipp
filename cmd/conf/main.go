@@ -65,8 +65,8 @@ func main() {
 		Flag("addr", "Server listen address.").
 		Default(":1337").
 		String()
-	secure := kingpin.
-		Flag("secure", "Enable https.").
+	insecure := kingpin.
+		Flag("insecure", "Disable https.").
 		Bool()
 	cert := kingpin.
 		Flag("cert", "TLS certificate path.").
@@ -178,8 +178,8 @@ func main() {
 		// WriteTimeout: 10 * time.Second,
 		IdleTimeout: 120 * time.Second,
 	}
-	if *secure {
-		log.Fatal(hs.ListenAndServeTLS(*cert, *key))
+	if *insecure {
+		log.Fatal(hs.ListenAndServe())
 	}
-	log.Fatal(hs.ListenAndServe())
+	log.Fatal(hs.ListenAndServeTLS(*cert, *key))
 }
