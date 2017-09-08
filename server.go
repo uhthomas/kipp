@@ -98,7 +98,7 @@ func (s Server) ContentHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
-	// decode split the path to allow for extensions
+	// decode and split the path to allow for extensions
 	b, err := s.Encoding.DecodeString(strings.Split(r.URL.Path, ".")[0][1:])
 	if err != nil {
 		http.NotFound(w, r)
@@ -213,7 +213,7 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	// base64 for sum encoding since it's slightly more compact than base32 and
+	// base64 for checksum encoding since it's slightly more compact than base32 and
 	// is unlikely to be read by humans.
 	sum := base64.RawURLEncoding.EncodeToString(h.Sum(nil))
 	// Find the content

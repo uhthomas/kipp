@@ -54,7 +54,6 @@ type Content struct {
 	ID        []byte `gorm:"primary_key"`
 	Name      string
 	Size      int64
-	UpdatedAt time.Time
 }
 
 // BeforeCreate will assign default values to the content. BeforeCreate is used
