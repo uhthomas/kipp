@@ -10,7 +10,7 @@ cp -r $GOPATH/src/github.com/6f7262/conf/default conf
 cd conf
 openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes
 # make sure to run conf separately to openssl
-conf --mime="mime.json" --secure
+conf --mime="mime.json"
 ```
 
 ## Help
