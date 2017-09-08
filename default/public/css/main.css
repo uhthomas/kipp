@@ -95,6 +95,10 @@ body.ready .modal:hover {
   cursor: pointer;
 }
 
+.modal .material-icons {
+    width: 48px;
+}
+
 ::-webkit-file-upload-button {
     cursor: pointer;
 }
