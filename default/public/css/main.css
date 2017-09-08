@@ -114,9 +114,6 @@ body.ready .modal:hover {
   -ms-transition: all .2s ease;
   -o-transition: all .2s ease;
   transition: all .2s ease;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   margin-bottom: 10px;
   background-color: #303030;
   flex-direction: row;
@@ -163,7 +160,7 @@ body.ready .modal:hover {
 }
 
 .files .file[rendered] {
-  min-height: 80px;
+  min-height: 72px;
   max-height: 800px;
   height: auto;
 }
@@ -204,27 +201,9 @@ body.ready .modal:hover {
   opacity: 1;
 }
 
-/*.files .file[state="uploading"] .status,
-.files .file[state="bundling"] .status {
-  background: #03A9F4;
-}
-
-.files .file[state="expired"] .status {
-  background: #FF9800;
-}
-
-.files .file[state="error"] .status {
-  background: #F44336;
-}
-
-.files .file[state="complete"] .status {
-  background: #4CAF50;
-}*/
-
-
 .files .file .status {
-  height: 80px;
-  min-width: 80px;
+  height: 72px;
+  width: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -236,20 +215,15 @@ body.ready .modal:hover {
   transition: all .2s ease;
 }
 
-.files .file[large] .status {
-  background: transparent;
-}
-
 .files .file .meta {
   flex: 1;
   display: flex;
-  position: relative;
   flex-direction: column;
-  box-sizing: border-box;
-  padding: 20px 20px 20px 0;
+  justify-content: center;
+  position: relative;
+  padding-right: 16px;
   overflow: hidden;
-  max-height: 80px;
-  z-index: 1;
+  height: 72px;
 }
 
 .files .file .meta .name,
@@ -270,7 +244,6 @@ body.ready .modal:hover {
   word-wrap: break-word;
   text-transform: uppercase;
   font-size: 14px;
-  margin-bottom: auto;
   -webkit-transition: all .4s ease;
   -moz-transition: all .4s ease;
   -ms-transition: all .4s ease;

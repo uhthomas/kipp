@@ -1,8 +1,6 @@
 # conf
 [![GoDoc](https://godoc.org/github.com/6f7262/conf?status.svg)](https://godoc.org/github.com/6f7262/conf)
 
-A temporary file storage server.
-
 ## Installation and usage
 ```
 go get github.com/6f7262/conf/cmd/conf
