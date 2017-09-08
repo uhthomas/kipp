@@ -18,11 +18,9 @@ html, body {
 
 body {
   font-family: 'Roboto', arial, sans-serif;
-  color: white;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #303030;
   -webkit-transition: background .2s ease;
   -moz-transition: background .2s ease;
   -ms-transition: background .2s ease;
