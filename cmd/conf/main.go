@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"encoding/base32"
 	"encoding/json"
 	"log"
 	"mime"
@@ -55,10 +56,11 @@ func loadMimeTypes(path string) error {
 }
 
 func main() {
-	var (
-		d conf.Driver
-		s conf.Server
-	)
+	var d conf.Driver
+	s := conf.Server{
+		Encoding: base32.NewEncoding("0123456789abcdefghjkmnpqrtuvwxyz").
+			WithPadding(base32.NoPadding),
+	}
 	addr := kingpin.
 		Flag("addr", "Server listen address.").
 		Default(":1337").

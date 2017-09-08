@@ -1,10 +1,7 @@
 package conf
 
 import (
-	"bytes"
-	"crypto/hmac"
-	"crypto/rand"
-	"crypto/sha256"
+	"encoding/base32"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -20,14 +17,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/6f7262/conf/ctr"
 	"github.com/jinzhu/gorm"
-	blake2b "github.com/minio/blake2b-simd"
+	"github.com/minio/blake2b-simd"
 )
 
 // Server is used to serve http requests and acts as a config.
 type Server struct {
 	DB         *gorm.DB
+	Encoding   *base32.Encoding
 	Expiration time.Duration
 	Max        int64
 	FilePath   string
@@ -38,7 +35,7 @@ type Server struct {
 // Cleanup will delete expired content and remove files associated with it as
 // long as it is not used by any other content.
 func (s Server) Cleanup() error {
-	if err := s.DB.Delete(&Content{}, "expires < ?", time.Now()).Error; err != nil {
+	if err := s.DB.Delete(Content{}, "expires < ?", time.Now()).Error; err != nil {
 		return err
 	}
 	return filepath.Walk(s.FilePath, func(path string, f os.FileInfo, err error) error {
@@ -48,7 +45,7 @@ func (s Server) Cleanup() error {
 		if f.IsDir() || filepath.Dir(path) != s.FilePath {
 			return nil
 		}
-		if !s.DB.Where("hash = ?", f.Name()).Find(&Content{}).RecordNotFound() {
+		if !s.DB.Where("checksum = ?", f.Name()).Find(Content{}).RecordNotFound() {
 			return nil
 		}
 		return os.Remove(filepath.Join(s.FilePath, f.Name()))
@@ -89,7 +86,7 @@ func (s Server) StaticHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // ContentHandler will query the database for the given slug. If the slug doesn't exist it
-// will return 404 otherwise it will decrypt the file and serve it.
+// will return 404 otherwise it will serve the file.
 func (s Server) ContentHandler(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.Method == http.MethodOptions:
@@ -101,42 +98,18 @@ func (s Server) ContentHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
 		return
 	}
-	// split the path to allow for extensions
-	slug := strings.Split(r.URL.Path, ".")[0][1:]
-	b, err := base64.RawURLEncoding.DecodeString(slug)
+	// decode split the path to allow for extensions
+	b, err := s.Encoding.DecodeString(strings.Split(r.URL.Path, ".")[0][1:])
 	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
-	// fragment:10 | sum:16 = 26
-	if len(b) != 26 {
 		http.NotFound(w, r)
 		return
 	}
 	var c Content
-	if s.DB.First(&c, "fragment = ?", b[:10]).RecordNotFound() {
+	if s.DB.First(&c, "id = ?", b).RecordNotFound() {
 		http.NotFound(w, r)
 		return
 	}
-	// remove fragment:10 from b to make it sum:16
-	b = b[10:]
-	// verify sum is valid
-	h := hmac.New(sha256.New, c.Secret)
-	h.Write(b)
-	if !hmac.Equal(h.Sum(nil), c.MAC) {
-		http.NotFound(w, r)
-		return
-	}
-	k := make([]byte, 16)
-	for i := 0; i < 16; i++ {
-		k[i] = c.Secret[i] ^ b[i]
-	}
-	f, err := os.Open(filepath.Join(s.FilePath, c.Hash))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	cr, err := ctr.NewReader(f, k, c.IV)
+	f, err := os.Open(filepath.Join(s.FilePath, c.Checksum))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -145,9 +118,9 @@ func (s Server) ContentHandler(w http.ResponseWriter, r *http.Request) {
 	ctype := mime.TypeByExtension(filepath.Ext(c.Name))
 	if ctype == "" {
 		var b [512]byte
-		n, _ := io.ReadFull(cr, b[:])
+		n, _ := io.ReadFull(f, b[:])
 		ctype = http.DetectContentType(b[:n])
-		if _, err := cr.Seek(0, io.SeekStart); err != nil {
+		if _, err := f.Seek(0, io.SeekStart); err != nil {
 			http.Error(w, "seeker can't seek", http.StatusInternalServerError)
 			return
 		}
@@ -173,9 +146,9 @@ func (s Server) ContentHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", cache)
 	w.Header().Set("Content-Disposition", fmt.Sprintf("filename=%q", c.Name))
 	w.Header().Set("Content-Type", ctype)
-	w.Header().Set("Etag", strconv.Quote(c.Hash))
+	w.Header().Set("Etag", strconv.Quote(c.Checksum))
 	w.Header().Set("X-Content-Type-Options", "nosniff")
-	http.ServeContent(w, r, c.Name, c.CreatedAt, cr)
+	http.ServeContent(w, r, c.Name, c.CreatedAt, f)
 }
 
 // UploadHandler serves as a handler for uploading files to conf. It will
@@ -233,51 +206,28 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	// If the file is uploaded successfully and renamed this operation will fail.
 	defer os.Remove(tf.Name())
 	defer tf.Close()
-	// Generate a random key and iv. key:16 | iv:16 = 32
-	k := make([]byte, 32)
-	if _, err := io.ReadFull(rand.Reader, k); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	k, iv, h := k[:16], k[16:], blake2b.New512()
-	cw, err := ctr.NewWriter(tf, k, iv)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
 	// Hash and save the file.
-	n, err := io.Copy(io.MultiWriter(cw, h), http.MaxBytesReader(w, p, s.Max))
+	h := blake2b.New512()
+	n, err := io.Copy(io.MultiWriter(tf, h), http.MaxBytesReader(w, p, s.Max))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	sum := h.Sum(nil)[:48]
+	// base64 for sum encoding since it's slightly more compact than base32 and
+	// is unlikely to be read by humans.
+	sum := base64.RawURLEncoding.EncodeToString(h.Sum(nil))
 	// Find the content
-	c := Content{Hash: base64.RawURLEncoding.EncodeToString(sum[:32])}
-	// remove hash:32 from sum
-	sum = sum[32:]
-	if s.DB.First(&c, "hash = ?", c.Hash).RecordNotFound() {
-		p := filepath.Join(s.FilePath, c.Hash)
+	if s.DB.First(Content{}, "checksum = ?", sum).RecordNotFound() {
+		p := filepath.Join(s.FilePath, sum)
 		if err := os.Rename(tf.Name(), p); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		c.IV = iv
-		c.Secret = make([]byte, 16)
-		for i := 0; i < 16; i++ {
-			c.Secret[i] = k[i] ^ sum[i]
-		}
-		h := hmac.New(sha256.New, c.Secret)
-		h.Write(sum)
-		c.MAC = h.Sum(nil)
 	}
-	c = Content{
-		Hash:   c.Hash,
-		Name:   name,
-		Size:   n,
-		Secret: c.Secret,
-		IV:     c.IV,
-		MAC:    c.MAC,
+	c := Content{
+		Checksum: sum,
+		Name:     name,
+		Size:     n,
 	}
 	if s.Expiration > 0 {
 		e := time.Now().Add(s.Expiration)
@@ -288,16 +238,8 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	var buf bytes.Buffer
-	e := base64.NewEncoder(base64.RawURLEncoding, &buf)
-	e.Write(c.Fragment)
-	e.Write(sum)
-	e.Close()
-	if ext := filepath.Ext(c.Name); ext != "" {
-		buf.WriteString(ext)
-	}
 	json.NewEncoder(w).Encode(struct {
 		Expires *time.Time `json:"expires,omitempty"`
 		Path    string     `json:"path"`
-	}{c.Expires, buf.String()})
+	}{c.Expires, s.Encoding.EncodeToString(c.ID) + filepath.Ext(c.Name)})
 }

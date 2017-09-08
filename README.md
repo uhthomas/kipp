@@ -54,13 +54,12 @@ server {
     server_name conf.6f.io;
     listen 80;
 
-    client_max_body_size 150m;
-
     root ~/conf/public;
 
     try_files $uri $uri/ @proxy;
 
     location @proxy {
+        client_max_body_size 150m;
         proxy_buffering off;
         proxy_request_buffering off;
         proxy_ssl_verify off;

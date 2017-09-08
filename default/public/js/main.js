@@ -189,7 +189,7 @@ function content(file) {
   self.element = $(`
     <a class="file" state="uploading" target="_blank">
       <div class="background"></div>
-      <div class="status mdi"></div>
+      <div class="status material-icons"></div>
       <div class="meta">
         <div class="name"></div>
         <div class="info">
@@ -308,13 +308,13 @@ function content(file) {
   self.setState = function(state) {
     self.state = state;
     self.element.attr('state', state);
-    self.element.find('.status').text(['uploading', 'bundling'].indexOf(state) > -1 ? self.progress : '')[0].className = ['status'].concat({
-      'error': ['mdi', 'mdi-close'],
-      'expired': ['mdi', 'mdi-timer'],
-      'bundling': [],
-      'uploading': [],
-      'complete': ['mdi', 'mdi-check']
-    }[state] || []).join(' ');
+    self.element.find('.status').text(['uploading', 'bundling'].indexOf(state) > -1 ? self.progress : '')[0].innerHTML = {
+      'error': 'close',
+      'expired': 'timer',
+      // 'bundling': '',
+      // 'uploading': '',
+      'complete': 'check'
+    }[state];
   }
 
   self.setMessage = function(message) {

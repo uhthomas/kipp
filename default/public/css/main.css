@@ -1,3 +1,11 @@
+/* material-icons */
+.material-icons.md-18 { font-size: 18px; }
+.material-icons.md-24 { font-size: 24px; }
+.material-icons.md-36 { font-size: 36px; }
+.material-icons.md-48 { font-size: 48px; }
+.material-icons { color: rgba(255, 255, 255, 1); }
+.material-icons.md-inactive { color: rgba(255, 255, 255, 0.3); }
+
 * {
   padding: 0;
   margin: 0;
@@ -21,7 +29,8 @@ body {
 body.ready {
   background: #212121;
 }
-.mdi.preload {
+
+.preload {
   visibility: hidden;
   position: absolute;
   top: -9999px;
@@ -62,10 +71,6 @@ body.ready {
   z-index: 0;
   flex-shrink: 1;
   min-height: 200px;
-}
-
-.modal::after {
-  content: 'Drag and drop a file or click here to upload';
 }
 
 body.ready .modal {
@@ -219,7 +224,6 @@ body.ready .modal:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
   z-index: 1;
   -webkit-transition: all .2s ease;
   -moz-transition: all .2s ease;
@@ -258,7 +262,6 @@ body.ready .modal:hover {
 }
 
 .files .file .meta .info {
-  font-size: 20px;
   overflow: hidden;
   word-wrap: break-word;
   text-transform: uppercase;
@@ -274,6 +277,11 @@ body.ready .modal:hover {
 .files .file[state="uploading"] .info,
 .files .file[state="bundling"] .info {
   color: #00B0FF;
+}
+
+.files .file[state="uploading"] .status,
+.files .file[state="bundling"] .status {
+  font-family: 'Roboto', sans-serif;
 }
 
 .files .file[state="expired"] .info {

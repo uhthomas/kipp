@@ -44,33 +44,24 @@ func (d Driver) String() string {
 	panic("conf: invalid driver")
 }
 
-// Model is the base of all database models to ensure consistency.
-type Model struct {
-	ID        int64      `json:"-" gorm:"primary_key"`
-	CreatedAt time.Time  `json:"created"`
-	UpdatedAt time.Time  `json:"updated"`
-	DeletedAt *time.Time `json:"deleted,omitempty" gorm:"index"`
-}
-
 // Content will store information about an uploaded file such as its name, hash,
 // expiration date and slug.
 type Content struct {
-	Model
-	Expires  *time.Time
-	Fragment []byte `gorm:"unique"`
-	Hash     string
-	Name     string
-	Size     int64
-
-	Secret []byte // secret used for key generation
-	IV     []byte
-	MAC    []byte // used for key authentication
+	Checksum  string
+	CreatedAt time.Time
+	DeletedAt *time.Time `gorm:"index"`
+	Expires   *time.Time
+	ID        []byte `gorm:"primary_key"`
+	Name      string
+	Size      int64
+	UpdatedAt time.Time
 }
 
 // BeforeCreate will assign default values to the content. BeforeCreate is used
 // by gorm.
 func (c *Content) BeforeCreate() error {
-	c.Fragment = make([]byte, 10)
-	_, err := io.ReadFull(rand.Reader, c.Fragment)
+	// make the length variable?
+	c.ID = make([]byte, 8)
+	_, err := io.ReadFull(rand.Reader, c.ID)
 	return err
 }
