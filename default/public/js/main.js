@@ -345,7 +345,7 @@ function content(file) {
 	self.upload = function(encrypted) {
 		var p = encrypted || self.private;
 		if (!encrypted && p) {
-			self.setMessageState('encrypting', 'uploading');
+			self.setMessageState('encrypting');
 			var fr = new FileReader();
 			fr.onload = async function() {
 				const [iv, key, data] = await encrypt(this.result);

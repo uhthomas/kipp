@@ -323,8 +323,12 @@ body.ready .bar {
     font-size: 16px;
 }
 
-.files .file[state="uploading"] .meta .status .icon,
-.files .file[state="bundling"] .meta .status .icon {
+.files .file[state="encrypting"] .meta .status .icon {
+    color: #FF9800;
+}
+
+.files .file[state="bundling"] .meta .status .icon,
+.files .file[state="uploading"] .meta .status .icon {
     color: #00B0FF;
 }
 
