@@ -101,7 +101,6 @@ body {
 .status .info {
     font-size: 20px;
     color: white;
-    max-width: 100%;
     white-space: nowrap;
     display: flex;
     margin: 0 24px;

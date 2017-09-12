@@ -194,6 +194,7 @@ function content(file) {
 			<div class="meta">
 				<div class="info">
 					<span class="name"></span>
+					&nbsp;&middot;&nbsp;
 					<span class="size"></span>
 				</div>
 				<div class="status">
@@ -304,18 +305,18 @@ function content(file) {
 		progress = Math.min(progress, 100);
 		self.progress = progress;
 		if (self.state === 'done') return;
-		if (['encrypting', 'uploading', 'bundling'].indexOf(self.state) === -1) return;
-		self.element.find('.meta .status .icon').text(~~progress + '%');
-		self.element.find('.meta .status .text').text(self.state.replace('ing', 'ed'));
+		if (['uploading', 'bundling'].indexOf(self.state) === -1) return;
+		self.element.find('.meta .status .icon').text(~~progress);
+		self.element.find('.meta .status .text').text(self.state);
 	}
 
 	self.setState = function(state) {
 		self.state = state;
 		self.element.attr('state', state);
-		self.element.find('.meta .status .icon').text(['encrypting', 'uploading', 'bundling'].indexOf(state) > -1 ? self.progress : '')[0].innerHTML = {
+		self.element.find('.meta .status .icon').text(['uploading', 'bundling'].indexOf(state) > -1 ? self.progress : '')[0].innerHTML = {
 			'error': 'error_outline',
 			'expired': 'timer',
-			// 'encrypting': self.progress,
+			'encrypting': 'lock_outline',
 			// 'bundling': self.progress,
 			// 'uploading': self.progress,
 			'done': 'check',
@@ -345,7 +346,6 @@ function content(file) {
 		var p = encrypted || self.private;
 		if (!encrypted && p) {
 			self.setMessageState('encrypting', 'uploading');
-			self.setProgress(0);
 			var fr = new FileReader();
 			fr.onload = async function() {
 				const [iv, key, data] = await encrypt(this.result);
@@ -460,7 +460,7 @@ function content(file) {
 			var img = c.image;
 			if (!img) continue;
 			var w = c.element.width();
-			var h = ($(window).height() - 264) / Math.min(3, clen);
+			var h = ($(window).height() - 304) / Math.min(3, clen);
 			h = Math.min(h - 10, w / (img.width / img.height));
 			if ((c.element.height()|0) === (h|0)) continue;
 			c.element.css('min-height', h + 'px');

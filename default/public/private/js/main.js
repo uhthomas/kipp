@@ -1,7 +1,9 @@
 // returns data
-async function decrypt(iv, key, data) {
-    const k = await crypto.subtle.importKey('raw', key, { name: 'AES-GCM' }, false, ['decrypt']);
-    return await crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, k, data);
+function decrypt(iv, key, data) {
+    return crypto.subtle.importKey('raw', key, { name: 'AES-GCM' }, false, ['decrypt'])
+        .then(function(k) {
+            return crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, k, data);
+        })
 }
 
 function decode(s) {
@@ -17,7 +19,7 @@ function err(message) {
     document.querySelector('.status .text.open').innerHTML = message;
 }
 
-async function main() {
+function main() {
     try {
         const s = location.hash.slice(1).split('/');
         if (s[0] === 'preview') {
@@ -36,7 +38,7 @@ async function main() {
         req.onprogress = function(e) {
             document.querySelector('.progress .bar').style.width = ~~(e.loaded / e.total * 100) + '%';
         }
-        req.onload = async function() {
+        req.onload = function() {
             req.onprogress = null;
 
             if (req.status !== 200)
@@ -45,44 +47,43 @@ async function main() {
             document.querySelector('.progress .bar').style.width = '100%';
             document.querySelector('.status .text.open').innerHTML = 'DECRYPTING';
 
-            try {
-                var b = new Blob([await decrypt(iv, key, this.response)], { type: req.getResponseHeader('Content-Type')});
-            } catch(e) {
-                return err('message' in e ? e.message : e);
-            }
+            decrypt(iv, key, this.response).then(function(b) {
+                b = new Blob([b], { type: req.getResponseHeader('Content-Type') })
+                document.body.className = 'done';
+                document.querySelector('.status .text.open').innerHTML = 'OPEN';
 
-            document.body.className = 'done';
-            document.querySelector('.status .text.open').innerHTML = 'OPEN';
+                var name = decodeURIComponent(req.getResponseHeader('Content-Disposition').split('"')[1].split('"')[0]);
+                var d = document.createElement('div');
+                d.className = 'info';
+                console.log(b);
+                d.innerHTML = '<div class="name">' + name + '</div>&nbsp;<span class="size">' + filesize(b.size) + '</span>';
+                document.querySelector('.status').appendChild(d);
 
-            var name = decodeURIComponent(req.getResponseHeader('Content-Disposition').split('"')[1].split('"')[0]);
-            console.log(name);
-            var d = document.createElement('div');
-            d.className = 'info';
-            d.innerHTML = '<div class="name">' + name + '</div>&nbsp;<span class="size">' + filesize(b.size) + '</span>';
-            document.querySelector('.status').appendChild(d);
-
-            var u = URL.createObjectURL(b);
-            var a = document.createElement('a');
-            a.className = 'open';
-            a.target = '_blank'
-            a.href = u;
-            var suggested = false;
-            a.onclick = function() {
-                window.open(u, '_blank').onunload = function() {
-                    if (suggested) return;
-                    suggested = true;
-                    document.body.className += ' suggest';
+                var u = URL.createObjectURL(b);
+                var a = document.createElement('a');
+                a.className = 'open';
+                a.target = '_blank'
+                a.href = u;
+                var suggested = false;
+                a.onclick = function() {
+                    window.open(u, '_blank').onunload = function() {
+                        if (suggested) return;
+                        suggested = true;
+                        document.body.className += ' suggest';
+                    }
+                    return false;
                 }
-                return false;
-            }
-            document.body.appendChild(a);
+                document.body.appendChild(a);
 
-            var ad = document.querySelector('.status .text.download');
-            ad.href = u;
-            ad.download = name;
+                var ad = document.querySelector('.status .text.download');
+                ad.href = u;
+                ad.download = name;
+            }).catch(function(e) {
+                console.log(e);
+                err('message' in e ? e.message : e);
+            });
         }
         req.send();
-
     } catch(e) { err(e); }
     // const response = await fetch('/' + s[1]);
     // const data = await decrypt(iv, key, await response.arrayBuffer());

@@ -139,21 +139,23 @@ body.ready .bar {
     height: 64px;
 }
 
-.bar .material-icons {
-    position: absolute;
-    text-align: center;
-    left: -32px;
-}
-
 .bar .toggle {
     display: flex;
     align-items: center;
     cursor: pointer;
     margin: 0 auto 0 48px;
     position: relative;
+    height: 24px;
 }
 
-.bar .toggle .top {
+.bar .toggle .material-icons {
+    position: absolute;
+    text-align: center;
+    left: -32px;
+    top: 0;
+}
+
+.bar .toggle .material-icons .top {
     -webkit-transition: opacity .2s ease-in-out;
     -moz-transition: opacity .2s ease-in-out;
     -ms-transition: opacity .2s ease-in-out;
@@ -257,6 +259,7 @@ body.ready .bar {
   -ms-transition: all .2s ease-in-out;
   -o-transition: all .2s ease-in-out;
   transition: all .2s ease-in-out;
+  z-index: -1;
 }
 
 .files .file .background:before {
@@ -281,64 +284,64 @@ body.ready .bar {
     flex: 1;
     padding: 0 16px;
     overflow: hidden;
-    z-index: 1;
+    color: #e0e0e0;
 }
 
 .files .file .meta .info {
-    font-size: 20px;
-    margin-bottom: 4px;
+    color: white;
+    font-size: 18px;
+    overflow: hidden;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
 }
 
 .files .file .meta .info .name {
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+    color: white;
 }
 
 .files .file .meta .info .size {
     white-space: nowrap;
-    color: #e0e0e0;
-    font-size: 16px;
-    margin-top: auto;
-}
-
-.files .file .meta .info .size::before {
-    content: ' ';
+    font-size: 14px;
 }
 
 .files .file .meta .status {
-    font-size: 16px;
+    font-size: 14px;
     text-transform: uppercase;
     display: flex;
     align-items: center;
-}
-
-.files .file[state="uploading"] .meta .status,
-.files .file[state="bundling"] .meta .status {
-  color: #00B0FF;
-}
-
-.files .file[state="expired"] .meta .status {
-  color: #FF9100;
-}
-
-.files .file[state="error"] .meta .status {
-  color: #FF1744;
-}
-
-.files .file[state="done"] .meta .status,
-.files .file[state="done-secure"] .meta .status {
-  color: #00E676;
+    margin-top: 4px;
+    color: #e0e0e0;
 }
 
 .files .file .meta .status .icon {
     font-size: inherit;
     color: inherit;
-    margin-right: 4px;
-    font-size: 20px;
+    margin-right: 8px;
+    font-size: 16px;
 }
 
-.files .file[state="encrypting"] .status .icon,
+.files .file[state="uploading"] .meta .status .icon,
+.files .file[state="bundling"] .meta .status .icon {
+  color: #00B0FF;
+}
+
+.files .file[state="expired"] .meta .status .icon {
+  color: #FF9100;
+}
+
+.files .file[state="error"] .meta .status .icon {
+  color: #FF1744;
+}
+
+.files .file[state="done"] .meta .status .icon,
+.files .file[state="done-secure"] .meta .status .icon {
+  color: #00E676;
+}
+
 .files .file[state="uploading"] .status .icon,
 .files .file[state="bundling"] .status .icon {
   font-family: 'Roboto', sans-serif;
@@ -353,7 +356,6 @@ body.ready .bar {
     height: 72px;
     line-height: 72px;
     text-align: center;
-    z-index: 1;
     display: none;
 }
 
