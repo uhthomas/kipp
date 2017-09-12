@@ -1,0 +1,131 @@
+html, body {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #212121;
+    color: white;
+    box-sizing: border-box;
+    padding: 24px;
+}
+
+.suggest-text {
+    display: none;
+    position: absolute;
+    justify-content: center;
+    align-items: center;
+    height: 48px;
+    left: 0;
+    right: 0;
+    top: 0;
+}
+
+.suggest .suggest-text {
+    display: flex;
+}
+
+.status {
+    font-size: 20px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    max-height: 100%;
+    max-width: 100%;
+}
+
+.status .text {
+    text-align: center;
+    min-width: 192px;
+    min-height: 64px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-transform: uppercase;
+    box-sizing: border-box;
+    padding: 13px 0;
+    margin: 8px;
+}
+
+.done .status .text {
+    background: #2196F3;
+}
+
+.status .text.download {
+    background: #424242;
+    z-index: 2;
+    text-decoration: none;
+    color: white;
+    display: none;
+}
+
+.done .status .text.download {
+    display: flex;
+}
+
+.status .progress {
+    width: 100%;
+    height: 5px;
+    background: #303030;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+}
+
+.done .status .progress {
+    display: none;
+}
+
+.error .status .progress {
+    width: 100%!important;
+}
+
+.status .progress .bar {
+    background: #2196F3;
+    height: 100%;
+    width: 0;
+}
+
+.error .status .progress .bar {
+    background: #F44336;
+}
+
+.status .info {
+    font-size: 20px;
+    color: white;
+    max-width: 100%;
+    white-space: nowrap;
+    display: flex;
+    margin: 0 24px;
+    height: 64px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.status .info .name {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.status .info .size {
+    opacity: .66;
+}
+
+a.open {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}   

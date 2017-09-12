@@ -65,3 +65,5 @@ server {
 * Rewrite the frontend in gopherjs.
 * Compress JS and CSS.
 * Write tests.
+* Cleanup frontend.
+* Add context menus to files.

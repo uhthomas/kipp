@@ -21,11 +21,11 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  -webkit-transition: background .2s ease;
-  -moz-transition: background .2s ease;
-  -ms-transition: background .2s ease;
-  -o-transition: background .2s ease;
-  transition: background .2s ease;
+  -webkit-transition: background .2s ease-in-out;
+  -moz-transition: background .2s ease-in-out;
+  -ms-transition: background .2s ease-in-out;
+  -o-transition: background .2s ease-in-out;
+  transition: background .2s ease-in-out;
 }
 
 body.ready {
@@ -33,21 +33,39 @@ body.ready {
 }
 
 .content {
-  max-width: 800px;
   width: 100%;
   box-sizing: border-box;
-  padding: 20px 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
+  min-height: 100%;
+  max-width: 100%;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -webkit-transition: all .1s ease-in-out;
+  -moz-transition: all .1s ease-in-out;
+  -ms-transition: all .1s ease-in-out;
+  -o-transition: all .1s ease-in-out;
+  transition: all .1s ease-in-out;
+  -webkit-transition-property: padding, max-width, min-height;
+  -moz-transition-property: padding, max-width, min-height;
+  -ms-transition-property: padding, max-width, min-height;
+  -o-transition-property: padding, max-width, min-height;
+  transition-property: padding, max-width, min-height;
+  align-items: center;
   max-height: 100%;
 }
 
-.modal {
+body.ready .content {
+    padding: 20px 0;
+    min-height: 0;
+    max-width: 800px;
+}
+
+.file-select {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  height: 200px;
   box-sizing: border-box;
   padding: 20px;
   font-size: 20px;
@@ -56,35 +74,41 @@ body.ready {
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
-  -webkit-transition: all .2s ease;
-  -moz-transition: all .2s ease;
-  -ms-transition: all .2s ease;
-  -o-transition: all .2s ease;
-  transition: all .2s ease;
-  -webkit-transition-property: background, width, height, box-shadow;
-  -moz-transition-property: background, width, height, box-shadow;
-  -ms-transition-property: background, width, height, box-shadow;
-  -o-transition-property: background, width, height, box-shadow;
-  transition-property: background, width, height, box-shadow;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -webkit-transition: all .2s ease-in-out;
+  -moz-transition: all .2s ease-in-out;
+  -ms-transition: all .2s ease-in-out;
+  -o-transition: all .2s ease-in-out;
+  transition: all .2s ease-in-out;
+  -webkit-transition-property: background, box-shadow;
+  -moz-transition-property: background, box-shadow;
+  -ms-transition-property: background, box-shadow;
+  -o-transition-property: background, box-shadow;
+  transition-property: background, box-shadow;
   background: #303030;
   z-index: 0;
   flex-shrink: 1;
   min-height: 200px;
+  position: relative;
+  height: 100%;
+  flex-grow: 1;
+  width: 100%;
 }
 
-body.ready .modal {
-  position: relative;
+body.ready .file-select {
   box-shadow: rgba(0, 0, 0, 0.156863) 0px 3px 10px, rgba(0, 0, 0, 0.227451) 0px 3px 10px;
+  height: 200px;
 } 
 
-body.ready .modal.hover,
-body.ready .modal:hover {
+body.ready .file-select.hover,
+body.ready .file-select:hover {
   background: #424242;
   box-shadow: rgba(0, 0, 0, 0.298039) 0px 19px 60px, rgba(0, 0, 0, 0.219608) 0px 15px 20px;
   z-index: 1;
 }
 
-.modal .hidden {
+.file-select .hidden {
   opacity: 0;
   position: absolute;
   top: 0;
@@ -94,12 +118,73 @@ body.ready .modal:hover {
   cursor: pointer;
 }
 
-.modal .material-icons {
+::-webkit-file-upload-button {
+    cursor: pointer;
+}
+
+.file-select .material-icons {
     width: 48px;
 }
 
-::-webkit-file-upload-button {
+.bar {
+    width: 100%;
+    height: 48px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+}
+
+body.ready .bar {
+    min-height: 64px;
+    height: 64px;
+}
+
+.bar .material-icons {
+    position: absolute;
+    text-align: center;
+    left: -32px;
+}
+
+.bar .toggle {
+    display: flex;
+    align-items: center;
     cursor: pointer;
+    margin: 0 auto 0 48px;
+    position: relative;
+}
+
+.bar .toggle .top {
+    -webkit-transition: opacity .2s ease-in-out;
+    -moz-transition: opacity .2s ease-in-out;
+    -ms-transition: opacity .2s ease-in-out;
+    -o-transition: opacity .2s ease-in-out;
+    transition: opacity .2s ease-in-out;
+}
+
+.bar .toggle.hidden .top {
+    opacity: 0;
+}
+
+.bar .info {
+    width: 24px;
+    font-weight: 600;
+    font-size: 24px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.bar .github {
+    width: 48px;
+    height: 24px;
+}
+
+.bar .github svg {
+    fill: white;
+}
+
+.files {
+    max-width: 800px;
+    width: 100%;
 }
 
 .files .file {
@@ -108,14 +193,13 @@ body.ready .modal:hover {
   min-height: 0;
   max-height: 0;
   overflow: hidden;
-  -webkit-transition: all .2s ease;
-  -moz-transition: all .2s ease;
-  -ms-transition: all .2s ease;
-  -o-transition: all .2s ease;
-  transition: all .2s ease;
+  -webkit-transition: all .2s ease-in-out;
+  -moz-transition: all .2s ease-in-out;
+  -ms-transition: all .2s ease-in-out;
+  -o-transition: all .2s ease-in-out;
+  transition: all .2s ease-in-out;
   margin-bottom: 10px;
   background-color: #303030;
-  flex-direction: row;
   text-decoration: none;
   color: white;
   outline: 0;
@@ -124,24 +208,13 @@ body.ready .modal:hover {
   z-index: 0;
 }
 
-.files .file:first-child {
-  margin-top: 10px;
-}
-
 @media only screen and (max-width: 800px) {
-  body {
-    background: #303030!important;
-  }
-
   .content {
     padding: 0!important;
+    min-height: 100%!important;
   }
 
-  .modal {
-    height: 100vh;
-  }
-
-  .modal,
+  .file-select,
   .files .file {
     margin: 0!important;
     box-shadow: none!important;
@@ -179,11 +252,11 @@ body.ready .modal:hover {
   background-position: center;
   background-repeat: no-repeat;
   opacity: 0;
-  -webkit-transition: all .2s ease;
-  -moz-transition: all .2s ease;
-  -ms-transition: all .2s ease;
-  -o-transition: all .2s ease;
-  transition: all .2s ease;
+  -webkit-transition: all .2s ease-in-out;
+  -moz-transition: all .2s ease-in-out;
+  -ms-transition: all .2s ease-in-out;
+  -o-transition: all .2s ease-in-out;
+  transition: all .2s ease-in-out;
 }
 
 .files .file .background:before {
@@ -200,18 +273,102 @@ body.ready .modal:hover {
   opacity: 1;
 }
 
-.files .file .status {
+.files .file .meta {
+    height: 72px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    padding: 0 16px;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.files .file .meta .info {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.files .file .meta .info .name {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.files .file .meta .info .size {
+    white-space: nowrap;
+    color: #e0e0e0;
+    font-size: 16px;
+    margin-top: auto;
+}
+
+.files .file .meta .info .size::before {
+    content: ' ';
+}
+
+.files .file .meta .status {
+    font-size: 16px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+}
+
+.files .file[state="uploading"] .meta .status,
+.files .file[state="bundling"] .meta .status {
+  color: #00B0FF;
+}
+
+.files .file[state="expired"] .meta .status {
+  color: #FF9100;
+}
+
+.files .file[state="error"] .meta .status {
+  color: #FF1744;
+}
+
+.files .file[state="done"] .meta .status,
+.files .file[state="done-secure"] .meta .status {
+  color: #00E676;
+}
+
+.files .file .meta .status .icon {
+    font-size: inherit;
+    color: inherit;
+    margin-right: 4px;
+    font-size: 20px;
+}
+
+.files .file[state="encrypting"] .status .icon,
+.files .file[state="uploading"] .status .icon,
+.files .file[state="bundling"] .status .icon {
+  font-family: 'Roboto', sans-serif;
+  font-size: inherit;
+}
+
+.files .file .meta .status .text {}
+
+.files .file .more {
+    min-width: 72px;
+    width: 72px;
+    height: 72px;
+    line-height: 72px;
+    text-align: center;
+    z-index: 1;
+    display: none;
+}
+
+/*.files .file .status {
   height: 72px;
   width: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1;
-  -webkit-transition: all .2s ease;
-  -moz-transition: all .2s ease;
-  -ms-transition: all .2s ease;
-  -o-transition: all .2s ease;
-  transition: all .2s ease;
+  -webkit-transition: all .2s ease-in-out;
+  -moz-transition: all .2s ease-in-out;
+  -ms-transition: all .2s ease-in-out;
+  -o-transition: all .2s ease-in-out;
+  transition: all .2s ease-in-out;
 }
 
 .files .file .meta {
@@ -243,18 +400,20 @@ body.ready .modal:hover {
   word-wrap: break-word;
   text-transform: uppercase;
   font-size: 14px;
-  -webkit-transition: all .4s ease;
-  -moz-transition: all .4s ease;
-  -ms-transition: all .4s ease;
-  -o-transition: all .4s ease;
-  transition: all .4s ease;
+  -webkit-transition: all .4s ease-in-out;
+  -moz-transition: all .4s ease-in-out;
+  -ms-transition: all .4s ease-in-out;
+  -o-transition: all .4s ease-in-out;
+  transition: all .4s ease-in-out;
 }
 
+.files .file[state="encrypting"] .info,
 .files .file[state="uploading"] .info,
 .files .file[state="bundling"] .info {
   color: #00B0FF;
 }
 
+.files .file[state="encrypting"] .status,
 .files .file[state="uploading"] .status,
 .files .file[state="bundling"] .status {
   font-family: 'Roboto', sans-serif;
@@ -279,9 +438,9 @@ body.ready .modal:hover {
 
 .files .file .meta .info .size:after {
   content: ' · ';
-}
+}*/
 
-.confirmation-modal {
+.modal {
   position: fixed;
   top: 0;
   left: 0;
@@ -294,32 +453,32 @@ body.ready .modal:hover {
   padding: 20px;
 }
 
-.confirmation {
+.modal .container {
     width: 280px;
     margin: auto;
     overflow: hidden;
     background: #212121;
 }
 
-.confirmation .title {
+.modal .container .title {
     font-size: 22px;
     padding: 24px 24px 20px 24px;
 
 }
 
-.confirmation .text {
+.modal .container .text {
     font-size: 16px;
-    opacity: .6;
+    color: rgba(255,255,255,0.66);
     box-sizing: border-box;
     padding: 0 24px 24px 24px;
 }
 
-.confirmation .buttons {
+.modal .container .buttons {
     display: flex;
     justify-content: flex-end;
 }
 
-.confirmation .buttons .button {
+.modal .container .buttons .button {
     display: flex;
     align-items: center;
     color: #03A9F4;

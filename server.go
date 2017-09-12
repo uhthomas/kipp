@@ -10,6 +10,7 @@ import (
 	"mime"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -21,7 +22,8 @@ import (
 	"github.com/minio/blake2b-simd"
 )
 
-// Server is used to serve http requests and acts as a config.
+// Server is used to serve HTTP requests and acts as a configuration file for
+// conf.
 type Server struct {
 	DB         *gorm.DB
 	Encoding   *base32.Encoding
@@ -52,7 +54,7 @@ func (s Server) Cleanup() error {
 	})
 }
 
-// ServeHTTP will serve HTTP requests. /, /css, /fonts, /js and /upload are all
+// ServeHTTP will serve HTTP requests. /, /css, /fonts, /js, /private and /upload are all
 // static routes and any other route is considered a request for content.
 func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// TODO: version?
@@ -63,14 +65,14 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.URL.Path == "/upload":
 		s.UploadHandler(w, r)
-	case r.URL.Path == "/", hasPrefix("/css"), hasPrefix("/fonts"), hasPrefix("/js"):
+	case r.URL.Path == "/", hasPrefix("/css/"), hasPrefix("/fonts/"), hasPrefix("/js/"), hasPrefix("/private/"):
 		s.StaticHandler(w, r)
 	default:
 		s.ContentHandler(w, r)
 	}
 }
 
-// StaticHandler will server static content given the url path.
+// StaticHandler will serve static content given a URL.
 func (s Server) StaticHandler(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.Method == http.MethodOptions:
@@ -85,8 +87,8 @@ func (s Server) StaticHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, path.Join(s.PublicPath, r.URL.Path))
 }
 
-// ContentHandler will query the database for the given slug. If the slug doesn't exist it
-// will return 404 otherwise it will serve the file.
+// ContentHandler will serve the requested content, establish a mime type and
+// assign appropriate headers.
 func (s Server) ContentHandler(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.Method == http.MethodOptions:
@@ -144,18 +146,21 @@ func (s Server) ContentHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	w.Header().Set("Cache-Control", cache)
-	w.Header().Set("Content-Disposition", fmt.Sprintf("filename=%q", c.Name))
+	w.Header().Set("Content-Disposition", fmt.Sprintf(
+		"filename=%q; filename*=UTF-8''%[1]s",
+		url.PathEscape(c.Name),
+	))
 	w.Header().Set("Content-Type", ctype)
 	w.Header().Set("Etag", strconv.Quote(c.Checksum))
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	http.ServeContent(w, r, c.Name, c.CreatedAt, f)
 }
 
-// UploadHandler serves as a handler for uploading files to conf. It will
-// generate a random key and iv then both hash and encrypt the body. After that,
-// conf generates a secret (sum[32:48] ^ key) as well as a MAC using the
-// secret as the key and sum[32:48] as the body. The expiration date and path is
-// then sent to the client in JSON form.
+// UploadHandler will read the request body and write it to the disk whilst also
+// calculating a blake2b checksum. It will then insert the content information
+// into the database and if the file doesn't already exist, it will be moved
+// into the FilePath. It will then return the expiration date and URL to the
+// client.
 func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.Method == http.MethodOptions:
