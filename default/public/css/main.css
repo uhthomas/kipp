@@ -309,7 +309,7 @@ body.ready .bar {
 
 .files .file .meta .status {
     font-size: 14px;
-    text-transform: uppercase;
+    text-transform: capitalize;
     display: flex;
     align-items: center;
     margin-top: 4px;
@@ -325,26 +325,27 @@ body.ready .bar {
 
 .files .file[state="uploading"] .meta .status .icon,
 .files .file[state="bundling"] .meta .status .icon {
-  color: #00B0FF;
+    color: #00B0FF;
 }
 
 .files .file[state="expired"] .meta .status .icon {
-  color: #FF9100;
+    color: #FF9100;
 }
 
 .files .file[state="error"] .meta .status .icon {
-  color: #FF1744;
+    color: #FF1744;
 }
 
 .files .file[state="done"] .meta .status .icon,
 .files .file[state="done-secure"] .meta .status .icon {
-  color: #00E676;
+    color: #00E676;
 }
 
 .files .file[state="uploading"] .status .icon,
 .files .file[state="bundling"] .status .icon {
-  font-family: 'Roboto', sans-serif;
-  font-size: inherit;
+    font-family: 'Roboto', sans-serif;
+    font-size: inherit;
+    width: 24px;
 }
 
 .files .file .meta .status .text {
