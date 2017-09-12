@@ -284,11 +284,10 @@ body.ready .bar {
     flex: 1;
     padding: 0 16px;
     overflow: hidden;
-    color: #e0e0e0;
 }
 
 .files .file .meta .info {
-    color: white;
+    color: #e0e0e0;
     font-size: 18px;
     overflow: hidden;
     white-space: nowrap;
@@ -348,7 +347,11 @@ body.ready .bar {
   font-size: inherit;
 }
 
-.files .file .meta .status .text {}
+.files .file .meta .status .text {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
 
 .files .file .more {
     min-width: 72px;
