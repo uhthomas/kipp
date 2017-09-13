@@ -103,11 +103,12 @@ function upload(files) {
 			r.readAsArrayBuffer(file);
 		}, 5);
 		q.drain = function() {
-			var blob = zip.generate({
-				type: 'blob'
-			});
-			c.setFile(blob, `bundle-${randomString(10)}.zip`);
-			c.upload();
+			zip.generateAsync({ type: 'blob' }).then(function(b) {
+                c.setFile(b, `bundle-${randomString(10)}.zip`);
+                c.upload();
+            }).catch(function(e) {
+                c.setMessageState(e, 'error');
+            });
 		}
 		q.push($.makeArray(files), function(file, result) {
 			zip.file(file.name, result);
