@@ -324,7 +324,7 @@ body.ready .bar {
 }
 
 .files .file[state="encrypting"] .meta .status .icon {
-    color: #FF9800;
+    color: #FF9100;
 }
 
 .files .file[state="bundling"] .meta .status .icon,
@@ -333,7 +333,7 @@ body.ready .bar {
 }
 
 .files .file[state="expired"] .meta .status .icon {
-    color: #FFEB3B;
+    color: #FFEA00;
 }
 
 .files .file[state="error"] .meta .status .icon {
