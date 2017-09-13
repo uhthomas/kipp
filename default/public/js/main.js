@@ -343,8 +343,7 @@ function content(file) {
 	}
 
 	self.upload = function(encrypted) {
-		var p = encrypted || self.private;
-		if (!encrypted && p) {
+		if (!encrypted && self.private) {
 			self.setMessageState('encrypting');
 			var fr = new FileReader();
 			fr.onload = async function() {
@@ -373,12 +372,12 @@ function content(file) {
 			if (req.readyState !== 4) return;
 			if (req.status === 200) {
 				if (self.private)
-					self.setMessageState('private', 'done');
+					self.setMessageState('private', 'done-secure');
 				else
 					self.setMessageState('done');
 				self.setProgress(100);
 				var res = JSON.parse(req.responseText);
-				if (p)
+				if (self.private)
 					res.path = '/private#' + encode(self.__iv__.concat(self.__key__)) + '/' + res.path;
 				self.element.attr('href', res.path);
 				self.expires = res.expires && new Date(res.expires);
