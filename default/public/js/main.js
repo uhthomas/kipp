@@ -373,9 +373,9 @@ function content(file) {
 			if (req.readyState !== 4) return;
 			if (req.status === 200) {
 				if (self.private)
-					self.setMessageState('private', 'done-secure');
+					self.setMessageState('private', 'done');
 				else
-					self.setMessageState('uploaded', 'done');
+					self.setMessageState('done');
 				self.setProgress(100);
 				var res = JSON.parse(req.responseText);
 				if (p)

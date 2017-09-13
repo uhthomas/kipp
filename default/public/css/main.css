@@ -340,8 +340,7 @@ body.ready .bar {
     color: #FF1744;
 }
 
-.files .file[state="done"] .meta .status .icon,
-.files .file[state="done-secure"] .meta .status .icon {
+.files .file[state="done"] .meta .status .icon {
     color: #00E676;
 }
 
