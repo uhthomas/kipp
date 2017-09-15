@@ -148,6 +148,11 @@ body.ready .bar {
     height: 24px;
 }
 
+.nocrypto .bar {
+    opacity: .67;
+    cursor: default!important;
+}
+
 .bar .toggle .material-icons {
     position: absolute;
     text-align: center;
@@ -350,6 +355,7 @@ body.ready .bar {
     font-family: 'Roboto', sans-serif;
     font-size: inherit;
     width: 24px;
+    text-align: center;
 }
 
 .files .file .meta .status .text {

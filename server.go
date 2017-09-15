@@ -74,9 +74,9 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // StaticHandler will serve static content given a URL.
 func (s Server) StaticHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	switch {
 	case r.Method == http.MethodOptions:
-		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
 		return
 	case r.Method != http.MethodHead && r.Method != http.MethodGet:
@@ -90,9 +90,9 @@ func (s Server) StaticHandler(w http.ResponseWriter, r *http.Request) {
 // ContentHandler will serve the requested content, establish a mime type and
 // assign appropriate headers.
 func (s Server) ContentHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	switch {
 	case r.Method == http.MethodOptions:
-		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS")
 		return
 	case r.Method != http.MethodHead && r.Method != http.MethodGet:
@@ -162,9 +162,9 @@ func (s Server) ContentHandler(w http.ResponseWriter, r *http.Request) {
 // into the FilePath. It will then return the expiration date and URL to the
 // client.
 func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	switch {
 	case r.Method == http.MethodOptions:
-		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
 		return
 	case r.Method != http.MethodPost:

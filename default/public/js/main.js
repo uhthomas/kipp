@@ -1,5 +1,12 @@
 var private = localStorage.getItem('private') === 'true';
 (function() {
+    if (!('crypto' in window)) {
+        document.body.className = 'nocrypto';
+        document.querySelector('.toggle .material-icons').innerHTML = 'close';
+        document.querySelector('.toggle span').innerHTML = 'Private not supported'
+        private = false;
+        return;
+    }
 	var el = document.querySelector('.bar .toggle');
 	el.onclick = function(e) {
 		if (private = !private)
@@ -61,12 +68,12 @@ function process(dataTransfer) {
 	case 'string':
 		return item.getAsString(function(s) {
 			var b = new Blob([s], { type: 'text/plain' });
-			b.name = `text-${randomString(10)}.txt`;
+			b.name = 'text-' + randomString(10) + '.txt';
 			upload([b]);
 		});
 	case 'file':
 		var f = item.getAsFile();
-		f.name = `file-${randomString(10)}.${f.type.split('/')[1]}`;
+		f.name = 'file-' + randomString(10) + '.' + f.type.split('/')[1];
 		return upload([f]);
 	}
 }
@@ -104,7 +111,7 @@ function upload(files) {
 		}, 5);
 		q.drain = function() {
 			zip.generateAsync({ type: 'blob' }).then(function(b) {
-                c.setFile(b, `bundle-${randomString(10)}.zip`);
+                c.setFile(b, 'text-' + randomString(10) + '.zip');
                 c.upload();
             }).catch(function(e) {
                 c.setMessageState(e, 'error');
@@ -147,15 +154,15 @@ function confirm(callback) {
 }
 
 function modal(title, text, buttons) {
-	var el = $(`
-		<div class="modal">
-			<div class="container">
-				<div class="title"></div>
-				<div class="text"></div>
-				<div class="buttons"></div>
-			</div>
-		</div>
-	`);
+	var el = $(
+		'<div class="modal">' +
+			'<div class="container">' +
+				'<div class="title"></div>' +
+				'<div class="text"></div>' +
+				'<div class="buttons"></div>' +
+			'</div>' +
+		'</div>'
+	);
 	el.on('click', function(e) {
 		if (!$(e.target).hasClass('button') && e.target !== this) return;
 		el.remove();
@@ -189,23 +196,23 @@ function content(file) {
 	self.expired = false;
 	self.private = private;
 
-	self.element = $(`
-		<a class="file" state="uploading" target="_blank">
-			<div class="background"></div>
-			<div class="meta">
-				<div class="info">
-					<span class="name"></span>
-					&nbsp;&middot;&nbsp;
-					<span class="size"></span>
-				</div>
-				<div class="status">
-					<i class="material-icons icon"></i>
-					<span class="text"></span>
-				</div>
-			</div>
-			<i class="material-icons more">more_vert</i>
-		</a>
-	`);
+	self.element = $(
+		'<a class="file" state="uploading" target="_blank">' +
+			'<div class="background"></div>' +
+			'<div class="meta">' +
+				'<div class="info">' +
+					'<span class="name"></span>' +
+					'&nbsp;&middot;&nbsp;' +
+					'<span class="size"></span>' +
+				'</div>' +
+				'<div class="status">' +
+					'<i class="material-icons icon"></i>' +
+					'<span class="text"></span>' +
+				'</div>' +
+			'</div>' +
+			'<i class="material-icons more">more_vert</i>' +
+		'</a>'
+	);
 
 	self.processingImage = false;
 	self.setImage = function(file, exitIfSet, skipProcess) {
@@ -251,7 +258,7 @@ function content(file) {
 		function image() {
 			var img = new Image();
 			if (['jpeg', 'jpg', 'png', 'webp', 'bmp'].indexOf(s[1]) === -1) {
-				self.element.attr('large', true).find('.background').css('background-image', `url(${u})`);
+				self.element.attr('large', true).find('.background').css('background-image', 'url(' + u + ')');
 				img.src = u;
 				self.image = img;
 				self.processingImage = false;
@@ -265,7 +272,7 @@ function content(file) {
 				URL.revokeObjectURL(u);
 				canvas.toBlob(function(blob) {
 					var u = URL.createObjectURL(blob);
-					self.element.attr('large', true).find('.background').css('background-image', `url(${u})`);
+					self.element.attr('large', true).find('.background').css('background-image', 'url(' + u + ')');
 					var img = new Image();
 					img.src = u;
 					self.image = img;
@@ -347,12 +354,18 @@ function content(file) {
 		if (!encrypted && self.private) {
 			self.setMessageState('encrypting');
 			var fr = new FileReader();
-			fr.onload = async function() {
-				const [iv, key, data] = await encrypt(this.result);
-				self.__iv__ = Array.from(iv);
-				self.__key__ = Array.from(key);
-				self.__file__ = new Blob([data]);
-				self.upload(true);
+			fr.onload = function() {
+				encrypt(this.result).then(function(arr) {
+                    // const iv = arr[0];
+                    // const key = arr[1];
+                    // const data = arr[2];
+                    self.__iv__ = Array.from(arr[0]);
+                    self.__key__ = Array.from(arr[1]);
+                    self.__file__ = new Blob([arr[2]]);
+                    self.upload(true);
+                }).catch(function(e) {
+                    self.setMessageState(e, 'error');
+                });
 			}
 			fr.readAsArrayBuffer(self.__file__);
 			return;
@@ -504,14 +517,29 @@ document.body.addEventListener('paste', function(e) {
 	process(e.clipboardData);
 });
 
-async function encrypt(data) {
-	const iv = crypto.getRandomValues(new Uint8Array(12));
-	const key = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 128  }, true, ['encrypt']);
-	return [
-		iv,
-		new Uint8Array(await crypto.subtle.exportKey('raw', key)),
-		new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, data))
-	];
+// i know callback is weird but i'll rewrite this crap at some point anyway.
+// - 16/09/17
+
+function encrypt(data) {
+    return new Promise(function(resolve, reject) {
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        crypto.subtle.generateKey({ name: 'AES-GCM', length: 128  }, true, ['encrypt'])
+        .then(function(key) {
+            crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, data)
+            .then(function(d) {
+                crypto.subtle.exportKey('raw', key)
+                .then(function(k) {
+                    resolve([iv, new Uint8Array(k), new Uint8Array(d)]);
+                }).catch(function(e) {
+                    reject(e);
+                });  
+            }).catch(function(e) {
+                reject(e);
+            });
+        }).catch(function(e) {
+            reject(e);
+        });
+    });
 }
 
 function encode(arr) {
