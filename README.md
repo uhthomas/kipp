@@ -39,6 +39,7 @@ Flags:
 ```
 
 ## Notes
+* `Private` is not supported in IE, Edge or Safari due to incomplete implementation of the WebCrypto API. (this is however likely to change in the future when the frontend is rewritten in gopherjs)
 * FilePath and TempPath must be located on the same drive as conf uploads files to its TempPath and then will move that file to the FilePath.
 * It's recommended that extra mime types are used. This can be done by running conf with `--mime /path/to/mime.json`
 * For performance critical servers it's recommended to use nginx as a proxy to serve content. For instance, conf will only handle requests for content and uploading whereas nginx will handle serving static files such as its index, js or css. nginx configuration snippet:

@@ -519,7 +519,6 @@ document.body.addEventListener('paste', function(e) {
 
 // i know callback is weird but i'll rewrite this crap at some point anyway.
 // - 16/09/17
-
 function encrypt(data) {
     return new Promise(function(resolve, reject) {
         const iv = crypto.getRandomValues(new Uint8Array(12));
