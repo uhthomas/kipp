@@ -1,12 +1,12 @@
 var private = localStorage.getItem('private') === 'true';
 (function() {
-    if (!('crypto' in window)) {
-        document.body.className = 'nocrypto';
-        document.querySelector('.toggle .material-icons').innerHTML = 'close';
-        document.querySelector('.toggle span').innerHTML = 'Private not supported'
-        private = false;
-        return;
-    }
+	if (!('crypto' in window)) {
+		document.body.className = 'nocrypto';
+		document.querySelector('.toggle .material-icons').innerHTML = 'close';
+		document.querySelector('.toggle span').innerHTML = 'Private not supported'
+		private = false;
+		return;
+	}
 	var el = document.querySelector('.bar .toggle');
 	el.onclick = function(e) {
 		if (private = !private)
@@ -111,11 +111,11 @@ function upload(files) {
 		}, 5);
 		q.drain = function() {
 			zip.generateAsync({ type: 'blob' }).then(function(b) {
-                c.setFile(b, 'text-' + randomString(10) + '.zip');
-                c.upload();
-            }).catch(function(e) {
-                c.setMessageState(e, 'error');
-            });
+				c.setFile(b, 'text-' + randomString(10) + '.zip');
+				c.upload();
+			}).catch(function(e) {
+				c.setMessageState(e, 'error');
+			});
 		}
 		q.push($.makeArray(files), function(file, result) {
 			zip.file(file.name, result);
@@ -356,16 +356,16 @@ function content(file) {
 			var fr = new FileReader();
 			fr.onload = function() {
 				encrypt(this.result).then(function(arr) {
-                    // const iv = arr[0];
-                    // const key = arr[1];
-                    // const data = arr[2];
-                    self.__iv__ = Array.from(arr[0]);
-                    self.__key__ = Array.from(arr[1]);
-                    self.__file__ = new Blob([arr[2]]);
-                    self.upload(true);
-                }).catch(function(e) {
-                    self.setMessageState(e, 'error');
-                });
+					// const iv = arr[0];
+					// const key = arr[1];
+					// const data = arr[2];
+					self.__iv__ = Array.from(arr[0]);
+					self.__key__ = Array.from(arr[1]);
+					self.__file__ = new Blob([arr[2]]);
+					self.upload(true);
+				}).catch(function(e) {
+					self.setMessageState(e, 'error');
+				});
 			}
 			fr.readAsArrayBuffer(self.__file__);
 			return;
@@ -520,25 +520,25 @@ document.body.addEventListener('paste', function(e) {
 // i know callback is weird but i'll rewrite this crap at some point anyway.
 // - 16/09/17
 function encrypt(data) {
-    return new Promise(function(resolve, reject) {
-        const iv = crypto.getRandomValues(new Uint8Array(12));
-        crypto.subtle.generateKey({ name: 'AES-GCM', length: 128  }, true, ['encrypt'])
-        .then(function(key) {
-            crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, data)
-            .then(function(d) {
-                crypto.subtle.exportKey('raw', key)
-                .then(function(k) {
-                    resolve([iv, new Uint8Array(k), new Uint8Array(d)]);
-                }).catch(function(e) {
-                    reject(e);
-                });  
-            }).catch(function(e) {
-                reject(e);
-            });
-        }).catch(function(e) {
-            reject(e);
-        });
-    });
+	return new Promise(function(resolve, reject) {
+		const iv = crypto.getRandomValues(new Uint8Array(12));
+		crypto.subtle.generateKey({ name: 'AES-GCM', length: 128  }, true, ['encrypt'])
+		.then(function(key) {
+			crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, data)
+			.then(function(d) {
+				crypto.subtle.exportKey('raw', key)
+				.then(function(k) {
+					resolve([iv, new Uint8Array(k), new Uint8Array(d)]);
+				}).catch(function(e) {
+					reject(e);
+				});  
+			}).catch(function(e) {
+				reject(e);
+			});
+		}).catch(function(e) {
+			reject(e);
+		});
+	});
 }
 
 function encode(arr) {

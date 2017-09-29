@@ -146,9 +146,10 @@ body.ready .bar {
     display: flex;
     align-items: center;
     cursor: pointer;
-    margin: 0 auto 0 48px;
+    margin-right: auto;
     position: relative;
     height: 24px;
+    padding-left: 48px;
 }
 
 .nocrypto .bar {
@@ -159,7 +160,7 @@ body.ready .bar {
 .bar .toggle .material-icons {
     position: absolute;
     text-align: center;
-    left: -32px;
+    left: 12px;
     top: 0;
 }
 
