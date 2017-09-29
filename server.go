@@ -65,7 +65,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.URL.Path == "/upload":
 		s.UploadHandler(w, r)
-	case r.URL.Path == "/", hasPrefix("/css/"), hasPrefix("/fonts/"), hasPrefix("/js/"), hasPrefix("/private/"):
+	case r.URL.Path == "/", hasPrefix("/css/"), hasPrefix("/fonts/"), hasPrefix("/js/"), hasPrefix("/private"):
 		s.StaticHandler(w, r)
 	default:
 		s.ContentHandler(w, r)

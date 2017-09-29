@@ -517,8 +517,6 @@ document.body.addEventListener('paste', function(e) {
 	process(e.clipboardData);
 });
 
-// i know callback is weird but i'll rewrite this crap at some point anyway.
-// - 16/09/17
 function encrypt(data) {
 	return new Promise(function(resolve, reject) {
 		const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -529,15 +527,9 @@ function encrypt(data) {
 				crypto.subtle.exportKey('raw', key)
 				.then(function(k) {
 					resolve([iv, new Uint8Array(k), new Uint8Array(d)]);
-				}).catch(function(e) {
-					reject(e);
-				});  
-			}).catch(function(e) {
-				reject(e);
-			});
-		}).catch(function(e) {
-			reject(e);
-		});
+				}).catch(reject);  
+			}).catch(reject);
+		}).catch(reject);
 	});
 }
 
