@@ -26,13 +26,13 @@ Flags:
 
 Commands:
   help [<command>...]
-    Show help.
+	Show help.
 
   serve* [<flags>]
-    Start a conf server.
+	Start a conf server.
 
   upload [<flags>] <file>
-    Upload a file
+	Upload a file
 ```
 ```
 $ conf help serve
@@ -42,16 +42,16 @@ Start a conf server.
 
 Flags:
   --help                      Show context-sensitive help (also try --help-long
-                              and --help-man).
+							  and --help-man).
   --addr=":1337"              Server listen address.
   --insecure                  Disable https.
   --cert="cert.pem"           TLS certificate path.
   --key="key.pem"             TLS key path.
   --cleanup-interval=5m       Cleanup interval for deleting expired files.
   --mime=PATH                 A json formatted collection of extensions and mime
-                              types.
+							  types.
   --driver="sqlite3"          Available database drivers: mysql, postgres,
-                              sqlite3 and mssql.
+							  sqlite3 and mssql.
   --driver-username="conf"    Database driver username.
   --driver-password=PASSWORD  Database driver password.
   --driver-path="conf.db"     Database driver path. ex: localhost:1337
@@ -69,7 +69,7 @@ Upload a file
 
 Flags:
   --help                    Show context-sensitive help (also try --help-long
-                            and --help-man).
+							and --help-man).
   --private                 Encrypt the uploaded file
   --url=https://conf.6f.io  Source URL
 
@@ -83,22 +83,34 @@ Args:
 * FilePath and TempPath must be located on the same drive as conf uploads files to its TempPath and then will move that file to the FilePath.
 * It's recommended that extra mime types are used. This can be done by running conf with `--mime /path/to/mime.json`
 * For performance critical servers it's recommended to use nginx as a proxy to serve content. For instance, conf will only handle requests for content and uploading whereas nginx will handle serving static files such as its index, js or css. nginx configuration snippet:
-```
+```conf
 server {
-    server_name conf.6f.io;
-    listen 80;
+	server_name conf.6f.io;
+	listen 80;
 
-    root ~/conf/public;
+	root ~/conf/public;
 
-    try_files $uri $uri/ @proxy;
+	try_files $uri $uri/ @proxy;
 
-    location @proxy {
-        client_max_body_size 150m;
-        proxy_buffering off;
-        proxy_request_buffering off;
-        proxy_ssl_verify off;
-        proxy_pass https://127.0.0.1:1337;
-    }
+	location @proxy {
+		client_max_body_size    150m;
+		proxy_redirect          off;
+		proxy_set_header        Host            $host;
+		proxy_set_header        X-Real-IP       $remote_addr;
+		proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header        Upgrade         $http_upgrade;
+		proxy_set_header        Connection      $http_connection;
+		client_body_buffer_size 128k;
+		proxy_connect_timeout   90;
+		proxy_read_timeout      31540000;
+		proxy_send_timeout      31540000;
+		proxy_buffers           32 4k;
+		proxy_buffering         off;
+		proxy_request_buffering off;
+		proxy_http_version      1.1;
+		proxy_ssl_verify        off;
+		proxy_pass              https://127.0.0.1:1337;
+	}
 }
 ```
 

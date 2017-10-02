@@ -139,10 +139,19 @@ func main() {
 			Default("https://conf.6f.io").
 			URLVar(&u.URL)
 	}
+
 	if kingpin.Parse() == "upload" {
 		u.Do()
 		return
 	}
+
+	// Connect to database
+	db, err := d.Open()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+	s.DB = db
 
 	// Load mime types
 	if m := *mime; m != "" {
@@ -158,14 +167,6 @@ func main() {
 	if err := os.MkdirAll(s.TempPath, 0755); err != nil {
 		log.Fatal(err)
 	}
-
-	// Connect to database
-	db, err := d.Open()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-	s.DB = db
 
 	// Start cleanup worker
 	if s.Expiration > 0 {
