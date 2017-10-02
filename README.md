@@ -12,9 +12,33 @@ conf --mime="mime.json"
 ```
 
 ## Help
+### uploading via curl
+```
+curl -F "file=@<file>" https://conf.6f.io/upload
+```
+To upload to conf using its private feature, the CLI or web interface should be used.
 ```
 $ conf --help
-usage: conf [<flags>]
+usage: conf [<flags>] <command> [<args> ...]
+
+Flags:
+  --help  Show context-sensitive help (also try --help-long and --help-man).
+
+Commands:
+  help [<command>...]
+    Show help.
+
+  serve* [<flags>]
+    Start a conf server.
+
+  upload [<flags>] <file>
+    Upload a file
+```
+```
+$ conf help serve
+usage: conf serve [<flags>]
+
+Start a conf server.
 
 Flags:
   --help                      Show context-sensitive help (also try --help-long
@@ -36,6 +60,22 @@ Flags:
   --files="files"             File path.
   --tmp="files/tmp"           Temp path for in-progress uploads.
   --public="public"           Public path for web resources.
+```
+```
+$ conf help upload
+usage: conf upload [<flags>] <file>
+
+Upload a file
+
+Flags:
+  --help                    Show context-sensitive help (also try --help-long
+                            and --help-man).
+  --private                 Encrypt the uploaded file
+  --url=https://conf.6f.io  Source URL
+
+Args:
+  <file>  File to be uploaded
+
 ```
 
 ## Notes
