@@ -229,6 +229,7 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	c := Content{
+		Address:  r.Header.Get("X-Forwarded-For"),
 		Checksum: sum,
 		Name:     name,
 		Size:     n,

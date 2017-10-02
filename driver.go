@@ -47,6 +47,7 @@ func (d Driver) String() string {
 // Content will store information about an uploaded file such as its name, hash,
 // expiration date and slug.
 type Content struct {
+	Address   string
 	Checksum  string
 	CreatedAt time.Time
 	DeletedAt *time.Time `gorm:"index"`
