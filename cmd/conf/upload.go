@@ -29,7 +29,7 @@ func (u *UploadCommand) Do() {
 	defer u.File.Close()
 	u.URL.Path = "/upload"
 
-	fi, err := u.File.Info()
+	s, err := u.File.Stat()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -65,7 +65,7 @@ func (u *UploadCommand) Do() {
 	w := multipart.NewWriter(pw)
 	go func() {
 		defer pw.Close()
-		fw, err := w.CreateFormFile("file", fi.Name())
+		fw, err := w.CreateFormFile("file", s.Name())
 		if err != nil {
 			pr.CloseWithError(err)
 			return
