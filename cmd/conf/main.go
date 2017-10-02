@@ -61,66 +61,88 @@ func main() {
 		Encoding: base32.NewEncoding("0123456789abcdefghjkmnpqrtuvwxyz").
 			WithPadding(base32.NoPadding),
 	}
-	addr := kingpin.
+
+	servecmd := kingpin.Command("serve", "Start a conf server.").Default()
+
+	addr := servecmd.
 		Flag("addr", "Server listen address.").
 		Default(":1337").
 		String()
-	insecure := kingpin.
+	insecure := servecmd.
 		Flag("insecure", "Disable https.").
 		Bool()
-	cert := kingpin.
+	cert := servecmd.
 		Flag("cert", "TLS certificate path.").
 		Default("cert.pem").
 		String()
-	key := kingpin.
+	key := servecmd.
 		Flag("key", "TLS key path.").
 		Default("key.pem").
 		String()
-	cleanupInterval := kingpin.
+	cleanupInterval := servecmd.
 		Flag("cleanup-interval", "Cleanup interval for deleting expired files.").
 		Default("5m").
 		Duration()
-	mime := kingpin.
+	mime := servecmd.
 		Flag("mime", "A json formatted collection of extensions and mime types.").
 		PlaceHolder("PATH").
 		String()
-	kingpin.
+	servecmd.
 		Flag("driver", "Available database drivers: mysql, postgres, sqlite3 and mssql.").
 		Default("sqlite3").
 		StringVar(&d.Dialect)
-	kingpin.
+	servecmd.
 		Flag("driver-username", "Database driver username.").
 		Default("conf").
 		StringVar(&d.Username)
-	kingpin.
+	servecmd.
 		Flag("driver-password", "Database driver password.").
 		PlaceHolder("PASSWORD").
 		StringVar(&d.Password)
-	kingpin.
+	servecmd.
 		Flag("driver-path", "Database driver path. ex: localhost:1337").
 		Default("conf.db").
 		StringVar(&d.Path)
-	kingpin.
+	servecmd.
 		Flag("expiration", "File expiration time.").
 		Default("24h").
 		DurationVar(&s.Expiration)
-	kingpin.
+	servecmd.
 		Flag("max", "The maximum file size  for uploads.").
 		Default("150MB").
 		BytesVar((*units.Base2Bytes)(&s.Max))
-	kingpin.
+	servecmd.
 		Flag("files", "File path.").
 		Default("files").
 		StringVar(&s.FilePath)
-	kingpin.
+	servecmd.
 		Flag("tmp", "Temp path for in-progress uploads.").
 		Default("files/tmp").
 		StringVar(&s.TempPath)
-	kingpin.
+	servecmd.
 		Flag("public", "Public path for web resources.").
 		Default("public").
 		StringVar(&s.PublicPath)
-	kingpin.Parse()
+
+	var u UploadCommand
+	{
+		uploadcmd := kingpin.Command("upload", "Upload a file")
+		uploadcmd.
+			Arg("file", "File to be uploaded").
+			Required().
+			FileVar(&u.File)
+		uploadcmd.
+			Flag("private", "Encrypt the uploaded file").
+			BoolVar(&u.Private)
+		uploadcmd.
+			Flag("url", "Source URL").
+			Default("https://conf.6f.io").
+			URLVar(&u.URL)
+	}
+	if kingpin.Parse() == "upload" {
+		u.Do()
+		return
+	}
 
 	// Load mime types
 	if m := *mime; m != "" {

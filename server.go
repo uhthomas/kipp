@@ -1,7 +1,6 @@
 package conf
 
 import (
-	"encoding/base32"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -26,7 +25,7 @@ import (
 // conf.
 type Server struct {
 	DB         *gorm.DB
-	Encoding   *base32.Encoding
+	Encoding   Encoding
 	Expiration time.Duration
 	Max        int64
 	FilePath   string
