@@ -107,7 +107,7 @@ func (u *UploadCommand) Do() {
 	if out.Expires != nil {
 		// print expiration and round time to compensate for server time and
 		// request duration
-		fmt.Printf(" expires %s\n", humanize.Time((*out.Expires).Round(time.Hour)))
+		fmt.Printf(" expires %s\n", humanize.Time(*out.Expires))
 	} else {
 		fmt.Println(" uploaded permanently\n")
 	}
