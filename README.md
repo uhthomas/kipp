@@ -8,6 +8,7 @@ cp -r $GOPATH/src/github.com/6f7262/conf/default conf
 cd conf
 openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes
 # make sure to run conf separately to openssl
+# use "--proxy-header X-Real-IP" if being used behind a proxy for IP logging
 conf --mime="mime.json"
 ```
 
@@ -32,7 +33,7 @@ Commands:
 	Start a conf server.
 
   upload [<flags>] <file>
-	Upload a file
+	Upload a file.
 ```
 ```
 $ conf help serve
@@ -41,25 +42,27 @@ usage: conf serve [<flags>]
 Start a conf server.
 
 Flags:
-  --help                      Show context-sensitive help (also try --help-long
-							  and --help-man).
-  --addr=":1337"              Server listen address.
-  --insecure                  Disable https.
-  --cert="cert.pem"           TLS certificate path.
-  --key="key.pem"             TLS key path.
-  --cleanup-interval=5m       Cleanup interval for deleting expired files.
-  --mime=PATH                 A json formatted collection of extensions and mime
-							  types.
-  --driver="sqlite3"          Available database drivers: mysql, postgres,
-							  sqlite3 and mssql.
-  --driver-username="conf"    Database driver username.
-  --driver-password=PASSWORD  Database driver password.
-  --driver-path="conf.db"     Database driver path. ex: localhost:1337
-  --expiration=24h            File expiration time.
-  --max=150MB                 The maximum file size for uploads.
-  --files="files"             File path.
-  --tmp="files/tmp"           Temp path for in-progress uploads.
-  --public="public"           Public path for web resources.
+  --help                       Show context-sensitive help (also try --help-long
+                               and --help-man).
+  --addr=":1337"               Server listen address.
+  --insecure                   Disable https.
+  --cert="cert.pem"            TLS certificate path.
+  --key="key.pem"              TLS key path.
+  --cleanup-interval=5m        Cleanup interval for deleting expired files.
+  --mime=PATH                  A json formatted collection of extensions and
+                               mime types.
+  --driver="sqlite3"           Available database drivers: mysql, postgres,
+                               sqlite3 and mssql.
+  --driver-username="conf"     Database driver username.
+  --driver-password=PASSWORD   Database driver password.
+  --driver-path="conf.db"      Database driver path. ex: localhost:1337
+  --expiration=24h             File expiration time.
+  --max=150MB                  The maximum file size for uploads.
+  --files="files"              File path.
+  --tmp="files/tmp"            Temp path for in-progress uploads.
+  --public="public"            Public path for web resources.
+  --proxy-header=PROXY-HEADER  HTTP header to be used for IP logging if set.
+
 ```
 ```
 $ conf help upload
@@ -69,19 +72,20 @@ Upload a file
 
 Flags:
   --help                    Show context-sensitive help (also try --help-long
-							and --help-man).
+                            and --help-man).
+  --insecure                Don't verify SSL certificates.
   --private                 Encrypt the uploaded file
   --url=https://conf.6f.io  Source URL
 
 Args:
   <file>  File to be uploaded
-
 ```
 
 ## Notes
 * `Private` is not supported in IE, Edge or Safari due to incomplete implementation of the WebCrypto API. (this is however likely to change in the future when the frontend is rewritten in gopherjs)
 * FilePath and TempPath must be located on the same drive as conf uploads files to its TempPath and then will move that file to the FilePath.
 * It's recommended that extra mime types are used. This can be done by running conf with `--mime /path/to/mime.json`
+* By default conf will use the remote address to log IP addresses. If conf is being run behind a proxy ensure the proxy is configured correctly and use `--proxy-header <header>`.
 * For performance critical servers it's recommended to use nginx as a proxy to serve content. For instance, conf will only handle requests for content and uploading whereas nginx will handle serving static files such as its index, js or css. nginx configuration snippet:
 ```conf
 server {

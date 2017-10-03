@@ -25,13 +25,14 @@ import (
 // Server is used to serve HTTP requests and acts as a configuration file for
 // conf.
 type Server struct {
-	DB         *gorm.DB
-	Encoding   Encoding
-	Expiration time.Duration
-	Max        int64
-	FilePath   string
-	TempPath   string
-	PublicPath string
+	DB          *gorm.DB
+	Encoding    Encoding
+	Expiration  time.Duration
+	Max         int64
+	FilePath    string
+	TempPath    string
+	PublicPath  string
+	ProxyHeader string
 }
 
 // Cleanup will delete expired content and remove files associated with it as
@@ -59,13 +60,18 @@ func (s Server) Cleanup() error {
 func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// TODO: version?
 	w.Header().Set("Server", "conf")
-	hasPrefix := func(s string) bool {
-		return strings.HasPrefix(r.URL.Path, s)
+	hasPrefix := func(s ...string) bool {
+		for _, p := range s {
+			if strings.HasPrefix(r.URL.Path, p) {
+				return true
+			}
+		}
+		return false
 	}
 	switch {
 	case r.URL.Path == "/upload":
 		s.UploadHandler(w, r)
-	case r.URL.Path == "/", hasPrefix("/css/"), hasPrefix("/fonts/"), hasPrefix("/js/"), hasPrefix("/private"):
+	case r.URL.Path == "/", hasPrefix("/css/", "/fonts/", "/js/", "/private"):
 		s.StaticHandler(w, r)
 	default:
 		s.ContentHandler(w, r)
@@ -229,26 +235,36 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	// graciously taken from https://stackoverflow.com/a/37897238
+	// Find client's IP address
 	var addr string
-	if xff := strings.Trim(r.Header.Get("X-Forwarded-For"), ","); len(xff) > 0 {
-		addrs := strings.Split(xff, ",")
-		lastFwd := addrs[len(addrs)-1]
-		if ip := net.ParseIP(lastFwd); ip != nil {
-			addr = ip.String()
-		}
-	} else if xri := r.Header.Get("X-Real-Ip"); len(xri) > 0 {
-		if ip := net.ParseIP(xri); ip != nil {
-			addr = ip.String()
+	if s.ProxyHeader != "" {
+		// If --proxy-header is set then try and grab the left-most IP from the
+		// header.
+		if f := strings.FieldsFunc(
+			r.Header.Get(s.ProxyHeader),
+			func(r rune) bool {
+				return r == ',' || r == ' '
+			},
+		); len(f) > 0 {
+			if ip := net.ParseIP(f[0]); ip != nil {
+				addr = ip.String()
+			}
 		}
 	}
+	// If we can't grab the IP from the proxy header then use the remote
+	// address.
 	if addr == "" {
-		if parts := strings.Split(r.RemoteAddr, ":"); len(parts) == 2 {
-			addr = parts[0]
+		host, _, err := net.SplitHostPort(r.RemoteAddr)
+		if err != nil {
+			// should never happen since we trust the source of r.RemoteAddr
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
+		addr = host
 	}
 	c := Content{
-		Address:  addr,
+		// formatted as RemoteAddr or RemoteAddr/{ProxyHeader}
+		Address:  host,
 		Checksum: sum,
 		Name:     name,
 		Size:     n,

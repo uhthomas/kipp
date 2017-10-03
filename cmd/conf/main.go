@@ -123,14 +123,20 @@ func main() {
 		Flag("public", "Public path for web resources.").
 		Default("public").
 		StringVar(&s.PublicPath)
+	servecmd.
+		Flag("proxy-header", "HTTP header to be used for IP logging if set.").
+		StringVar(&s.ProxyHeader)
 
 	var u UploadCommand
 	{
-		uploadcmd := kingpin.Command("upload", "Upload a file")
+		uploadcmd := kingpin.Command("upload", "Upload a file.")
 		uploadcmd.
 			Arg("file", "File to be uploaded").
 			Required().
 			FileVar(&u.File)
+		uploadcmd.
+			Flag("insecure", "Don't verify SSL certificates.").
+			BoolVar(&u.Insecure)
 		uploadcmd.
 			Flag("private", "Encrypt the uploaded file").
 			BoolVar(&u.Private)

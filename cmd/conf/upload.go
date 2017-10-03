@@ -5,6 +5,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -20,9 +21,10 @@ import (
 )
 
 type UploadCommand struct {
-	File    *os.File
-	Private bool
-	URL     *url.URL
+	File     *os.File
+	Insecure bool
+	Private  bool
+	URL      *url.URL
 }
 
 func (u *UploadCommand) Do() {
@@ -87,8 +89,13 @@ func (u *UploadCommand) Do() {
 	// TODO: add content-length - nginx would 400 and it's hard to determine
 	//       mime header size
 	req.Header.Set("Content-Type", w.FormDataContentType())
-
-	res, err := (&http.Client{}).Do(req)
+	c := &http.Client{}
+	if u.Insecure {
+		c.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+	}
+	res, err := c.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
