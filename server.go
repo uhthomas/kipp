@@ -263,7 +263,7 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		addr = host
 	}
 	c := Content{
-		Address:  host,
+		Address:  addr,
 		Checksum: sum,
 		Name:     name,
 		Size:     n,
