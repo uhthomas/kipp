@@ -258,7 +258,7 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	c := Content{
 		// Formatted as RemoteAddress or RemoteAddress/<ProxyHeader>
-		Address:  addr,
+		Address:  host,
 		Checksum: sum,
 		Name:     name,
 		Size:     n,
