@@ -235,11 +235,16 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	// Find client's IP address
-	var addr string
+	// Log the remote IP
+	host, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		// Should never happen since we trust the source of r.RemoteAddr.
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	// If --proxy-header is set then try to add the left-most IP from the
+	// header.
 	if s.ProxyHeader != "" {
-		// If --proxy-header is set then try and grab the left-most IP from the
-		// header.
 		if f := strings.FieldsFunc(
 			r.Header.Get(s.ProxyHeader),
 			func(r rune) bool {
@@ -247,22 +252,12 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 			},
 		); len(f) > 0 {
 			if ip := net.ParseIP(f[0]); ip != nil {
-				addr = ip.String()
+				host += "/" + ip.String()
 			}
 		}
 	}
-	// If we can't grab the IP from the proxy header then use the remote
-	// address.
-	if addr == "" {
-		host, _, err := net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
-			// should never happen since we trust the source of r.RemoteAddr
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		addr = host
-	}
 	c := Content{
+		// Formatted as RemoteAddress or RemoteAddress/<ProxyHeader>
 		Address:  addr,
 		Checksum: sum,
 		Name:     name,
