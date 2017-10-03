@@ -74,8 +74,8 @@ Flags:
   --help                    Show context-sensitive help (also try --help-long
                             and --help-man).
   --insecure                Don't verify SSL certificates.
-  --private                 Encrypt the uploaded file
-  --url=https://conf.6f.io  Source URL
+  --private                 Encrypt the uploaded file.
+  --url=https://conf.6f.io  Source URL.
 
 Args:
   <file>  File to be uploaded
