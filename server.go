@@ -45,7 +45,7 @@ func (s Server) Cleanup() error {
 		if err != nil {
 			return err
 		}
-		if f.IsDir() || filepath.Dir(path) != s.FilePath {
+		if f.IsDir() || filepath.Dir(path) != filepath.Clean(s.FilePath) {
 			return nil
 		}
 		if !s.DB.Where("checksum = ?", f.Name()).Find(&Content{}).RecordNotFound() {
