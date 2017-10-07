@@ -23,17 +23,16 @@ import (
 type worker time.Duration
 
 func (w worker) Do(ctx context.Context, f func() error) {
+loop:
+	if err := f(); err != nil {
+		log.Fatal(err)
+	}
 	t := time.After(time.Duration(w))
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-t:
-			if err := f(); err != nil {
-				log.Fatal(err)
-			}
-			t = time.After(time.Duration(w))
-		}
+	select {
+	case <-ctx.Done():
+		return
+	case <-t:
+		goto loop
 	}
 }
 

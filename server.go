@@ -51,7 +51,7 @@ func (s Server) Cleanup() error {
 		if !s.DB.Where("checksum = ?", f.Name()).Find(&Content{}).RecordNotFound() {
 			return nil
 		}
-		return os.Remove(filepath.Join(s.FilePath, f.Name()))
+		return os.Remove(path)
 	})
 }
 
