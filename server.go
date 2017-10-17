@@ -245,13 +245,9 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	// If --proxy-header is set then try to add the left-most IP from the
 	// header.
 	if s.ProxyHeader != "" {
-		if f := strings.FieldsFunc(
-			r.Header.Get(s.ProxyHeader),
-			func(r rune) bool {
-				return r == ',' || r == ' '
-			},
-		); len(f) > 0 {
-			if ip := net.ParseIP(f[0]); ip != nil {
+		f := func(r rune) bool { return r == ',' || r == ' ' }
+		if ss := strings.FieldsFunc(r.Header.Get(s.ProxyHeader), f); len(ss) > 0 {
+			if ip := net.ParseIP(ss[0]); ip != nil {
 				host += "/" + ip.String()
 			}
 		}
