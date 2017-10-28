@@ -125,4 +125,4 @@ server {
 * Write tests.
 * Cleanup frontend.
 * Add context menus to files.
-* Improve efficient of encryption / decryption. Web browsers are terrible and don't use proper Readers/Writers :(
+* Improve efficiency of encryption / decryption. Browsers are terrible and don't use proper Readers/Writers :(
