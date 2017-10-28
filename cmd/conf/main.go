@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/base32"
 	"encoding/json"
+	"fmt"
 	"log"
 	"mime"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/6f7262/conf"
 	"github.com/alecthomas/units"
+	"github.com/dustin/go-humanize"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -164,7 +166,10 @@ func main() {
 		Default("conf.db").
 		StringVar(&d.Path)
 
-	if kingpin.Parse() == "upload" {
+	t := kingpin.Parse()
+
+	// conf upload
+	if t == "upload" {
 		u.Do()
 		return
 	}
@@ -176,6 +181,36 @@ func main() {
 	}
 	defer db.Close()
 	s.DB = db
+
+	// conf stats - kinda weird, we're doing this after the database opens so
+	// we can use it and the upload command is before since it doesn't need it.
+	if t == "stats" {
+		var total, size uint64
+
+		t := db.Table("contents")
+
+		t.Select("count(*), sum(size)").Row().Scan(&total, &size)
+		fmt.Printf(
+			"Total files uploaded: %s (%s)\n",
+			humanize.Comma(int64(total)),
+			humanize.Bytes(size),
+		)
+
+		t.Where("deleted_at IS NULL").Select("count(*), sum(size)").Row().
+			Scan(&total, &size)
+		fmt.Printf(
+			"Currently serving: %s (%s)\n",
+			humanize.Comma(int64(total)),
+			humanize.Bytes(size),
+		)
+
+		t.Select("cast(avg(size) as integer)").Row().Scan(&size)
+		fmt.Printf("Average file size: %s\n", humanize.Bytes(size))
+
+		t.Select("count(distinct address)").Row().Scan(&total)
+		fmt.Printf("Unique IP addresses: %s\n", humanize.Comma(int64(total)))
+		return
+	}
 
 	// Load mime types
 	if m := *mime; m != "" {

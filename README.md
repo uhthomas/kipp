@@ -23,16 +23,16 @@ $ conf --help
 usage: conf [<flags>] <command> [<args> ...]
 
 Flags:
-  --help  Show context-sensitive help (also try --help-long and --help-man).
+	--help  Show context-sensitive help (also try --help-long and --help-man).
 
 Commands:
-  help [<command>...]
+	help [<command>...]
 	Show help.
 
-  serve* [<flags>]
+	serve* [<flags>]
 	Start a conf server.
 
-  upload [<flags>] <file>
+	upload [<flags>] <file>
 	Upload a file.
 ```
 ```
@@ -42,26 +42,26 @@ usage: conf serve [<flags>]
 Start a conf server.
 
 Flags:
-  --help                       Show context-sensitive help (also try --help-long
-                               and --help-man).
-  --addr=":1337"               Server listen address.
-  --insecure                   Disable https.
-  --cert="cert.pem"            TLS certificate path.
-  --key="key.pem"              TLS key path.
-  --cleanup-interval=5m        Cleanup interval for deleting expired files.
-  --mime=PATH                  A json formatted collection of extensions and
-                               mime types.
-  --driver="sqlite3"           Available database drivers: mysql, postgres,
-                               sqlite3 and mssql.
-  --driver-username="conf"     Database driver username.
-  --driver-password=PASSWORD   Database driver password.
-  --driver-path="conf.db"      Database driver path. ex: localhost:1337
-  --expiration=24h             File expiration time.
-  --max=150MB                  The maximum file size for uploads.
-  --files="files"              File path.
-  --tmp="files/tmp"            Temp path for in-progress uploads.
-  --public="public"            Public path for web resources.
-  --proxy-header=PROXY-HEADER  HTTP header to be used for IP logging if set.
+	--help                       Show context-sensitive help (also try --help-long
+															 and --help-man).
+	--addr=":1337"               Server listen address.
+	--insecure                   Disable https.
+	--cert="cert.pem"            TLS certificate path.
+	--key="key.pem"              TLS key path.
+	--cleanup-interval=5m        Cleanup interval for deleting expired files.
+	--mime=PATH                  A json formatted collection of extensions and
+															 mime types.
+	--driver="sqlite3"           Available database drivers: mysql, postgres,
+															 sqlite3 and mssql.
+	--driver-username="conf"     Database driver username.
+	--driver-password=PASSWORD   Database driver password.
+	--driver-path="conf.db"      Database driver path. ex: localhost:1337
+	--expiration=24h             File expiration time.
+	--max=150MB                  The maximum file size for uploads.
+	--files="files"              File path.
+	--tmp="files/tmp"            Temp path for in-progress uploads.
+	--public="public"            Public path for web resources.
+	--proxy-header=PROXY-HEADER  HTTP header to be used for IP logging if set.
 
 ```
 ```
@@ -71,14 +71,14 @@ usage: conf upload [<flags>] <file>
 Upload a file
 
 Flags:
-  --help                    Show context-sensitive help (also try --help-long
-                            and --help-man).
-  --insecure                Don't verify SSL certificates.
-  --private                 Encrypt the uploaded file.
-  --url=https://conf.6f.io  Source URL.
+	--help                    Show context-sensitive help (also try --help-long
+														and --help-man).
+	--insecure                Don't verify SSL certificates.
+	--private                 Encrypt the uploaded file.
+	--url=https://conf.6f.io  Source URL.
 
 Args:
-  <file>  File to be uploaded
+	<file>  File to be uploaded
 ```
 
 ## Notes
@@ -91,8 +91,8 @@ Args:
 server {
 	server_name conf.6f.io;
 	listen 80;
-  
-  client_max_body_size 150m;
+	
+	client_max_body_size 150m;
 
 	root ~/conf/public;
 
