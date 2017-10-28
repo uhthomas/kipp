@@ -111,7 +111,7 @@ function upload(files) {
 		}, 5);
 		q.drain = function() {
 			zip.generateAsync({ type: 'blob' }).then(function(b) {
-				c.setFile(b, 'text-' + randomString(10) + '.zip');
+				c.setFile(b, randomString(10) + '.zip');
 				c.upload();
 			}).catch(function(e) {
 				c.setMessageState(e, 'error');

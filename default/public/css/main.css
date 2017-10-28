@@ -305,7 +305,7 @@ body.ready .bar {
 }
 
 .files .file .meta .info {
-    color: #e0e0e0;
+    color: rgba(255,255,255,0.67);
     font-size: 18px;
     overflow: hidden;
     white-space: nowrap;

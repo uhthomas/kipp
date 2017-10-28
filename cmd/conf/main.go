@@ -65,7 +65,7 @@ func main() {
 
 	addr := servecmd.
 		Flag("addr", "Server listen address.").
-		Default(":1337").
+		Default("127.0.0.1:1337").
 		String()
 	insecure := servecmd.
 		Flag("insecure", "Disable https.").
@@ -141,9 +141,28 @@ func main() {
 			BoolVar(&u.Private)
 		uploadcmd.
 			Flag("url", "Source URL").
+			Envar("conf-upload-url").
 			Default("https://conf.6f.io").
 			URLVar(&u.URL)
 	}
+
+	statscmd := kingpin.Command("stats", "Display basic stats for the current conf instance.")
+	statscmd.
+		Flag("driver", "Available database drivers: mysql, postgres, sqlite3 and mssql.").
+		Default("sqlite3").
+		StringVar(&d.Dialect)
+	statscmd.
+		Flag("driver-username", "Database driver username.").
+		Default("conf").
+		StringVar(&d.Username)
+	statscmd.
+		Flag("driver-password", "Database driver password.").
+		PlaceHolder("PASSWORD").
+		StringVar(&d.Password)
+	statscmd.
+		Flag("driver-path", "Database driver path. ex: localhost:1337").
+		Default("conf.db").
+		StringVar(&d.Path)
 
 	if kingpin.Parse() == "upload" {
 		u.Do()
