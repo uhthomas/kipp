@@ -14,13 +14,6 @@ type Driver struct {
 
 // Open will open a new database connection given the driver information.
 func (d Driver) Open() (*sql.DB, error) {
-	// db, err := gorm.Open(d.Dialect, d.String())
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// if err := db.AutoMigrate(&Content{}).Error; err != nil {
-	// 	return nil, err
-	// }
 	db, err := sql.Open(d.Dialect, d.String())
 	if err != nil {
 		return nil, err

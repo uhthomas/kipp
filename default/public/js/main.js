@@ -458,9 +458,11 @@ function content(file) {
 					window.open(u, '_blank');
 				}
 				// Copy item
-				new ClipboardJS('.item.copy', {
-					text: function(t) { return u; }
-				});
+				el.querySelector('.item.copy').onclick = function() {
+					elt.focus();
+					elt.select();
+					document.execCommand('Copy');
+				}
 				// QR item
 				el.querySelector('.item.qr').onclick = function() {
 					dialog('QR code', '<img width="256" height="256" src="https://chart.googleapis.com/chart?cht=qr&chs=256x256&chl=' + encodeURIComponent(u) + '">', [{
