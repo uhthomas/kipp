@@ -18,11 +18,11 @@ type file struct {
 }
 
 func (f file) Stat() (os.FileInfo, error) {
-	fi, err := f.File.Stat()
+	d, err := f.File.Stat()
 	if err == nil {
-		fi = fileInfo{fi, f.modTime}
+		d = fileInfo{d, f.modTime}
 	}
-	return fi, err
+	return d, err
 }
 
 type fileInfo struct {
@@ -30,6 +30,6 @@ type fileInfo struct {
 	modTime time.Time
 }
 
-func (fi fileInfo) ModTime() time.Time {
-	return fi.modTime
+func (d fileInfo) ModTime() time.Time {
+	return d.modTime
 }

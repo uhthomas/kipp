@@ -35,8 +35,8 @@ type Server struct {
 	ProxyHeader string
 }
 
-// Cleanup will delete expired content and remove files associated with it as
-// long as it is not used by any other content.
+// Cleanup will delete expired files and remove files associated with it as
+// long as it is not used by any other files.
 func (s Server) Cleanup() error {
 	if _, err := s.DB.Exec("DELETE FROM files WHERE expires < ?", time.Now()); err != nil {
 		return err
@@ -60,8 +60,8 @@ func (s Server) Cleanup() error {
 }
 
 // ServeHTTP will serve HTTP requests. It first tries to determine if the
-// request is for uploading, it then tried to serve static files and then will
-// try to serve content.
+// request is for uploading, it then tries to serve static files and then will
+// try to serve public files.
 func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/" && r.Method == http.MethodPost {
 		s.UploadHandler(w, r)
@@ -85,16 +85,16 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.FileServer(fileSystemFunc(func(name string) (http.File, error) {
 		f, err := http.Dir(s.PublicPath).Open(name)
 		if !os.IsNotExist(err) {
-			fi, err := f.Stat()
+			d, err := f.Stat()
 			if err != nil {
 				return nil, err
 			}
-			if !fi.IsDir() {
+			if !d.IsDir() {
 				w.Header().Set("Cache-Control", "max-age=31536000")
 				// nginx style weak Etag
 				w.Header().Set("Etag", fmt.Sprintf(
 					`W/"%x-%x"`,
-					fi.ModTime().Unix(), fi.Size(),
+					d.ModTime().Unix(), d.Size(),
 				))
 			}
 			return f, nil
@@ -171,7 +171,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // UploadHandler will read the request body and write it to the disk whilst also
-// calculating a blake2b checksum. It will then insert the content information
+// calculating a blake2b checksum. It will then insert the file information
 // into the database and if the file doesn't already exist, it will be moved
 // into the FilePath. It will then return Found with the location of the file.
 func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {

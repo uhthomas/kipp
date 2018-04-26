@@ -8,14 +8,13 @@ cp -r $GOPATH/src/github.com/6f7262/kipp/default kipp
 cd kipp
 openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes
 # make sure to run kipp separately to openssl
-# use "--proxy-header X-Real-IP" if being used behind a proxy for IP logging
 kipp --mime="mime.json"
 ```
 
 ## Help
 ### uploading via curl
 ```
-curl -F "file=@<file>" https://kipp.6f.io/upload
+curl -F "file=@<path>" https://kipp.6f.io
 ```
 To upload to kipp using its private feature, the CLI or web interface should be used.
 ```
@@ -124,5 +123,4 @@ server {
 * Compress JS and CSS.
 * Write tests.
 * Cleanup frontend.
-* Add context menus to files.
-* Improve efficiency of encryption / decryption. Browsers are terrible and don't use proper Readers/Writers :(
+* Improve efficiency of encryption / decryption. Browsers are terrible and don't use i/o streams.

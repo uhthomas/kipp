@@ -1,7 +1,7 @@
 {
-  "Name": "kipp",
-  "RequestType": "POST",
-  "RequestURL": "https://kipp.6f.io",
-  "FileFormName": "file",
-  "ResponseType": "RedirectionURL"
+	"Name": "kipp",
+	"RequestType": "POST",
+	"RequestURL": "https://kipp.6f.io",
+	"FileFormName": "file",
+	"ResponseType": "RedirectionURL"
 }
