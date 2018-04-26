@@ -514,6 +514,27 @@ function content(file) {
 		c.element.removeAttr('href');
 	}
 
+	// https://github.com/odyniec/tinyAgo-js
+	function ago(val) {
+		val = 0 | (Date.now() - val) / 1000;
+		var unit, length = {
+				second: 60,
+				minute: 60,
+				hour: 24,
+				day: 7,
+				week: 4.35,
+				month: 12,
+				year: 10000
+			},
+			result;
+
+		for (unit in length) {
+			result = val % length[unit];
+			if (!(val = 0 | val / length[unit]))
+				return result + ' ' + (result - 1 ? unit + 's' : unit);
+		}
+	}
+
 	function render() {
 		requestAnimationFrame(render);
 		for (var i = 0; i < contents.length; i++) {
@@ -523,7 +544,7 @@ function content(file) {
 				c.expired = true;
 				c.setMessageState('Expired', 'error');
 			} else {
-				c.setMessage('Expires ' + moment(c.expires).fromNow());
+				c.setMessage('Expires in ' + ago(2 * new Date() - c.expires));
 			}
 		}
 	}
