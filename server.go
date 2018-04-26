@@ -27,7 +27,6 @@ import (
 // functions such as Cleanup.
 type Server struct {
 	DB          *sql.DB
-	Encoding    Encoding
 	Expiration  time.Duration
 	Max         int64
 	FilePath    string

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"crypto/tls"
-	"encoding/base64"
 	"encoding/json"
 	"log"
 	"mime"
@@ -55,9 +54,10 @@ func loadMimeTypes(path string) error {
 }
 
 func main() {
-	var d kipp.Driver
-	s := kipp.Server{Encoding: base64.RawURLEncoding}
-
+	var (
+		d kipp.Driver
+		s kipp.Server
+	)
 	servecmd := kingpin.Command("serve", "Start a kipp server.").Default()
 
 	addr := servecmd.
