@@ -1,26 +1,26 @@
-# conf
-[![GoDoc](https://godoc.org/github.com/6f7262/conf?status.svg)](https://godoc.org/github.com/6f7262/conf)
+# kipp
+[![GoDoc](https://godoc.org/github.com/6f7262/kipp?status.svg)](https://godoc.org/github.com/6f7262/kipp)
 
 ## Installation and usage
 ```
-go get github.com/6f7262/conf/cmd/conf
-cp -r $GOPATH/src/github.com/6f7262/conf/default conf
-cd conf
+go get github.com/6f7262/kipp/cmd/kipp
+cp -r $GOPATH/src/github.com/6f7262/kipp/default kipp
+cd kipp
 openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes
-# make sure to run conf separately to openssl
+# make sure to run kipp separately to openssl
 # use "--proxy-header X-Real-IP" if being used behind a proxy for IP logging
-conf --mime="mime.json"
+kipp --mime="mime.json"
 ```
 
 ## Help
 ### uploading via curl
 ```
-curl -F "file=@<file>" https://conf.6f.io/upload
+curl -F "file=@<file>" https://kipp.6f.io/upload
 ```
-To upload to conf using its private feature, the CLI or web interface should be used.
+To upload to kipp using its private feature, the CLI or web interface should be used.
 ```
-$ conf --help
-usage: conf [<flags>] <command> [<args> ...]
+$ kipp --help
+usage: kipp [<flags>] <command> [<args> ...]
 
 Flags:
 	--help  Show context-sensitive help (also try --help-long and --help-man).
@@ -30,16 +30,16 @@ Commands:
 	Show help.
 
 	serve* [<flags>]
-	Start a conf server.
+	Start a kipp server.
 
 	upload [<flags>] <file>
 	Upload a file.
 ```
 ```
-$ conf help serve
-usage: conf serve [<flags>]
+$ kipp help serve
+usage: kipp serve [<flags>]
 
-Start a conf server.
+Start a kipp server.
 
 Flags:
 	--help                       Show context-sensitive help (also try --help-long
@@ -53,20 +53,18 @@ Flags:
 															 mime types.
 	--driver="sqlite3"           Available database drivers: mysql, postgres,
 															 sqlite3 and mssql.
-	--driver-username="conf"     Database driver username.
+	--driver-username="kipp"     Database driver username.
 	--driver-password=PASSWORD   Database driver password.
-	--driver-path="conf.db"      Database driver path. ex: localhost:1337
+	--driver-path="kipp.db"      Database driver path. ex: localhost:1337
 	--expiration=24h             File expiration time.
 	--max=150MB                  The maximum file size for uploads.
 	--files="files"              File path.
 	--tmp="files/tmp"            Temp path for in-progress uploads.
 	--public="public"            Public path for web resources.
-	--proxy-header=PROXY-HEADER  HTTP header to be used for IP logging if set.
-
 ```
 ```
-$ conf help upload
-usage: conf upload [<flags>] <file>
+$ kipp help upload
+usage: kipp upload [<flags>] <file>
 
 Upload a file
 
@@ -75,26 +73,26 @@ Flags:
 														and --help-man).
 	--insecure                Don't verify SSL certificates.
 	--private                 Encrypt the uploaded file.
-	--url=https://conf.6f.io  Source URL.
+	--url=https://kipp.6f.io  Source URL.
 
 Args:
 	<file>  File to be uploaded
 ```
 
 ## Notes
-* `Private` is not supported in IE, Edge or Safari due to incomplete implementation of the WebCrypto API. (this is however likely to change in the future when the frontend is rewritten in gopherjs)
-* FilePath and TempPath must be located on the same drive as conf uploads files to its TempPath and then will move that file to the FilePath.
-* It's recommended that extra mime types are used. This can be done by running conf with `--mime /path/to/mime.json`
-* By default conf will use the remote address to log IP addresses. If conf is being run behind a proxy ensure the proxy is configured correctly and use `--proxy-header <header>`.
-* For performance critical servers it's recommended to use nginx as a proxy to serve content. For instance, conf will only handle requests for content and uploading whereas nginx will handle serving static files such as its index, js or css. nginx configuration snippet:
-```conf
+* Does not support IE.
+* --files and --tmp must be located on the same drive as kipp uploads files to --tmp and then will move it to --files.
+* It's recommended that extra mime types are used. This can be done by running kipp with `--mime /path/to/mime.json`
+* It's recommended to use nginx as a proxy to serve public files. For instance, kipp will only handle requests for uploading and viewing uploaded files then nginx will handle serving static files such as its index, js or css. nginx configuration snippet:
+```kipp
 server {
-	server_name conf.6f.io;
+	server_name kipp.6f.io;
 	listen 80;
 	
 	client_max_body_size 150m;
+	expires max;
 
-	root ~/conf/public;
+	root ~/kipp/public;
 
 	try_files $uri $uri/ @proxy;
 
@@ -114,6 +112,8 @@ server {
 		proxy_request_buffering off;
 		proxy_http_version      1.1;
 		proxy_ssl_verify        off;
+		# required to ensure cached files do not exceed their expiration date.
+		expires                 off;
 		proxy_pass              https://127.0.0.1:1337;
 	}
 }

@@ -47,22 +47,19 @@ function main() {
             document.querySelector('.progress .bar').style.width = '100%';
             document.querySelector('.status .text.open').innerHTML = 'DECRYPTING';
 
-            decrypt(iv, key, this.response).then(function(b) {
+            decrypt(iv, key, this.response).then(function (b) {
                 b = new Blob([b], { type: req.getResponseHeader('Content-Type') })
+                var u = URL.createObjectURL(b);
+                var name = decodeURIComponent(req.getResponseHeader('Content-Disposition').split('"')[1].split('"')[0]);
                 document.body.className = 'done';
                 document.querySelector('.status .text.open').innerHTML = 'OPEN';
 
-                var name = decodeURIComponent(req.getResponseHeader('Content-Disposition').split('"')[1].split('"')[0]);
                 var d = document.createElement('div');
                 d.className = 'info';
-                console.log(b);
                 d.innerHTML = '<div class="name">' + name + '</div>&nbsp;<span class="size">' + filesize(b.size) + '</span>';
                 document.querySelector('.status').appendChild(d);
 
-                var u = URL.createObjectURL(b);
-                var a = document.createElement('a');
-                a.className = 'open';
-                a.target = '_blank'
+                var a = document.querySelector('.status .text.open');
                 a.href = u;
                 var suggested = false;
                 a.onclick = function() {
@@ -73,7 +70,6 @@ function main() {
                     }
                     return false;
                 }
-                document.body.appendChild(a);
 
                 var ad = document.querySelector('.status .text.download');
                 ad.href = u;

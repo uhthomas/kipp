@@ -1,12 +1,8 @@
-package conf
+package kipp
 
 import (
-	"crypto/rand"
+	"database/sql"
 	"fmt"
-	"io"
-	"time"
-
-	"github.com/jinzhu/gorm"
 )
 
 // Driver holds authentication information for a database driver.
@@ -17,12 +13,31 @@ type Driver struct {
 }
 
 // Open will open a new database connection given the driver information.
-func (d Driver) Open() (*gorm.DB, error) {
-	db, err := gorm.Open(d.Dialect, d.String())
+func (d Driver) Open() (*sql.DB, error) {
+	// db, err := gorm.Open(d.Dialect, d.String())
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// if err := db.AutoMigrate(&Content{}).Error; err != nil {
+	// 	return nil, err
+	// }
+	db, err := sql.Open(d.Dialect, d.String())
 	if err != nil {
 		return nil, err
 	}
-	if err := db.AutoMigrate(&Content{}).Error; err != nil {
+	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS contents (
+		checksum char(86) NOT NULL,
+		created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+		deleted_at timestamp,
+		expires datetime,
+		id char(15) NOT NULL,
+		name varchar(255) NOT NULL,
+		size bigint NOT NULL,
+		PRIMARY KEY(id)
+	)`); err != nil {
+		return nil, err
+	}
+	if _, err := db.Exec("CREATE INDEX IF NOT EXISTS idx_contents_deleted_at ON contents(deleted_at)"); err != nil {
 		return nil, err
 	}
 	return db, nil
@@ -42,26 +57,4 @@ func (d Driver) String() string {
 		return fmt.Sprintf("%s:%s@%s/conf", d.Username, d.Password, d.Path)
 	}
 	panic("conf: invalid driver")
-}
-
-// Content will store information about an uploaded file such as its name, hash,
-// expiration date and slug.
-type Content struct {
-	Address   string
-	Checksum  string
-	CreatedAt time.Time
-	DeletedAt *time.Time `gorm:"index"`
-	Expires   *time.Time
-	ID        []byte `gorm:"primary_key"`
-	Name      string
-	Size      int64
-}
-
-// BeforeCreate will assign default values to the content. BeforeCreate is used
-// by gorm.
-func (c *Content) BeforeCreate() error {
-	// make the length variable?
-	c.ID = make([]byte, 8)
-	_, err := io.ReadFull(rand.Reader, c.ID)
-	return err
 }

@@ -1,62 +1,55 @@
 var private = localStorage.getItem('private') === 'true';
 (function() {
-	if (!('crypto' in window)) {
-		document.body.className = 'nocrypto';
-		document.querySelector('.toggle .material-icons').innerHTML = 'close';
-		document.querySelector('.toggle span').innerHTML = 'Private not supported'
-		private = false;
-		return;
-	}
-	var el = document.querySelector('.bar .toggle');
+	// if (!('crypto' in window)) {
+	// 	document.body.className = 'nocrypto';
+	// 	document.querySelector('.toggle .material-icons').innerHTML = 'close';
+	// 	document.querySelector('.toggle span').innerHTML = 'Private not supported'
+	// 	private = false;
+	// 	return;
+	// }
+	var el = document.querySelector('main > .bar > .encryption');
 	el.onclick = function(e) {
-		if (private = !private)
-			el.className = 'toggle';
-		else
-			el.className += ' hidden';
+		(private = !private) ? el.classList.add('enabled'): el.classList.remove('enabled');
 		localStorage.setItem('private', '' + private);
 	}
 	if (private)
-		el.className = 'toggle';
+		el.classList.add('enabled');
 })();
 
-$(document).on({
-	dragover: drag,
-	dragenter: drag,
-	dragend: dragLeave,
-	dragleave: dragLeave,
-	drop: drop
-});
+pica = pica();
+
+var isClosed = false;
+document.querySelector('main > .bar > .arrow').onclick = function(e) {
+	var el = document.querySelector('main');
+	(isClosed = !isClosed) ? el.classList.add('closed'): el.classList.remove('closed');
+}
+
+document.addEventListener('dragover', drag);
+document.addEventListener('dragenter', drag);
+document.addEventListener('dragend', dragLeave);
+document.addEventListener('dragleave', dragLeave);
+document.addEventListener('drop', drop);
 
 function drag(e) {
 	e.preventDefault();
-	$('body.ready .file-select').addClass('hover');
+	// add indication file is ready to be dropped
 	return false;
 }
 
 function dragLeave(e) {
 	e.preventDefault();
-	$('body.ready .file-select').removeClass('hover');
+	// remove indication file is ready to be dropped
 	return false;
 }
 
 function drop(e) {
 	e.preventDefault();
-	$('body.ready .file-select').removeClass('hover');
+	// remove indication file is ready to be dropped
 	process(e.dataTransfer || e.originalEvent.dataTransfer);
 	return false;
 }
 
-$('.bar .info').on('click', function(e) {
-	modal(
-		'What does Private do?',
-		'Enabling Private will encrypt and upload the file using AES128-GCM. A shareable link containing the decryption key and file ID will then be created.',
-		[{
-			text: 'GOT IT'
-		}]
-	)
-});
-
-$('input').on('change', function() {
+document.querySelector('input').addEventListener('change', function() {
 	upload(this.files);
 });
 
@@ -65,16 +58,16 @@ function process(dataTransfer) {
 	if (!dataTransfer.items.length) return;
 	var item = dataTransfer.items[0];
 	switch (item.kind) {
-	case 'string':
-		return item.getAsString(function(s) {
-			var b = new Blob([s], { type: 'text/plain' });
-			b.name = 'text-' + randomString(10) + '.txt';
-			upload([b]);
-		});
-	case 'file':
-		var f = item.getAsFile();
-		f.name = 'file-' + randomString(10) + '.' + f.type.split('/')[1];
-		return upload([f]);
+		case 'string':
+			return item.getAsString(function(s) {
+				var b = new Blob([s], { type: 'text/plain' });
+				b.name = 'text-' + randomString(10) + '.txt';
+				upload([b]);
+			});
+		case 'file':
+			var f = item.getAsFile();
+			f.name = 'file-' + randomString(10) + '.' + f.type.split('/')[1];
+			return upload([f]);
 	}
 }
 
@@ -82,14 +75,14 @@ function upload(files) {
 	if (!files.length) return;
 	if (files.length === 1) {
 		create(files[0]).upload();
-		$('html, body').animate({scrollTop: 0}, 100);
+		scrollTo(0, 0);
 		return;
 	}
 
 	confirm(function(confirmed) {
 		if (!confirmed) {
 			for (var i = 0; i < files.length; i++) {
-			create(files[i]).upload();
+				create(files[i]).upload();
 			}
 			return;
 		}
@@ -97,7 +90,7 @@ function upload(files) {
 		var zip = new JSZip();
 		var c = create(new Blob());
 		c.setName('bundle.zip');
-		c.setMessageState('bundling');
+		c.setMessageState('archiving');
 
 		var bytes = 0;
 		var count = 0;
@@ -117,7 +110,7 @@ function upload(files) {
 				c.setMessageState(e, 'error');
 			});
 		}
-		q.push($.makeArray(files), function(file, result) {
+		q.push(Array.from(files), function(file, result) {
 			zip.file(file.name, result);
 			c.setSize(bytes += result.byteLength);
 			c.setProgress((++count) / files.length * 100);
@@ -128,55 +121,46 @@ function upload(files) {
 function create(file) {
 	var c = new content(file);
 	c.setImage(c.__file__);
-	c.element.prependTo('.files');
-	setTimeout(function() {
-		c.element.attr('rendered', true);
-		$('body').addClass('ready');
-		setTimeout(function() {      
-			c.element.hide().show(0);
-		}, 300);
-	}, 150);
+	document.getElementById('main').insertBefore(c.element, document.querySelector('.card.bar').nextSibling);
+	requestAnimationFrame(function() {
+		c.element.setAttribute('rendered', true);
+	});
 	return c;
 }
 
 function confirm(callback) {
-	modal(
-		'Bundle these files?',
-		'An archive of files will be created and uploaded rather than uploading each file individually.',
-		[{
-			text: 'NO THANKS',
+	dialog(
+		'Archive these files?',
+		'An archive of files will be created and uploaded rather than uploading each file individually.', [{
+			text: 'No thanks',
 			f: function() { callback(false); }
 		}, {
-			text: 'BUNDLE',
+			text: 'Archive',
 			f: function() { callback(true); }
 		}]
 	)
 }
 
-function modal(title, text, buttons) {
-	var el = $(
-		'<div class="modal">' +
-			'<div class="container">' +
-				'<div class="title"></div>' +
-				'<div class="text"></div>' +
-				'<div class="buttons"></div>' +
-			'</div>' +
-		'</div>'
-	);
-	el.on('click', function(e) {
-		if (!$(e.target).hasClass('button') && e.target !== this) return;
+function dialog(title, text, buttons) {
+	var d = document.createElement('div');
+	d.appendChild(document.importNode(document.getElementById('dialog-template').content, true));
+	var el = d.children[0];
+	el.addEventListener('click', function(e) {
+		if (!e.target.classList.contains('button') && e.target !== this) return;
 		el.remove();
 	});
-	el.find('.title').text(title);
-	el.find('.text').html(text);
-	var elb = el.find('.buttons');
+	el.querySelector('.title').innerText = title;
+	el.querySelector('.text').innerHTML = text;
+	var elb = el.querySelector('.buttons');
 	for (var i = 0; i < buttons.length; i++) {
-		var b = $('<div class="button"></div>').appendTo(elb);
-		b.text(buttons[i].text);
-		if (buttons[i].class) b.addClass(buttons[i].class);
-		if (buttons[i].f) b.on('click', buttons[i].f);
+		var b = document.createElement('div');
+		b.className = 'button';
+		elb.appendChild(b);
+		b.innerText = buttons[i].text;
+		if (buttons[i].class) b.classList.add(buttons[i].class);
+		if (buttons[i].f) b.addEventListener('click', buttons[i].f);
 	}
-	document.body.appendChild(el[0]);
+	document.body.appendChild(el);
 }
 
 var contents = [];
@@ -196,23 +180,10 @@ function content(file) {
 	self.expired = false;
 	self.private = private;
 
-	self.element = $(
-		'<a class="file" state="uploading" target="_blank">' +
-			'<div class="background"></div>' +
-			'<div class="meta">' +
-				'<div class="info">' +
-					'<span class="name"></span>' +
-					'&nbsp;&middot;&nbsp;' +
-					'<span class="size"></span>' +
-				'</div>' +
-				'<div class="status">' +
-					'<i class="material-icons icon"></i>' +
-					'<span class="text"></span>' +
-				'</div>' +
-			'</div>' +
-			'<i class="material-icons more">more_vert</i>' +
-		'</a>'
-	);
+	var d = document.createElement('div');
+	d.appendChild(document.importNode(document.getElementById('file-template').content, true));
+	self.element = d.children[0];
+	if (self.private) self.element.classList.add('secure');
 
 	self.processingImage = false;
 	self.setImage = function(file, exitIfSet, skipProcess) {
@@ -229,9 +200,6 @@ function content(file) {
 			var canvas = document.createElement('canvas');
 			var video = document.createElement('video');
 			video.onloadeddata = function() {
-				video.currentTime = Math.random() * video.duration;
-			}
-			video.onseeked = function() {
 				canvas.width = video.videoWidth;
 				canvas.height = video.videoHeight;
 				canvas.getContext('2d').drawImage(video, 0, 0);
@@ -257,33 +225,57 @@ function content(file) {
 
 		function image() {
 			var img = new Image();
-			if (['jpeg', 'jpg', 'png', 'webp', 'bmp'].indexOf(s[1]) === -1) {
-				self.element.attr('large', true).find('.background').css('background-image', 'url(' + u + ')');
-				img.src = u;
-				self.image = img;
-				self.processingImage = false;
-				return;
-			}
 			img.onload = function() {
+				// 800x124 background
+				var r = 800 / 124;
+				var ir = this.naturalWidth / this.naturalHeight;
 				var canvas = document.createElement('canvas');
-				canvas.width = 800;
-				canvas.height = Math.min(canvas.width / (16 / 9), canvas.width / (this.width / this.height));
-				canvas.getContext('2d').drawImage(this, 0, 0, canvas.width, canvas.width / (this.width / this.height));
-				URL.revokeObjectURL(u);
-				canvas.toBlob(function(blob) {
-					var u = URL.createObjectURL(blob);
-					self.element.attr('large', true).find('.background').css('background-image', 'url(' + u + ')');
-					var img = new Image();
-					img.src = u;
-					self.image = img;
-					self.processingImage = false;
-				}, 'image/png', 1);
+				canvas.height = this.naturalHeight;
+				canvas.width = this.naturalWidth;
+				if (ir > r)
+					canvas.width = canvas.height * r;
+				else if (ir < r)
+					canvas.height = canvas.width / r;
+				canvas.getContext('2d').drawImage(this, (canvas.width - this.naturalWidth) / 2, (canvas.height - this.naturalHeight) / 2);
+				var dst = document.createElement('canvas');
+				dst.width = 800;
+				dst.height = 124;
+				pica.resize(canvas, dst, {
+					alpha: true
+				}).then(function(result) {
+					var ctx = result.getContext('2d');
+					ctx.fillStyle = 'rgba(0,0,0,0.5)';
+					ctx.fillRect(0, 0, result.width, result.height);
+					StackBlur.canvasRGBA(result, 0, 0, result.width, result.height, 100);
+					return pica.toBlob(result, 'image/png', 1);
+				}).then(function(blob) {
+					var u1 = URL.createObjectURL(blob);
+					// 40x40 avatar
+					var c2 = document.createElement('canvas');
+					c2.width = c2.height = Math.min(img.naturalWidth, img.naturalHeight);
+					c2.getContext('2d').drawImage(img, (c2.width - img.naturalWidth) / 2, (c2.height - img.naturalHeight) / 2);
+					var dst2 = document.createElement('canvas');
+					dst2.width = dst2.height = 40;
+					pica.resize(c2, dst2, {
+						alpha: true
+					}).then(function(result) {
+						return pica.toBlob(result, 'image/png', 1);
+					}).then(function(blob) {
+						self.element.setAttribute('style', '--background: url(' + u1 + ')');
+						self.image = new Image();
+						self.image.src = URL.createObjectURL(blob);
+						self.element.querySelector('.avatar').style.backgroundImage = 'url(' + self.image.src + ')';
+						self.processingImage = false;
+					}).catch(function(err) {
+						self.processingImage = false;
+					});
+				});
+
 			}
 			img.src = u;
 		}
 
 		function none() {
-			self.element.removeAttr('large'); 
 			self.processingImage = false;
 		}
 
@@ -302,52 +294,34 @@ function content(file) {
 
 	self.setName = function(name) {
 		self.__name__ = name;
-		self.element.find('.meta .info .name').text(name);
+		self.element.querySelector('.content .name').textContent = name;
 	}
 
 	self.setSize = function(size) {
-		self.element.find('.meta .info .size').text(filesize(size));
+		self.element.querySelector('.content .size').textContent = filesize(size);
 	}
 
-	self.setProgress = function(progress) {    
+	self.setProgress = function(progress) {
 		progress = Math.min(progress, 100);
 		self.progress = progress;
-		if (self.state === 'done') return;
-		if (['uploading', 'bundling'].indexOf(self.state) === -1) return;
-		self.element.find('.meta .status .icon').text(~~progress);
-		self.element.find('.meta .status .text').text(self.state);
+		if (['uploading', 'archiving'].indexOf(self.state) === -1) return;
+		self.element.querySelector('.actions .status').textContent = self.state + ' ' + ~~progress + '%';
 	}
 
 	self.setState = function(state) {
 		self.state = state;
-		self.element.attr('state', state);
-		self.element.find('.meta .status .icon').text(['uploading', 'bundling'].indexOf(state) > -1 ? self.progress : '')[0].innerHTML = {
-			'error': 'error_outline',
-			'expired': 'timer',
-			'encrypting': 'lock_outline',
-			// 'bundling': self.progress,
-			// 'uploading': self.progress,
-			'done': 'check',
-			'done-secure': 'lock'
-		}[state] || '';
+		self.element.setAttribute('state', state);
 	}
 
 	self.setMessage = function(message) {
 		self.message = message;
-		self.element.find('.meta .status .text').text(message);
+		self.element.querySelector('.actions .status').textContent = message;
 	}
 
 	self.setMessageState = function(message, state) {
 		state = state || message;
 		self.setMessage(message);
 		self.setState(state);
-	}
-
-	self.read = function(callback) {
-		if (!self.__file__) return;
-		var r = new FileReader();
-		r.onload = callback;
-		r.readAsArrayBuffer(self.__file__);
 	}
 
 	self.upload = function(encrypted) {
@@ -377,70 +351,146 @@ function content(file) {
 		var data = new FormData();
 		data.append('file', self.__file__, self.__name__);
 		var req = new XMLHttpRequest();
+
+		var cancelled = false;
+		self.element.querySelector('.actions button.primary').onclick = function(e) {
+			cancelled = true;
+			req.abort();
+		}
+
 		req.upload.onprogress = function(e) {
 			if (!e.lengthComputable) return;
 			self.setProgress(e.loaded / e.total * 100);
 		}
 
+		var finished = false;
 		req.onreadystatechange = function(e) {
-			if (req.readyState !== 4) return;
-			if (req.status === 200) {
-				if (self.private)
-					self.setMessageState('private', 'done-secure');
-				else
-					self.setMessageState('done');
-				self.setProgress(100);
-				var res = JSON.parse(req.responseText);
-				if (self.private)
-					res.path = '/private#' + encode(self.__iv__.concat(self.__key__)) + '/' + res.path;
-				self.element.attr('href', res.path);
-				self.expires = res.expires && new Date(res.expires);
-				return;
+			function err() {
+				if (cancelled) return self.setMessageState('Cancelled', 'error')
+				self.setMessageState(req.statusText || {
+					200: 'OK',
+					201: 'Created',
+					202: 'Accepted',
+					203: 'Non-Authoritative Information',
+					204: 'No Content',
+					205: 'Reset Content',
+					206: 'Partial Content',
+					300: 'Multiple Choices',
+					301: 'Moved Permanently',
+					302: 'Found',
+					303: 'See Other',
+					304: 'Not Modified',
+					305: 'Use Proxy',
+					307: 'Temporary Redirect',
+					400: 'Bad Request',
+					401: 'Unauthorized',
+					402: 'Payment Required',
+					403: 'Forbidden',
+					404: 'Not Found',
+					405: 'Method Not Allowed',
+					406: 'Not Acceptable',
+					407: 'Proxy Authentication Required',
+					408: 'Request Timeout',
+					409: 'Conflict',
+					410: 'Gone',
+					411: 'Length Required',
+					412: 'Precondition Failed',
+					413: 'Request Entity Too Large',
+					414: 'Request-URI Too Long',
+					415: 'Unsupported Media Type',
+					416: 'Requested Range Not Satisfiable',
+					417: 'Expectation Failed',
+					500: 'Internal Server Error',
+					501: 'Not Implemented',
+					502: 'Bad Gateway',
+					503: 'Service Unavailable',
+					504: 'Gateway Timeout',
+					505: 'HTTP Version Not Supported'
+				}[req.status] || 'Unknown error', 'error');
 			}
-			self.setMessageState(req.statusText || {
-				200: 'OK',
-				201: 'Created',
-				202: 'Accepted',
-				203: 'Non-Authoritative Information',
-				204: 'No Content',
-				205: 'Reset Content',
-				206: 'Partial Content',
-				300: 'Multiple Choices',
-				301: 'Moved Permanently',
-				302: 'Found',
-				303: 'See Other',
-				304: 'Not Modified',
-				305: 'Use Proxy',
-				307: 'Temporary Redirect',
-				400: 'Bad Request',
-				401: 'Unauthorized',
-				402: 'Payment Required',
-				403: 'Forbidden',
-				404: 'Not Found',
-				405: 'Method Not Allowed',
-				406: 'Not Acceptable',
-				407: 'Proxy Authentication Required',
-				408: 'Request Timeout',
-				409: 'Conflict',
-				410: 'Gone',
-				411: 'Length Required',
-				412: 'Precondition Failed',
-				413: 'Request Entity Too Large',
-				414: 'Request-URI Too Long',
-				415: 'Unsupported Media Type',
-				416: 'Requested Range Not Satisfiable',
-				417: 'Expectation Failed',
-				500: 'Internal Server Error',
-				501: 'Not Implemented',
-				502: 'Bad Gateway',
-				503: 'Service Unavailable',
-				504: 'Gateway Timeout',
-				505: 'HTTP Version Not Supported'
-			}[req.status] || 'error', 'error');
+			// If we haven't downloaded the headers yet and the request finished
+			// then show an error.
+			if (!finished && req.readyState === 4) return err();
+			// We only care about when we start downloading headers
+			if (finished || req.readyState !== 2) return;
+			finished = true;
+			if (req.status !== 200) return err();
+			self.setMessageState('Expires in 23 hours', 'done');
+			self.setProgress(100);
+			var u = req.responseURL;
+			if (self.private) {
+				var a = document.createElement('a');
+				a.href = u;
+				var p = a.pathname;
+				a.pathname = 'private'
+				u = a.href + '#' + encode(self.__iv__.concat(self.__key__)) + p
+			}
+			// self.element.querySelector('.link').setAttribute('href', '/' + res.path);
+			// self.expires = res.expires && new Date(res.expires);
+			self.expires = new Date(req.getResponseHeader('Expires'));
+			self.element.querySelector('.actions button.secondary').onclick = function(e) {
+				self.element.removeAttribute('rendered');
+				self.element.addEventListener('transitionend', function(e) {
+					if (e.target != self.element) return;
+					self.element.remove();
+				});
+			}
+			self.element.querySelector('.actions button.primary').onclick = function(e) {
+				// var u = location.origin + '/' + res.path;
+				// Make template
+				var d = document.createElement('div');
+				d.appendChild(document.importNode(document.getElementById('share-template').content, true));
+				el = d.children[0];
+				// Set remove listener
+				el.addEventListener('click', function(e) {
+					if (!(e.target.classList.contains('item') || e.target.parentElement.classList.contains('item')) && e.target !== this) return;
+					el.removeAttribute('open');
+					el.addEventListener('transitionend', function(e) {
+						if (e.target != el) return;
+						el.remove();
+					});
+				});
+				// Set URL
+				var elt = el.querySelector('.extra');
+				elt.value = u;
+				// Open item
+				el.querySelector('.item.open').onclick = function() {
+					window.open(u, '_blank');
+				}
+				// Copy item
+				new ClipboardJS('.item.copy', {
+					text: function(t) { return u; }
+				});
+				// QR item
+				el.querySelector('.item.qr').onclick = function() {
+					dialog('QR code', '<img width="256" height="256" src="https://chart.googleapis.com/chart?cht=qr&chs=256x256&chl=' + encodeURIComponent(u) + '">', [{
+						text: 'Close'
+					}]);
+				}
+				// More item
+				el.querySelector('.item.more').onclick = function() {
+					navigator.share({
+						title: self.__name__,
+						url: u
+					});
+				}
+				if (!navigator.share)
+					el.querySelector('.item.more').remove();
+				// Append template
+				document.body.appendChild(el);
+				elt.focus();
+				elt.select();
+				// Render template
+				requestAnimationFrame(function() {
+					el.setAttribute('open', true);
+				});
+			}
+			// we only want the headers
+			req.abort();
 		}
 
-		req.open('POST', '/upload' + location.search, true);
-		try { req.send(data); } catch(e) { console.warn('failed'); }
+		req.open('POST', '/', true);
+		try { req.send(data); } catch (e) { console.warn('failed'); }
 	}
 
 	self.setFile(file);
@@ -454,32 +504,29 @@ function content(file) {
 		var viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight);
 		return !(rect.bottom < 0 || rect.top - viewHeight >= 0);
 	}
+
 	function expire(c) {
 		c.expired = true;
 		c.setState('expired');
 		c.setMessage('Expired');
 		c.element.removeAttr('href');
 	}
-	function sizer() {
-		requestAnimationFrame(sizer);
-		var clen = contents.length;
+
+	function render() {
+		requestAnimationFrame(render);
 		for (var i = 0; i < contents.length; i++) {
 			var c = contents[i];
-			if (isVisible(c.element[0]))
-				c.element.removeClass('hidden');
-			else
-				c.element.addClass('hidden');
-			if (c.expires && !c.expired && c.expires < new Date()) expire(c);
-			var img = c.image;
-			if (!img) continue;
-			var w = c.element.width();
-			var h = ($(window).height() - 304) / Math.min(3, clen);
-			h = Math.min(h - 10, w / (img.width / img.height));
-			if ((c.element.height()|0) === (h|0)) continue;
-			c.element.css('min-height', h + 'px');
+			if (!c.expires || c.expired) continue;
+			if (c.expires < new Date()) {
+				c.expired = true;
+				c.setMessageState('Expired', 'error');
+			} else {
+				c.setMessage('Expires ' + moment(c.expires).fromNow());
+			}
 		}
 	}
-	sizer();
+
+	render();
 })();
 
 function random(n) {
@@ -488,7 +535,7 @@ function random(n) {
 		crypto.getRandomValues(arr);
 	else
 		for (var i = 0; i < n; i++)
-			arr[i] = (Math.random() * 256)|0;
+			arr[i] = (Math.random() * 256) | 0;
 	return arr;
 }
 
@@ -502,15 +549,15 @@ window.URL = (URL || webkitURL);
 window.requestAnimationFrame = requestAnimationFrame || webkitRequestAnimationFrame;
 window.HTMLCanvasElement.prototype.toBlob = HTMLCanvasElement.prototype.toBlob || function(callback, mimeType, qualityArgument) {
 	var uri = this.toDataURL(mimeType, qualityArgument);
-	var byteString = (uri.split(',')[0].indexOf('base64') >= 0)
-	? atob(uri.split(',')[1])
-	: unescape(uri.split(',')[1]);
+	var byteString = (uri.split(',')[0].indexOf('base64') >= 0) ?
+		atob(uri.split(',')[1]) :
+		unescape(uri.split(',')[1]);
 	var mimeString = uri.split(',')[0].split(':')[1].split(';')[0];
 	var ia = new Uint8Array(byteString.length);
 	for (var i = 0; i < byteString.length; i++) {
 		ia[i] = byteString.charCodeAt(i);
 	}
-	callback(new Blob([ia], {type:mimeString}));
+	callback(new Blob([ia], { type: mimeString }));
 }
 
 document.body.addEventListener('paste', function(e) {
@@ -520,16 +567,16 @@ document.body.addEventListener('paste', function(e) {
 function encrypt(data) {
 	return new Promise(function(resolve, reject) {
 		const iv = crypto.getRandomValues(new Uint8Array(12));
-		crypto.subtle.generateKey({ name: 'AES-GCM', length: 128  }, true, ['encrypt'])
-		.then(function(key) {
-			crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, data)
-			.then(function(d) {
-				crypto.subtle.exportKey('raw', key)
-				.then(function(k) {
-					resolve([iv, new Uint8Array(k), new Uint8Array(d)]);
-				}).catch(reject);  
+		crypto.subtle.generateKey({ name: 'AES-GCM', length: 128 }, true, ['encrypt'])
+			.then(function(key) {
+				crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, data)
+					.then(function(d) {
+						crypto.subtle.exportKey('raw', key)
+							.then(function(k) {
+								resolve([iv, new Uint8Array(k), new Uint8Array(d)]);
+							}).catch(reject);
+					}).catch(reject);
 			}).catch(reject);
-		}).catch(reject);
 	});
 }
 

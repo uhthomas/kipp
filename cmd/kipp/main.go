@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"crypto/tls"
-	"encoding/base32"
+	"encoding/base64"
 	"encoding/json"
 	"log"
 	"mime"
@@ -11,7 +11,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/6f7262/conf"
+	"github.com/6f7262/kipp"
 	"github.com/alecthomas/units"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -55,13 +55,10 @@ func loadMimeTypes(path string) error {
 }
 
 func main() {
-	var d conf.Driver
-	s := conf.Server{
-		Encoding: base32.NewEncoding("0123456789abcdefghjkmnpqrtuvwxyz").
-			WithPadding(base32.NoPadding),
-	}
+	var d kipp.Driver
+	s := kipp.Server{Encoding: base64.RawURLEncoding}
 
-	servecmd := kingpin.Command("serve", "Start a conf server.").Default()
+	servecmd := kingpin.Command("serve", "Start a kipp server.").Default()
 
 	addr := servecmd.
 		Flag("addr", "Server listen address.").
@@ -92,7 +89,7 @@ func main() {
 		StringVar(&d.Dialect)
 	servecmd.
 		Flag("driver-username", "Database driver username.").
-		Default("conf").
+		Default("kipp").
 		StringVar(&d.Username)
 	servecmd.
 		Flag("driver-password", "Database driver password.").
@@ -100,7 +97,7 @@ func main() {
 		StringVar(&d.Password)
 	servecmd.
 		Flag("driver-path", "Database driver path. ex: localhost:1337").
-		Default("conf.db").
+		Default("kipp.db").
 		StringVar(&d.Path)
 	servecmd.
 		Flag("expiration", "File expiration time.").
@@ -141,19 +138,19 @@ func main() {
 			BoolVar(&u.Private)
 		uploadcmd.
 			Flag("url", "Source URL").
-			Envar("conf-upload-url").
-			Default("https://conf.6f.io").
+			Envar("kipp-upload-url").
+			Default("https://kipp.6f.io").
 			URLVar(&u.URL)
 	}
 
-	statscmd := kingpin.Command("stats", "Display basic stats for the current conf instance.")
+	statscmd := kingpin.Command("stats", "Display basic stats for the current kipp instance.")
 	statscmd.
 		Flag("driver", "Available database drivers: mysql, postgres, sqlite3 and mssql.").
 		Default("sqlite3").
 		StringVar(&d.Dialect)
 	statscmd.
 		Flag("driver-username", "Database driver username.").
-		Default("conf").
+		Default("kipp").
 		StringVar(&d.Username)
 	statscmd.
 		Flag("driver-password", "Database driver password.").
@@ -161,11 +158,13 @@ func main() {
 		StringVar(&d.Password)
 	statscmd.
 		Flag("driver-path", "Database driver path. ex: localhost:1337").
-		Default("conf.db").
+		Default("kipp.db").
 		StringVar(&d.Path)
 
-	// conf upload
-	if kingpin.Parse() == "upload" {
+	t := kingpin.Parse()
+
+	// kipp upload
+	if t == "upload" {
 		u.Do()
 		return
 	}
@@ -177,6 +176,37 @@ func main() {
 	}
 	defer db.Close()
 	s.DB = db
+
+	// kipp stats - kinda weird, we're doing this after the database opens so
+	// we can use it and the upload command is before since it doesn't need it.
+	// if t == "stats" {
+	// 	var total, size uint64
+
+	// 	t := db.Table("contents")
+
+	// 	t.Select("count(*), sum(size)").Row().Scan(&total, &size)
+	// 	fmt.Printf(
+	// 		"Total files uploaded: %s (%s)\n",
+	// 		humanize.Comma(int64(total)),
+	// 		humanize.Bytes(size),
+	// 	)
+
+	// 	t.Where("deleted_at IS NULL").Select("count(*), sum(size)").Row().
+	// 		Scan(&total, &size)
+	// 	fmt.Printf(
+	// 		"Currently serving: %s (%s)\n",
+	// 		humanize.Comma(int64(total)),
+	// 		humanize.Bytes(size),
+	// 	)
+
+	// 	t.Where("deleted_at IS NULL").Select("cast(avg(size) as integer)").
+	// 		Row().Scan(&size)
+	// 	fmt.Printf("Current average file size: %s\n", humanize.Bytes(size))
+
+	// 	t.Select("count(distinct address)").Row().Scan(&total)
+	// 	fmt.Printf("Unique IP addresses: %s\n", humanize.Comma(int64(total)))
+	// 	return
+	// }
 
 	// Load mime types
 	if m := *mime; m != "" {

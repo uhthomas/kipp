@@ -1,10 +1,10 @@
 package kipp
 
 import (
-	"bytes"
 	"crypto/rand"
 	"database/sql"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -42,15 +42,15 @@ func (s Server) Cleanup() error {
 	if _, err := s.DB.Exec("DELETE FROM files WHERE expires < ?", time.Now()); err != nil {
 		return err
 	}
-	return filepath.Walk(s.FilePath, func(path string, d os.FileInfo, err error) error {
+	return filepath.Walk(s.FilePath, func(path string, f os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() || filepath.Dir(path) != filepath.Clean(s.FilePath) {
+		if f.IsDir() || filepath.Dir(path) != filepath.Clean(s.FilePath) {
 			return nil
 		}
 		var exists bool
-		if s.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM files WHERE checksum = ?)", d.Name()).Scan(&exists); err != nil {
+		if s.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM files WHERE checksum = ?)", f.Name()).Scan(&exists); err != nil {
 			return err
 		}
 		if exists {
@@ -64,6 +64,8 @@ func (s Server) Cleanup() error {
 // request is for uploading, it then tried to serve static files and then will
 // try to serve content.
 func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// TODO: version?
+	w.Header().Set("Server", "conf")
 	if r.URL.Path == "/" && r.Method == http.MethodPost {
 		s.UploadHandler(w, r)
 		return
@@ -84,8 +86,10 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.FileServer(fileSystemFunc(func(name string) (http.File, error) {
+		fmt.Println(name)
 		f, err := http.Dir(s.PublicPath).Open(name)
 		if !os.IsNotExist(err) {
+			f = &file{File: f}
 			fi, err := f.Stat()
 			if err != nil {
 				return nil, err
@@ -95,16 +99,19 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				// nginx style weak Etag
 				w.Header().Set("Etag", fmt.Sprintf(
 					`W/"%x-%x"`,
-					fi.ModTime().Unix(), fi.Size(),
+					fi.ModTime().Unix(),
+					fi.Size(),
 				))
 			}
-			return f, nil
+			return f, err
 		}
+		// we don't need to do do path.Clean as htto.FileServer.ServeHTTP does
+		// this for us. It also ensures it begins with a / so we can use that to
+		// determine which directory we're in
 		dir, name := path.Split(name)
 		if dir != "/" {
 			return nil, os.ErrNotExist
 		}
-		// trim anything after "."
 		if i := strings.Index(name, "."); i > -1 {
 			name = name[:i]
 		}
@@ -113,7 +120,10 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			createdAt time.Time
 			expires   *time.Time
 		)
-		if err := s.DB.QueryRow("SELECT checksum, created_at, expires, name FROM files WHERE id = ?", name).Scan(&checksum, &createdAt, &expires, &name); err != nil {
+		if err := s.DB.QueryRow(
+			"SELECT checksum, created_at, expires, name FROM files WHERE id = ?",
+			name,
+		).Scan(&checksum, &createdAt, &expires, &name); err != nil {
 			if err == sql.ErrNoRows {
 				return nil, os.ErrNotExist
 			}
@@ -141,6 +151,11 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 			return nil, err
 		}
+		fi, err := f.Stat()
+		if err != nil {
+			return nil, err
+		}
+		f = &file{f, fileInfo{fi, createdAt}}
 		// Detect content type before serving content to filter html files
 		ctype := mime.TypeByExtension(filepath.Ext(name))
 		if ctype == "" {
@@ -163,18 +178,25 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		))
 		w.Header().Set("Content-Type", ctype)
 		w.Header().Set("Etag", strconv.Quote(checksum))
-		if expires != nil {
-			w.Header().Set("Expires", expires.UTC().Format(http.TimeFormat))
-		}
 		w.Header().Set("X-Content-Type-Options", "nosniff")
-		return file{f, createdAt}, nil
+		return f, nil
 	})).ServeHTTP(w, r)
+	//
+	f, err := http.Dir(s.PublicPath).Open(name)
+	if !os.IsNotExist(err) {
+		http.FileServer(fileSystemFunc(func(name string) (http.File, error) {
+			return f, nil
+		})).ServeHTTP(w, r)
+		return
+	}
+	// name, etag, expires, file
 }
 
 // UploadHandler will read the request body and write it to the disk whilst also
 // calculating a blake2b checksum. It will then insert the content information
 // into the database and if the file doesn't already exist, it will be moved
-// into the FilePath. It will then return Found with the location of the file.
+// into the FilePath. It will then return the expiration date and URL to the
+// client.
 func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.ContentLength > s.Max {
 		http.Error(w, http.StatusText(http.StatusRequestEntityTooLarge), http.StatusRequestEntityTooLarge)
@@ -238,18 +260,14 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := base64.RawURLEncoding.EncodeToString(b)
-	tx, err := s.DB.Begin()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	tx := s.DB.Begin()
 	if _, err := tx.Exec("INSERT INTO files (checksum, expires, id, name, size) VALUES (?, ?, ?, ?, ?) ", sum, expires, id, name, n); err != nil {
 		tx.Rollback()
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	var exists bool
-	if err := tx.QueryRow("SELECT EXISTS(SELECT 1 FROM files WHERE checksum = ? AND id <> ?)", sum, id).Scan(&exists); err != nil {
+	if err := tx.QueryRow("SELECT EXISTS(SELECT 1 FROM files WHERE checksum = ?)", sum).Scan(&exists); err != nil {
 		tx.Rollback()
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -266,11 +284,9 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	// "/" + id + ext
-	var buf bytes.Buffer
-	buf.WriteRune('/')
-	buf.WriteString(id)
-	buf.WriteString(filepath.Ext(name))
-	http.Redirect(w, r, buf.String(), http.StatusFound)
-	buf.WriteTo(w)
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	json.NewEncoder(w).Encode(struct {
+		Expires *time.Time `json:"expires,omitempty"`
+		Path    string     `json:"path"`
+	}{expires, id + filepath.Ext(name)})
 }
