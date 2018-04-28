@@ -18,12 +18,6 @@ var private = localStorage.getItem('private') === 'true';
 
 pica = pica();
 
-var isClosed = false;
-document.querySelector('main > .bar > .arrow').onclick = function(e) {
-	var el = document.querySelector('main');
-	(isClosed = !isClosed) ? el.classList.add('closed'): el.classList.remove('closed');
-}
-
 document.addEventListener('dragover', drag);
 document.addEventListener('dragenter', drag);
 document.addEventListener('dragend', dragLeave);
@@ -324,6 +318,14 @@ function content(file) {
 		self.setState(state);
 	}
 
+	self.remove = function() {
+		self.element.removeAttribute('rendered');
+		self.element.addEventListener('transitionend', function(e) {
+			if (e.target != self.element) return;
+			self.element.remove();
+		});
+	}
+
 	self.upload = function(encrypted) {
 		if (!encrypted && self.private) {
 			self.setMessageState('encrypting');
@@ -356,6 +358,7 @@ function content(file) {
 		self.element.querySelector('.actions button.primary').onclick = function(e) {
 			cancelled = true;
 			req.abort();
+			self.element.querySelector('.actions button.primary').onclick = self.remove;
 		}
 
 		req.upload.onprogress = function(e) {
@@ -368,6 +371,7 @@ function content(file) {
 			function err() {
 				if (cancelled) return self.setMessageState('Cancelled', 'error')
 				self.setMessageState(req.statusText || req.status || 'Unknown error', 'error');
+				self.element.querySelector('.actions button.primary').onclick = self.remove;
 			}
 			// If we haven't downloaded the headers yet and the request finished
 			// then show an error.
@@ -376,7 +380,7 @@ function content(file) {
 			if (finished || req.readyState !== 2) return;
 			finished = true;
 			if (req.status !== 200) return err();
-			self.setMessageState('Expires in 23 hours', 'done');
+			self.setState('done');
 			self.setProgress(100);
 			var u = req.responseURL;
 			if (self.private) {
@@ -468,13 +472,6 @@ function content(file) {
 		return !(rect.bottom < 0 || rect.top - viewHeight >= 0);
 	}
 
-	function expire(c) {
-		c.expired = true;
-		c.setState('expired');
-		c.setMessage('Expired');
-		c.element.removeAttr('href');
-	}
-
 	// https://github.com/odyniec/tinyAgo-js
 	function ago(val) {
 		val = 0 | (Date.now() - val) / 1000;
@@ -504,6 +501,7 @@ function content(file) {
 			if (c.expires < new Date()) {
 				c.expired = true;
 				c.setMessageState('Expired', 'error');
+				c.element.querySelector('.actions button.primary').onclick = c.remove;
 			} else {
 				c.setMessage('Expires in ' + ago(2 * new Date() - c.expires));
 			}
