@@ -143,24 +143,6 @@ func main() {
 			URLVar(&u.URL)
 	}
 
-	statscmd := kingpin.Command("stats", "Display basic stats for the current kipp instance.")
-	statscmd.
-		Flag("driver", "Available database drivers: mysql, postgres, sqlite3 and mssql.").
-		Default("sqlite3").
-		StringVar(&d.Dialect)
-	statscmd.
-		Flag("driver-username", "Database driver username.").
-		Default("kipp").
-		StringVar(&d.Username)
-	statscmd.
-		Flag("driver-password", "Database driver password.").
-		PlaceHolder("PASSWORD").
-		StringVar(&d.Password)
-	statscmd.
-		Flag("driver-path", "Database driver path. ex: localhost:1337").
-		Default("kipp.db").
-		StringVar(&d.Path)
-
 	t := kingpin.Parse()
 
 	// kipp upload
@@ -176,37 +158,6 @@ func main() {
 	}
 	defer db.Close()
 	s.DB = db
-
-	// kipp stats - kinda weird, we're doing this after the database opens so
-	// we can use it and the upload command is before since it doesn't need it.
-	// if t == "stats" {
-	// 	var total, size uint64
-
-	// 	t := db.Table("contents")
-
-	// 	t.Select("count(*), sum(size)").Row().Scan(&total, &size)
-	// 	fmt.Printf(
-	// 		"Total files uploaded: %s (%s)\n",
-	// 		humanize.Comma(int64(total)),
-	// 		humanize.Bytes(size),
-	// 	)
-
-	// 	t.Where("deleted_at IS NULL").Select("count(*), sum(size)").Row().
-	// 		Scan(&total, &size)
-	// 	fmt.Printf(
-	// 		"Currently serving: %s (%s)\n",
-	// 		humanize.Comma(int64(total)),
-	// 		humanize.Bytes(size),
-	// 	)
-
-	// 	t.Where("deleted_at IS NULL").Select("cast(avg(size) as integer)").
-	// 		Row().Scan(&size)
-	// 	fmt.Printf("Current average file size: %s\n", humanize.Bytes(size))
-
-	// 	t.Select("count(distinct address)").Row().Scan(&total)
-	// 	fmt.Printf("Unique IP addresses: %s\n", humanize.Comma(int64(total)))
-	// 	return
-	// }
 
 	// Load mime types
 	if m := *mime; m != "" {
