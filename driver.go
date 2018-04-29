@@ -41,13 +41,13 @@ func (d Driver) Open() (*sql.DB, error) {
 func (d Driver) String() string {
 	switch d.Dialect {
 	case "postgres":
-		return fmt.Sprintf("user='%s' pass='%s' host='%s' dbname=conf", d.Username, d.Password, d.Path)
+		return fmt.Sprintf("user='%s' pass='%s' host='%s' dbname=kipp", d.Username, d.Password, d.Path)
 	case "sqlite3":
 		return d.Path
 	case "mssql":
-		return fmt.Sprintf("sqlserver://%s:%s@%s?database=conf", d.Username, d.Password, d.Path)
+		return fmt.Sprintf("sqlserver://%s:%s@%s?database=kipp", d.Username, d.Password, d.Path)
 	case "mysql":
-		return fmt.Sprintf("%s:%s@%s/conf", d.Username, d.Password, d.Path)
+		return fmt.Sprintf("%s:%s@%s/kipp", d.Username, d.Password, d.Path)
 	}
-	panic("conf: invalid driver")
+	panic("kipp: invalid driver")
 }

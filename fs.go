@@ -6,12 +6,12 @@ import (
 	"time"
 )
 
-// fileSystemFunc implements http.FileSystem
+// fileSystemFunc implements http.FileSystem.
 type fileSystemFunc func(string) (http.File, error)
 
 func (f fileSystemFunc) Open(name string) (http.File, error) { return f(name) }
 
-// file will cache a file's FileInfo
+// file wraps http.File to provide correct Last-Modified times.
 type file struct {
 	http.File
 	modTime time.Time

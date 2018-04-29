@@ -231,12 +231,12 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		expires = &e
 	}
 	// 9 byte ID as base64 is most efficient when it aligns to len(b) % 3
-	b := make([]byte, 9)
-	if _, err := io.ReadFull(rand.Reader, b); err != nil {
+	var b [9]byte
+	if _, err := io.ReadFull(rand.Reader, b[:]); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	id := base64.RawURLEncoding.EncodeToString(b)
+	id := base64.RawURLEncoding.EncodeToString(b[:])
 	tx, err := s.DB.Begin()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -270,6 +270,6 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	buf.WriteRune('/')
 	buf.WriteString(id)
 	buf.WriteString(filepath.Ext(name))
-	http.Redirect(w, r, buf.String(), http.StatusFound)
+	http.Redirect(w, r, buf.String(), http.StatusSeeOther)
 	buf.WriteTo(w)
 }

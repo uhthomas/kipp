@@ -7,7 +7,6 @@ import (
 	"crypto/rand"
 	"crypto/tls"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -15,9 +14,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"time"
-
-	"github.com/dustin/go-humanize"
 )
 
 type UploadCommand struct {
@@ -29,7 +25,7 @@ type UploadCommand struct {
 
 func (u *UploadCommand) Do() {
 	defer u.File.Close()
-	u.URL.Path = "/upload"
+	u.URL.Path = "/"
 
 	s, err := u.File.Stat()
 	if err != nil {
@@ -60,7 +56,7 @@ func (u *UploadCommand) Do() {
 			log.Fatal(err)
 		}
 		r = bytes.NewReader(gcm.Seal(nil, nonce, buf.Bytes(), nil))
-		pathPrefix = "private#" + base64.RawURLEncoding.EncodeToString(append(nonce, key...)) + "/"
+		pathPrefix = "private#" + base64.RawURLEncoding.EncodeToString(append(nonce, key...))
 	}
 
 	pr, pw := io.Pipe()
@@ -89,7 +85,11 @@ func (u *UploadCommand) Do() {
 	// TODO: add content-length - nginx would 400 and it's hard to determine
 	//       mime header size
 	req.Header.Set("Content-Type", w.FormDataContentType())
-	c := &http.Client{}
+	c := &http.Client{
+		CheckRedirect: func(r *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
 	if u.Insecure {
 		c.Transport = &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -100,22 +100,11 @@ func (u *UploadCommand) Do() {
 		log.Fatal(err)
 	}
 	defer res.Body.Close()
-
-	var out struct {
-		Expires *time.Time `json:"expires,omitempty"`
-		Path    string     `json:"path"`
-	}
-	if err := json.NewDecoder(res.Body).Decode(&out); err != nil {
+	rurl, err := res.Location()
+	if err != nil {
 		log.Fatal(err)
 	}
-
-	u.URL.Path = ""
-	fmt.Print(u.URL.String() + "/" + pathPrefix + out.Path)
-	if out.Expires != nil {
-		// print expiration and round time to compensate for server time and
-		// request duration
-		fmt.Printf(" expires %s\n", humanize.Time(*out.Expires))
-	} else {
-		fmt.Println(" uploaded permanently\n")
-	}
+	p := rurl.Path
+	rurl.Path = ""
+	fmt.Println(rurl.String() + "/" + pathPrefix + p)
 }
