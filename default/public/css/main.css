@@ -125,10 +125,6 @@ main>.bar>.file-select {
 	z-index: 0;
 }
 
-main>.bar>.file-select:after {
-	content: 'Select files';
-}
-
 main>.bar>.file-select>.hidden {
 	opacity: 0;
 	position: absolute;
@@ -146,6 +142,11 @@ main>.bar>.file-select>.icon {
 
 main>.bar>.file-select>.icon:before {
 	content: 'add_circle';
+}
+
+main>.bar>.file-select:after {
+	padding-left: 8px;
+	content: 'Select files';
 }
 
 main>.bar>.encryption {
