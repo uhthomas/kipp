@@ -111,6 +111,7 @@
 						reject(err);
 					}
 
+					// Darken background before rendering as blob
 					var ctx = dst.getContext('2d');
 					ctx.fillStyle = 'rgba(0,0,0,0.5)';
 					ctx.fillRect(0, 0, dst.width, dst.height);
@@ -154,7 +155,7 @@
 		// the blob provided.
 		self.setBlob = function(blob, name) {
 			self.__blob__ = blob;
-			self.__name__ = name || blob.name || 'Unknown';
+			self.__name__ = name || blob.name || self.__name__ || 'Unknown';
 			self.element.querySelector('.content .meta .name').textContent = self.__name__;
 			self.element.querySelector('.content .meta .size').textContent = filesize(blob.size);
 			self.setImage(blob).catch(function(err) {});
@@ -308,29 +309,26 @@
 		dialog('Archive these files?', 'An archive of files will be created and uploaded rather than uploading each file individually.', [{
 			text: 'No thanks',
 			f: function() {
-				for (var i = 0; i < files.length; i++) {
+				for (var i = 0; i < files.length; i++)
 					(new FileElement(files[i])).upload();
-				}
 			}
 		}, {
 			text: 'Archive',
 			f: async function() {
 				var zip = new JSZip();
-				var f = new FileElement(new Blob());
+				var f = new FileElement(new Blob(), encode(crypto.getRandomValues(new Uint8Array(6))) + '.zip');
 				f.setState('archiving', 'Archive starting');
 
 				try {
-					var done = false;
-					var index = 0;
-					async function imageSetter() {
+					async function imageSetter(i) {
 						try {
-							await f.setImage(files[index]);
-							done = true;
-						} catch(e) {}
-						index++;
-						if (index <= files.length && !done) requestAnimationFrame(imageSetter);
+							await f.setImage(files[i]);
+						} catch(e) {
+							if (++i < files.length) requestAnimationFrame(imageSetter.bind(this, i));
+						}
 					}
-					imageSetter();
+					imageSetter(0);
+
 					var bytes = 0;
 					for (var i = 0; i < files.length; i++) {
 						var file = files[i];
@@ -343,13 +341,11 @@
 							r.readAsArrayBuffer(file);
 						}));
 						zip.file(file.name, result);
-						bytes += result.byteLength;
 						f.setState('archiving', 'Archiving ' + (((i+1) / files.length * 100)|0) + '%');
-						f.element.querySelector('.content .meta .size').textContent = filesize(bytes);
+						f.element.querySelector('.content .meta .size').textContent = filesize(bytes += result.byteLength);
 					}
 					const blob = await zip.generateAsync({ type: 'blob' });
-					var arr = new Uint8Array(6);
-					f.setBlob(blob, encode(crypto.getRandomValues(arr)) + '.zip');
+					f.setBlob(blob);
 					f.upload();
 				} catch(e) {
 					f.setState('error', e || 'Unknown error');
