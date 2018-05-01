@@ -1,19 +1,18 @@
-// returns data
-async function decrypt(iv, key, data) {
-    const k = await crypto.subtle.importKey('raw', key, { name: 'AES-GCM' }, false, ['decrypt']);
-    return crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, k, data);
-}
+(function() {
+    async function decrypt(iv, key, data) {
+        const k = await crypto.subtle.importKey('raw', key, { name: 'AES-GCM' }, false, ['decrypt']);
+        return crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, k, data);
+    }
 
-function decode(s) {
-    return Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '=='), c => c.charCodeAt(0));
-}
+    function decode(s) {
+        return Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '=='), c => c.charCodeAt(0));
+    }
 
-function err(message) {
-    document.body.className = 'error';
-    document.querySelector('.status .text.open').innerHTML = 'message' in e ? e.message : e;
-}
+    function err(message) {
+        document.body.className = 'error';
+        document.querySelector('.status .text.open').innerHTML = 'message' in e ? e.message : e;
+    }
 
-function main() {
     try {
         const s = location.hash.slice(1).split('/');
         if (s[0] === 'preview') {
@@ -57,7 +56,7 @@ function main() {
                     window.open(u, '_blank').onunload = function() {
                         if (suggested) return;
                         suggested = true;
-                        document.body.className += ' suggest';
+                        document.body.classList.add('suggest');
                     }
                     return false;
                 }
@@ -71,12 +70,4 @@ function main() {
         req.responseType = 'arraybuffer';
         req.send();
     } catch(e) { err(e); }
-    // const response = await fetch('/' + s[1]);
-    // const data = await decrypt(iv, key, await response.arrayBuffer());
-    // var iframe = document.createElement('iframe');
-    // iframe.src = URL.createObjectURL(new Blob([data], { type: response.headers.get('Content-Type')}));
-    // document.body.appendChild(iframe);
-    // open(URL.createObjectURL(new Blob([data], { type: response.headers.get('Content-Type')})), '_blank').focus();
-}
-
-main();
+})();
