@@ -75,13 +75,11 @@
 			function video(callback) {
 				var canvas = document.createElement('canvas');
 				var video = document.createElement('video');
-				video.onloadeddata = function() {
+				video.onloadeddata = async function() {
 					canvas.width = video.videoWidth;
 					canvas.height = video.videoHeight;
 					canvas.getContext('2d').drawImage(video, 0, 0);
-					pica.toBlob(function(blob) {
-						self.setImage(blob);
-					}, 'image/png', 1);
+					self.setImage(await pica.toBlob(canvas, 'image/png', 1));
 					URL.revokeObjectURL(u);
 				}
 				video.onerror = function(err) {
