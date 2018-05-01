@@ -26,13 +26,12 @@ import (
 // Server acts as the HTTP server, configuration and provides essential core
 // functions such as Cleanup.
 type Server struct {
-	DB          *sql.DB
-	Expiration  time.Duration
-	Max         int64
-	FilePath    string
-	TempPath    string
-	PublicPath  string
-	ProxyHeader string
+	DB         *sql.DB
+	Expiration time.Duration
+	Max        int64
+	FilePath   string
+	TempPath   string
+	PublicPath string
 }
 
 // Cleanup will delete expired files and remove files associated with it as

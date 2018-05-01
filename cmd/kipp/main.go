@@ -119,9 +119,6 @@ func main() {
 		Flag("public", "Public path for web resources.").
 		Default("public").
 		StringVar(&s.PublicPath)
-	servecmd.
-		Flag("proxy-header", "HTTP header to be used for IP logging if set.").
-		StringVar(&s.ProxyHeader)
 
 	var u UploadCommand
 	{
