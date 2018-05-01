@@ -206,12 +206,12 @@
 				finished = true;
 				if (this.status !== 200) return err();
 				var u = this.responseURL;
+				var a = self.element.querySelector('.content .meta .name');
+				a.href = u;
 				if (self.encryption) {
-					var a = document.createElement('a');
-					a.href = u;
-					var p = a.pathname;
+					a.hash = encode(iv.concat(key)) + a.pathname;
 					a.pathname = 'private';
-					u = a.href + '#' + encode(iv.concat(key)) + p;
+					u = a.href;
 				}
 				self.expires = new Date(this.getResponseHeader('Expires'));
 				self.element.querySelector('.actions button.secondary').onclick = self.remove;
