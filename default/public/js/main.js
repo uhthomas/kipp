@@ -358,8 +358,8 @@
 	});
 
 	document.querySelector('input').addEventListener('change', function() {
-		processFiles(this.files);
-		this.value = '';
+		processFiles(Array.from(this.files));
+		this.value = null;
 	});
 
 	// https://github.com/odyniec/tinyAgo-js
