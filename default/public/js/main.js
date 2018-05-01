@@ -413,7 +413,7 @@
 			if (!f.expires) continue;
 			if (f.expires < new Date()) {
 				f.expires = null;
-				f.setMessageState('Expired', 'error');
+				f.setState('error', 'Expired');
 				f.element.querySelector('.actions button.primary').onclick = f.remove;
 			} else {
 				f.setState('done', 'Expires in ' + ago(2 * new Date() - f.expires));

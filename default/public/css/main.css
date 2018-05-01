@@ -85,7 +85,6 @@ main {
 	-o-transition-property: padding, max-width, min-height;
 	transition-property: padding, max-width, min-height;
 	max-height: 100%;
-	min-height: 0;
 	max-width: 800px;
 }
 
@@ -102,17 +101,9 @@ main>.bar {
 	align-items: center;
 	transition: background 280ms cubic-bezier(0.4, 0, 0.2, 1);
 	color: rgba(255, 255, 255, 0.54);
-	/*border-bottom: 1px solid rgba(255, 255, 255, 0.12);*/
 }
 
 main>.bar>.file-select {
-	/*	height: 100%;
-	display: flex;
-	align-items: center;
-	flex: 1;
-	font-weight: 500;
-	position: relative;
-	padding-left: 20px;*/
 	margin: 8px;
 	height: 56px;
 	line-height: 56px;
@@ -150,9 +141,6 @@ main>.bar>.file-select:after {
 }
 
 main>.bar>.encryption {
-	/*	padding: 20px 12px 20px 20px;
-	padding: 24px;
-	margin-left: auto;*/
 	min-width: 0;
 	height: 24px;
 	line-height: 1em;
@@ -167,7 +155,6 @@ main>.bar>.encryption .material-icons:before {
 
 main>.bar>.encryption.enabled .material-icons:before {
 	content: 'lock';
-	/* color: #00E676; */
 }
 
 main>article {
@@ -251,8 +238,6 @@ main>article code>.copy:before {
 }
 
 .file[style]:before {
-	/*	transform: scale(1.1);
-	filter: blur(10px);*/
 	opacity: 1;
 }
 
@@ -339,9 +324,7 @@ main>article code>.copy:before {
 
 .file .actions {
 	min-height: 52px;
-	/*border-top: 1px solid rgba(255, 255, 255, 0.12);*/
 	display: flex;
-	/*background: rgba(0, 0, 0, 0.5);*/
 	position: relative;
 }
 
@@ -377,13 +360,6 @@ main>article code>.copy:before {
 	transition: background 280ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-
-
-/*
-.file[state="error"] .actions button.primary,
-.file[state="archiving"] .actions button.primary,
-.file[state="encrypting"] .actions button.primary,*/
-
 .file[state="error"] .actions button.primary,
 .file[state="uploading"] .actions button.primary,
 .file[state="done"] .actions button.secondary,
@@ -394,12 +370,6 @@ main>article code>.copy:before {
 .file[state="error"] .actions button.primary:before {
 	content: 'Remove';
 }
-
-
-/*
-.file[state="error"] .actions button.primary:before {
-	content: 'Retry'
-}*/
 
 .file[state="archiving"] .actions button.primary:before,
 .file[state="encrypting"] .actions button.primary,
