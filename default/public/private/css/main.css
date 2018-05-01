@@ -49,7 +49,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    text-transform: uppercase;
+    text-transform: capitalize;
     box-sizing: border-box;
     padding: 13px 0;
     margin: 8px;
