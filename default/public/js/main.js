@@ -70,9 +70,7 @@
 					self.setImage(await pica.toBlob(canvas, 'image/png', 1));
 					URL.revokeObjectURL(u);
 				}
-				video.onerror = function(err) {
-					reject(err);
-				}
+				video.onerror = reject;
 				video.src = u;
 			}
 
@@ -94,21 +92,21 @@
 					var nr = this.naturalWidth / this.naturalHeight;
 
 					// First large blurred background.
-					var canvas = document.createElement('canvas');
-					canvas.height = this.naturalHeight;
-					canvas.width = this.naturalWidth;
+					var src = document.createElement('canvas');
+					src.height = this.naturalHeight;
+					src.width = this.naturalWidth;
 					if (nr > r)
-						canvas.width = canvas.height * r;
+						src.width = src.height * r;
 					else if (nr < r)
-						canvas.height = canvas.width / r;
-					canvas.getContext('2d').drawImage(this, (canvas.width - this.naturalWidth) / 2, (canvas.height - this.naturalHeight) / 2);
+						src.height = src.width / r;
+					src.getContext('2d').drawImage(this, (src.width - this.naturalWidth) / 2, (src.height - this.naturalHeight) / 2);
 
 					var dst = document.createElement('canvas');
 					dst.width = 800;
 					dst.height = 124;
 
 					try {
-						await pica.resize(canvas, dst, { alpha: true });
+						await pica.resize(src, dst, { alpha: true });
 					} catch (err) {
 						reject(err);
 					}
@@ -121,13 +119,13 @@
 					var blob = await pica.toBlob(dst, 'image/png', 1);
 
 					// Second small 'avatar' preview.
-					canvas.width = canvas.height = Math.min(this.naturalWidth, this.naturalHeight);
-					canvas.getContext('2d').drawImage(this, (canvas.width - this.naturalWidth) / 2, (canvas.height - this.naturalHeight) / 2);
+					src.width = src.height = Math.min(this.naturalWidth, this.naturalHeight);
+					src.getContext('2d').drawImage(this, (src.width - this.naturalWidth) / 2, (src.height - this.naturalHeight) / 2);
 
 					dst.width = dst.height = 40;
 
 					try {
-						await pica.resize(canvas, dst, { alpha: true });
+						await pica.resize(src, dst, { alpha: true });
 					} catch (err) {
 						reject(err);
 					}
@@ -137,9 +135,7 @@
 					self.element.querySelector('.avatar').style.backgroundImage = 'url(' + URL.createObjectURL(blob2) + ')';
 					resolve();
 				}
-				img.onerror = function(err) {
-					reject(err);
-				}
+				img.onerror = reject;
 				img.src = u;
 			}
 
@@ -171,7 +167,6 @@
 
 		// remove will remove the animate and remove the element from the page.
 		self.remove = function() {
-			console.info(self.element);
 			self.element.removeAttribute('rendered');
 			self.element.addEventListener('transitionend', function(e) {
 				if (e.target != self.element) return;
@@ -214,8 +209,7 @@
 			var finished = false;
 			req.onreadystatechange = function(e) {
 				function err() {
-					if (cancelled) self.setState('error', 'Cancelled')
-					else self.setState('error', req.statusText || req.status || 'Unknown error');
+					self.setState('error', cancelled ? 'Cancelled' : (req.statusText || req.status || 'Unknown error'));
 					self.element.querySelector('.actions button.primary').onclick = self.remove;
 				}
 				if (!finished && this.readyState === 4) return err();
@@ -233,7 +227,6 @@
 				self.expires = new Date(this.getResponseHeader('Expires'));
 				self.element.querySelector('.actions button.secondary').onclick = self.remove;
 				self.element.querySelector('.actions button.primary').onclick = function(e) {
-					// var u = location.origin + '/' + res.path;
 					// Make template
 					var d = document.createElement('div');
 					d.appendChild(document.importNode(document.getElementById('share-template').content, true));
@@ -268,10 +261,7 @@
 					}
 					// More item
 					el.querySelector('.item.more').onclick = function() {
-						navigator.share({
-							title: self.__name__,
-							url: u
-						});
+						navigator.share({ title: self.__name__,	url: u });
 					}
 					if (!navigator.share)
 						el.querySelector('.item.more').remove();
