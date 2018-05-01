@@ -54,9 +54,9 @@
 			var u = URL.createObjectURL(blob);
 
 			async function video(resolve, reject) {
-				const video = await new Promise(function(reject, resolve) {
+				const video = await new Promise(function(resolve, reject) {
 					var video = document.createElement('video');
-					video.onloadeddata = resolve;
+					video.onloadeddata = function() { resolve(this); }
 					video.onerror = reject;
 					video.src = u;
 				});
@@ -80,65 +80,62 @@
 			}
 
 			async function image(resolve, reject) {
-				try {
-					const img = await new Promise(function(resolve, reject) {
-						var img = new Image();
-						img.onload = function() { resolve(this); }
-						img.onerror = reject;
-						img.src = u;
-					});
+				const img = await new Promise(function(resolve, reject) {
+					var img = new Image();
+					img.onload = function() { resolve(this); }
+					img.onerror = reject;
+					img.src = u;
+				});
 
-					var r = 800 / 124;
-					var nr = img.naturalWidth / img.naturalHeight;
+				var r = 800 / 124;
+				var nr = img.naturalWidth / img.naturalHeight;
 
-					// First large blurred background.
-					var src = document.createElement('canvas');
-					src.height = img.naturalHeight;
-					src.width = img.naturalWidth;
-					if (nr > r)
-						src.width = src.height * r;
-					else if (nr < r)
-						src.height = src.width / r;
-					src.getContext('2d').drawImage(img, (src.width - img.naturalWidth) / 2, (src.height - img.naturalHeight) / 2);
+				// First large blurred background.
+				var src = document.createElement('canvas');
+				src.height = img.naturalHeight;
+				src.width = img.naturalWidth;
+				if (nr > r)
+					src.width = src.height * r;
+				else if (nr < r)
+					src.height = src.width / r;
+				src.getContext('2d').drawImage(img, (src.width - img.naturalWidth) / 2, (src.height - img.naturalHeight) / 2);
 
-					var dst = document.createElement('canvas');
-					dst.width = 800;
-					dst.height = 124;
+				var dst = document.createElement('canvas');
+				dst.width = 800;
+				dst.height = 124;
 
-					await pica.resize(src, dst, { alpha: true });
+				await pica.resize(src, dst, { alpha: true });
 
-					// Darken background before rendering as blob
-					var ctx = dst.getContext('2d');
-					ctx.fillStyle = 'rgba(0,0,0,0.5)';
-					ctx.fillRect(0, 0, dst.width, dst.height);
-					StackBlur.canvasRGBA(dst, 0, 0, dst.width, dst.height, 100);
-					
-					var blob = await pica.toBlob(dst, 'image/png', 1);
+				// Darken background before rendering as blob
+				var ctx = dst.getContext('2d');
+				ctx.fillStyle = 'rgba(0,0,0,0.5)';
+				ctx.fillRect(0, 0, dst.width, dst.height);
+				StackBlur.canvasRGBA(dst, 0, 0, dst.width, dst.height, 100);
+				
+				var blob = await pica.toBlob(dst, 'image/png', 1);
 
-					// Second small 'avatar' preview.
-					src.width = src.height = Math.min(img.naturalWidth, img.naturalHeight);
-					src.getContext('2d').drawImage(img, (src.width - img.naturalWidth) / 2, (src.height - img.naturalHeight) / 2);
+				// Second small 'avatar' preview.
+				src.width = src.height = Math.min(img.naturalWidth, img.naturalHeight);
+				src.getContext('2d').drawImage(img, (src.width - img.naturalWidth) / 2, (src.height - img.naturalHeight) / 2);
 
-					dst.width = dst.height = 40;
+				dst.width = dst.height = 40;
 
-					await pica.resize(src, dst, { alpha: true });
+				await pica.resize(src, dst, { alpha: true });
 
-					var blob2 = await pica.toBlob(dst, 'image/png', 1);
-					self.element.setAttribute('style', '--background: url(' + URL.createObjectURL(blob) + ')');
-					self.element.querySelector('.avatar').style.backgroundImage = 'url(' + URL.createObjectURL(await pica.toBlob(dst, 'image/png', 1)) + ')';
-					resolve();
-				} catch(err) {
-					reject(err);
-				}
+				var blob2 = await pica.toBlob(dst, 'image/png', 1);
+				self.element.setAttribute('style', '--background: url(' + URL.createObjectURL(blob) + ')');
+				self.element.querySelector('.avatar').style.backgroundImage = 'url(' + URL.createObjectURL(await pica.toBlob(dst, 'image/png', 1)) + ')';
+				resolve();
 			}
 
 			function none(resolve, reject) {
 				reject(new Error('Not an image'));
 			}
 
-			return new Promise(function(resolve, reject) {
-				({ 'video': video, 'audio': audio, 'image': image }[blob.type.split('/')[0]] || none)(resolve, reject);
-				URL.revokeObjectURL(u);
+			return new Promise(async function(resolve, reject) {
+				try {
+					await ({ 'video': video, 'audio': audio, 'image': image }[blob.type.split('/')[0]] || none)(resolve, reject);
+				} catch(err) { reject(err); } finally { URL.revokeObjectURL(u); }
 			});
 		}
 
