@@ -308,7 +308,6 @@
 
 		// Append element to body and render.
 		document.getElementById('main').insertBefore(self.element, document.querySelector('.card.bar').nextSibling);
-		requestAnimationFrame(function() { self.element.setAttribute('rendered', true); });
 
 		// Push element into 'global' array for rendering.
 		fileElements.push(self);
