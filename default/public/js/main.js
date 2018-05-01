@@ -55,24 +55,12 @@
 		self.expires = null;
 		self.rendered = false;
 
-		// setBlob will set the underlying Blob to read from. name is an
-		// optional parameter which is present will override the actual name of
-		// the blob provided.
-		self.setBlob = function(blob, name) {
-			self.__blob__ = blob;
-			self.__name__ = name || blob.name || 'Unknown';
-			self.element.querySelector('.content .meta .name').textContent = self.__name__;
-			self.element.querySelector('.content .meta .size').textContent = filesize(blob.size);
-			self.setImage(blob);
-		}
-
 		// setImage will try to determine what the blob is and then render a
-		// preview image for the FileElement. The callback will receive Boolean
-		// indicating whether it failed or succeeded.
+		// preview image for the FileElement.
 		self.setImage = function(blob) {
 			var u = URL.createObjectURL(blob);
 
-			function video(callback) {
+			function video(resolve, reject) {
 				var canvas = document.createElement('canvas');
 				var video = document.createElement('video');
 				video.onloadeddata = async function() {
@@ -83,14 +71,14 @@
 					URL.revokeObjectURL(u);
 				}
 				video.onerror = function(err) {
-					callback(err);
+					reject(err);
 				}
 				video.src = u;
 			}
 
-			function audio(callback) {
+			function audio(resolve, reject) {
 				musicmetadata(blob, function(err, info) {
-					if (err || info.picture.length < 1) return callback(err || new Error('No image'));
+					if (err || info.picture.length < 1) return reject(err || new Error('No image'));
 					var image = info.picture[0];
 					self.setImage(new Blob([image.data], {
 						type: 'image/' + image.format
@@ -99,7 +87,7 @@
 				});
 			}
 
-			function image(callback) {
+			function image(resolve, reject) {
 				var img = new Image();
 				img.onload = async function() {
 					var r = 800 / 124;
@@ -122,7 +110,7 @@
 					try {
 						await pica.resize(canvas, dst, { alpha: true });
 					} catch (err) {
-						callback(err);
+						reject(err);
 					}
 
 					var ctx = dst.getContext('2d');
@@ -141,31 +129,39 @@
 					try {
 						await pica.resize(canvas, dst, { alpha: true });
 					} catch (err) {
-						callback(err);
+						reject(err);
 					}
 
 					var blob2 = await pica.toBlob(dst, 'image/png', 1);
 					self.element.setAttribute('style', '--background: url(' + URL.createObjectURL(blob) + ')');
 					self.element.querySelector('.avatar').style.backgroundImage = 'url(' + URL.createObjectURL(blob2) + ')';
+					resolve();
 				}
 				img.onerror = function(err) {
-					callback(err);
+					reject(err);
 				}
 				img.src = u;
 			}
 
-			function none(callback) {
-				callback(new Error('Not an image'));
+			function none(resolve, reject) {
+				reject(new Error('Not an image'));
 			}
-			return new Promise(function(resolve, reject) {
-				({
-					'video': video,
-					'audio': audio,
-					'image': image
-				}[blob.type.split('/')[0]] || none)(function(ok) {
-					ok ? resolve() : reject(err);
-				});
-			});
+			return new Promise({
+				'video': video,
+				'audio': audio,
+				'image': image
+			}[blob.type.split('/')[0]] || none);
+		}
+
+		// setBlob will set the underlying Blob to read from. name is an
+		// optional parameter which is present will override the actual name of
+		// the blob provided.
+		self.setBlob = function(blob, name) {
+			self.__blob__ = blob;
+			self.__name__ = name || blob.name || 'Unknown';
+			self.element.querySelector('.content .meta .name').textContent = self.__name__;
+			self.element.querySelector('.content .meta .size').textContent = filesize(blob.size);
+			self.setImage(blob).catch(function(err) {});
 		}
 
 		self.setState = function(state, message) {
@@ -342,7 +338,7 @@
 							done = true;
 						} catch(e) {}
 						index++;
-						if (index <= files.length || !done) requestAnimationFrame(imageSetter);
+						if (index <= files.length && !done) requestAnimationFrame(imageSetter);
 					}
 					imageSetter();
 					var bytes = 0;
