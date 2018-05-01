@@ -67,9 +67,9 @@
 				video.src = u;
 			}
 
-			function audio(resolve, reject) {
+			async function audio(resolve, reject) {
 				musicmetadata(blob, function(err, info) {
-					if (err || info.picture.length < 1) return reject(err || new Error('No image'));
+					if (err || info.picture.length < 1) return reject(err || new Error('No album art'));
 					var image = info.picture[0];
 					self.setImage(new Blob([image.data], {
 						type: 'image/' + image.format
@@ -78,55 +78,57 @@
 				});
 			}
 
-			function image(resolve, reject) {
-				var img = new Image();
-				img.onload = async function() {
-					try {
-						var r = 800 / 124;
-						var nr = this.naturalWidth / this.naturalHeight;
+			async function image(resolve, reject) {
+				try {
+					const img = await new Promise(function(resolve, reject) {
+						var img = new Image();
+						img.onload = function() { resolve(this); }
+						img.onerror = reject;
+						img.src = u;
+					});
 
-						// First large blurred background.
-						var src = document.createElement('canvas');
-						src.height = this.naturalHeight;
-						src.width = this.naturalWidth;
-						if (nr > r)
-							src.width = src.height * r;
-						else if (nr < r)
-							src.height = src.width / r;
-						src.getContext('2d').drawImage(this, (src.width - this.naturalWidth) / 2, (src.height - this.naturalHeight) / 2);
+					var r = 800 / 124;
+					var nr = img.naturalWidth / img.naturalHeight;
 
-						var dst = document.createElement('canvas');
-						dst.width = 800;
-						dst.height = 124;
+					// First large blurred background.
+					var src = document.createElement('canvas');
+					src.height = img.naturalHeight;
+					src.width = img.naturalWidth;
+					if (nr > r)
+						src.width = src.height * r;
+					else if (nr < r)
+						src.height = src.width / r;
+					src.getContext('2d').drawImage(img, (src.width - img.naturalWidth) / 2, (src.height - img.naturalHeight) / 2);
 
-						await pica.resize(src, dst, { alpha: true });
+					var dst = document.createElement('canvas');
+					dst.width = 800;
+					dst.height = 124;
 
-						// Darken background before rendering as blob
-						var ctx = dst.getContext('2d');
-						ctx.fillStyle = 'rgba(0,0,0,0.5)';
-						ctx.fillRect(0, 0, dst.width, dst.height);
-						StackBlur.canvasRGBA(dst, 0, 0, dst.width, dst.height, 100);
-						
-						var blob = await pica.toBlob(dst, 'image/png', 1);
+					await pica.resize(src, dst, { alpha: true });
 
-						// Second small 'avatar' preview.
-						src.width = src.height = Math.min(this.naturalWidth, this.naturalHeight);
-						src.getContext('2d').drawImage(this, (src.width - this.naturalWidth) / 2, (src.height - this.naturalHeight) / 2);
+					// Darken background before rendering as blob
+					var ctx = dst.getContext('2d');
+					ctx.fillStyle = 'rgba(0,0,0,0.5)';
+					ctx.fillRect(0, 0, dst.width, dst.height);
+					StackBlur.canvasRGBA(dst, 0, 0, dst.width, dst.height, 100);
+					
+					var blob = await pica.toBlob(dst, 'image/png', 1);
 
-						dst.width = dst.height = 40;
+					// Second small 'avatar' preview.
+					src.width = src.height = Math.min(img.naturalWidth, img.naturalHeight);
+					src.getContext('2d').drawImage(img, (src.width - img.naturalWidth) / 2, (src.height - img.naturalHeight) / 2);
 
-						await pica.resize(src, dst, { alpha: true });
+					dst.width = dst.height = 40;
 
-						var blob2 = await pica.toBlob(dst, 'image/png', 1);
-						self.element.setAttribute('style', '--background: url(' + URL.createObjectURL(blob) + ')');
-						self.element.querySelector('.avatar').style.backgroundImage = 'url(' + URL.createObjectURL(await pica.toBlob(dst, 'image/png', 1)) + ')';
-						resolve();
-					} catch(err) {
-						reject(err);
-					}
+					await pica.resize(src, dst, { alpha: true });
+
+					var blob2 = await pica.toBlob(dst, 'image/png', 1);
+					self.element.setAttribute('style', '--background: url(' + URL.createObjectURL(blob) + ')');
+					self.element.querySelector('.avatar').style.backgroundImage = 'url(' + URL.createObjectURL(await pica.toBlob(dst, 'image/png', 1)) + ')';
+					resolve();
+				} catch(err) {
+					reject(err);
 				}
-				img.onerror = reject;
-				img.src = u;
 			}
 
 			function none(resolve, reject) {
@@ -319,14 +321,7 @@
 					var bytes = 0;
 					for (var i = 0; i < files.length; i++) {
 						var file = files[i];
-						const result = await (new Promise(function(resolve, reject) {
-							var r = new FileReader();
-							r.onload = function() {
-								resolve(this.result);
-							};
-							r.onerror = reject;
-							r.readAsArrayBuffer(file);
-						}));
+						const result = await (new Response(file).arrayBuffer());
 						zip.file(file.name, result);
 						f.setState('archiving', 'Archiving ' + (((i+1) / files.length * 100)|0) + '%');
 						f.element.querySelector('.content .meta .size').textContent = filesize(bytes += result.byteLength);
