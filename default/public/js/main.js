@@ -2,10 +2,7 @@
 	var pica = window.pica();
 
 	function encode(arr) {
-		var s = '';
-		for (var i = 0; i < arr.length; i++)
-			s += String.fromCharCode(arr[i]);
-		return btoa(s).slice(0, -2).replace(/\+/g, '-').replace(/\//g, '_');
+		return btoa(String.fromCharCode.apply(null, arr)).slice(0, -2).replace(/\+/g, '-').replace(/\//g, '_');
 	}
 
 	async function encrypt(data) {
@@ -34,7 +31,6 @@
 			b.className = 'button';
 			elb.appendChild(b);
 			b.innerText = buttons[i].text;
-			if (buttons[i].class) b.classList.add(buttons[i].class);
 			if (buttons[i].f) b.addEventListener('click', buttons[i].f);
 		}
 		document.body.appendChild(el);
@@ -52,8 +48,6 @@
 		var self = this;
 
 		self.encryption = encryption;
-		self.expires = null;
-		self.rendered = false;
 
 		// setImage will try to determine what the blob is and then render a
 		// preview image for the FileElement.
