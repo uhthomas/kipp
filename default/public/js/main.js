@@ -53,29 +53,30 @@
 		self.setImage = function(blob) {
 			var u = URL.createObjectURL(blob);
 
-			function video(resolve, reject) {
-				var canvas = document.createElement('canvas');
-				var video = document.createElement('video');
-				video.onloadeddata = async function() {
-					canvas.width = video.videoWidth;
-					canvas.height = video.videoHeight;
-					canvas.getContext('2d').drawImage(video, 0, 0);
-					self.setImage(await pica.toBlob(canvas, 'image/png', 1));
-					URL.revokeObjectURL(u);
-				}
-				video.onerror = reject;
-				video.src = u;
+			async function video(resolve, reject) {
+				const video = await new Promise(function(reject, resolve) {
+					var video = document.createElement('video');
+					video.onloadeddata = resolve;
+					video.onerror = reject;
+					video.src = u;
+				});
+				const canvas = document.createElement('canvas');
+				canvas.width = video.videoWidth;
+				canvas.height = video.videoHeight;
+				canvas.getContext('2d').drawImage(video, 0, 0);
+				self.setImage(await pica.toBlob(canvas, 'image/png', 1));
 			}
 
 			async function audio(resolve, reject) {
-				musicmetadata(blob, function(err, info) {
-					if (err || info.picture.length < 1) return reject(err || new Error('No album art'));
-					var image = info.picture[0];
-					self.setImage(new Blob([image.data], {
-						type: 'image/' + image.format
-					}));
-					URL.revokeObjectURL(u);
-				});
+				self.setImage(await new Promise(function(resolve, reject) {
+					musicmetadata(blob, function(err, info) {
+						if (err || info.picture.length < 1) return reject(err || new Error('No album art'));
+						var image = info.picture[0];
+						resolve(new Blob([image.data], {
+							type: 'image/' + image.format
+						}));
+					});
+				}));
 			}
 
 			async function image(resolve, reject) {
@@ -134,11 +135,11 @@
 			function none(resolve, reject) {
 				reject(new Error('Not an image'));
 			}
-			return new Promise({
-				'video': video,
-				'audio': audio,
-				'image': image
-			}[blob.type.split('/')[0]] || none);
+
+			return new Promise(function(resolve, reject) {
+				({ 'video': video, 'audio': audio, 'image': image }[blob.type.split('/')[0]] || none)(resolve, reject);
+				URL.revokeObjectURL(u);
+			});
 		}
 
 		// setBlob will set the underlying Blob to read from. name is an
