@@ -172,7 +172,8 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // UploadHandler will read the request body and write it to the disk whilst also
 // calculating a blake2b checksum. It will then insert the file information
 // into the database and if the file doesn't already exist, it will be moved
-// into the FilePath. It will then return Found with the location of the file.
+// into the FilePath. It will then return StatusSeeOther with the location
+// of the file.
 func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.ContentLength > s.Max {
 		http.Error(w, http.StatusText(http.StatusRequestEntityTooLarge), http.StatusRequestEntityTooLarge)
