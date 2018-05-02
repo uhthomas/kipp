@@ -374,12 +374,15 @@
 				f.rendered = true;
 			}
 			if (!f.expires) continue;
-			if (f.expires < new Date()) {
+			if ((+f.expires) === 0)
+				f.setState('done', 'Permanently uploaded');
+			else if (f.expires >= new Date())
+				f.setState('done', 'Expires in ' + ago(2 * new Date() - f.expires));
+			else {
 				f.expires = null;
 				f.setState('error', 'Expired');
+				f.element.querySelector('.content .meta .name').removeAttribute('href');
 				f.element.querySelector('.actions button.primary').onclick = f.remove;
-			} else {
-				f.setState('done', 'Expires in ' + ago(2 * new Date() - f.expires));
 			}
 		}
 	}
