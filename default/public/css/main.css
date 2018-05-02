@@ -210,19 +210,17 @@ main>article .encryption.disabled {
 	color: rgba(255, 255, 255, 0.54);
 }
 
-main>article code {
+main>article .curl {
 	display: block;
 	border-radius: 8px;
 	padding: 8px 16px;
 	box-sizing: border-box;
 	border: 1px solid rgba(255, 255, 255, .12);
-	word-break: break-word;
-	white-space: pre-wrap;
-	tab-size: 4;
-}
-
-main>article code>.copy:before {
-	content: 'content_copy';
+	font-family: monospace;
+	font-size: inherit;
+	background: none;
+	color: inherit;
+	width: 100%;
 }
 
 .file {
