@@ -2,9 +2,14 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"log"
+	"math/big"
 	"mime"
 	"net/http"
 	"os"
@@ -16,6 +21,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"golang.org/x/crypto/acme/autocert"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -53,6 +59,53 @@ func loadMimeTypes(path string) error {
 	return nil
 }
 
+func CertificateGetter(m *autocert.Manager) func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+	var cached *tls.Certificate
+	return func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+		if hello.ServerName != "" {
+			return m.GetCertificate(hello)
+		}
+		if cached != nil {
+			return cached, nil
+		}
+		// Generate a self-signed certificate
+		sn, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+		if err != nil {
+			return nil, err
+		}
+		now := time.Now()
+		t := &x509.Certificate{
+			SerialNumber:          sn,
+			NotBefore:             now,
+			NotAfter:              now,
+			KeyUsage:              x509.KeyUsageCertSign,
+			ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+			BasicConstraintsValid: true,
+			IsCA: true,
+		}
+		k, err := rsa.GenerateKey(rand.Reader, 2048)
+		if err != nil {
+			return nil, err
+		}
+		c, err := x509.CreateCertificate(rand.Reader, t, t, &k.PublicKey, k)
+		if err != nil {
+			return nil, err
+		}
+		cert, err := tls.X509KeyPair(
+			pem.EncodeToMemory(&pem.Block{
+				Type:  "CERTIFICATE",
+				Bytes: c,
+			}),
+			pem.EncodeToMemory(&pem.Block{
+				Type:  "RSA PRIVATE KEY",
+				Bytes: x509.MarshalPKCS1PrivateKey(k),
+			}),
+		)
+		cached = &cert
+		return cached, err
+	}
+}
+
 func main() {
 	var (
 		d kipp.Driver
@@ -62,18 +115,13 @@ func main() {
 
 	addr := servecmd.
 		Flag("addr", "Server listen address.").
-		Default("127.0.0.1:1337").
+		Default("127.0.0.1:443").
 		String()
-	insecure := servecmd.
-		Flag("insecure", "Disable https.").
-		Bool()
 	cert := servecmd.
 		Flag("cert", "TLS certificate path.").
-		Default("cert.pem").
 		String()
 	key := servecmd.
 		Flag("key", "TLS key path.").
-		Default("key.pem").
 		String()
 	cleanupInterval := servecmd.
 		Flag("cleanup-interval", "Cleanup interval for deleting expired files.").
@@ -96,7 +144,7 @@ func main() {
 		PlaceHolder("PASSWORD").
 		StringVar(&d.Password)
 	servecmd.
-		Flag("driver-path", "Database driver path. ex: localhost:1337").
+		Flag("driver-path", "Database driver path. ex: localhost:8080").
 		Default("kipp.db").
 		StringVar(&d.Path)
 	servecmd.
@@ -177,20 +225,16 @@ func main() {
 		go w.Do(context.Background(), s.Cleanup)
 	}
 
-	// Output a message so users know when the server has been started.
-	log.Printf("Listening on %s", *addr)
-
 	// Start HTTP server
 	hs := &http.Server{
 		Addr:    *addr,
 		Handler: s,
 		TLSConfig: &tls.Config{
-			PreferServerCipherSuites: true,
-			CurvePreferences: []tls.CurveID{
-				tls.CurveP256,
-				tls.X25519,
-			},
-			MinVersion: tls.VersionTLS12,
+			GetCertificate: CertificateGetter(&autocert.Manager{
+				Cache:  autocert.DirCache("certs"),
+				Prompt: autocert.AcceptTOS,
+				// HostPolicy: autocert.HostWhitelist(),
+			}),
 			CipherSuites: []uint16{
 				tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
 				tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
@@ -199,13 +243,15 @@ func main() {
 				tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
 				tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
 			},
+			PreferServerCipherSuites: true,
+			MinVersion:               tls.VersionTLS12,
+			CurvePreferences:         []tls.CurveID{tls.CurveP256, tls.X25519},
 		},
 		// ReadTimeout:  5 * time.Second,
 		// WriteTimeout: 10 * time.Second,
 		IdleTimeout: 120 * time.Second,
 	}
-	if *insecure {
-		log.Fatal(hs.ListenAndServe())
-	}
+	// Output a message so users know when the server has been started.
+	log.Printf("Listening on %s", *addr)
 	log.Fatal(hs.ListenAndServeTLS(*cert, *key))
 }

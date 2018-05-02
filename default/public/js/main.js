@@ -198,12 +198,13 @@
 				self.setState('uploading', 'Uploading ' + ((e.loaded / e.total * 100)|0) + '%')
 			}
 
+			function err() {
+				self.setState('error', cancelled ? 'Cancelled' : (req.statusText || req.status || 'Unknown error'));
+				self.element.querySelector('.actions button.primary').onclick = self.remove;
+			}
+
 			var finished = false;
 			req.onreadystatechange = function(e) {
-				function err() {
-					self.setState('error', cancelled ? 'Cancelled' : (req.statusText || req.status || 'Unknown error'));
-					self.element.querySelector('.actions button.primary').onclick = self.remove;
-				}
 				if (!finished && this.readyState === 4) return err();
 				if (finished || this.readyState !== 2) return;
 				finished = true;
@@ -266,11 +267,11 @@
 					});
 				}
 				// we only want the headers
-				req.abort();
+				this.abort();
 			}
 
 			req.open('POST', '/', true);
-			req.send(data);
+			try { req.send(data); } catch(e) { err(e); }
 		}
 
 		// Import template and start rendering.

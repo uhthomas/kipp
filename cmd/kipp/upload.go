@@ -25,7 +25,6 @@ type UploadCommand struct {
 
 func (u *UploadCommand) Do() {
 	defer u.File.Close()
-	u.URL.Path = "/"
 
 	s, err := u.File.Stat()
 	if err != nil {
