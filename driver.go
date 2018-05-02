@@ -18,7 +18,7 @@ func (d Driver) Open() (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS contents (
+	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS files (
 		checksum char(86) NOT NULL,
 		created_at timestamp DEFAULT CURRENT_TIMESTAMP,
 		deleted_at timestamp,
@@ -30,7 +30,7 @@ func (d Driver) Open() (*sql.DB, error) {
 	)`); err != nil {
 		return nil, err
 	}
-	if _, err := db.Exec("CREATE INDEX IF NOT EXISTS idx_contents_deleted_at ON contents(deleted_at)"); err != nil {
+	if _, err := db.Exec("CREATE INDEX IF NOT EXISTS idx_files_deleted_at ON files(deleted_at)"); err != nil {
 		return nil, err
 	}
 	return db, nil
