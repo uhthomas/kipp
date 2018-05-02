@@ -13,6 +13,7 @@ import (
 	"mime"
 	"net/http"
 	"os"
+	"runtime"
 	"time"
 
 	"github.com/6f7262/kipp"
@@ -251,6 +252,8 @@ func main() {
 		// WriteTimeout: 10 * time.Second,
 		IdleTimeout: 120 * time.Second,
 	}
+	// Use multiple cores for concurrent serving
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	// Output a message so users know when the server has been started.
 	log.Printf("Listening on %s", *addr)
 	log.Fatal(hs.ListenAndServeTLS(*cert, *key))

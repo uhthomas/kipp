@@ -18,6 +18,10 @@ func (d Driver) Open() (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	// prevent "database is locked"
+	if d.Dialect == "sqlite3" {
+		db.SetMaxOpenConns(1)
+	}
 	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS files (
 		checksum char(86) NOT NULL,
 		created_at timestamp DEFAULT CURRENT_TIMESTAMP,
