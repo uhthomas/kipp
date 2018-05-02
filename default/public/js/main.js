@@ -159,8 +159,11 @@
 		self.remove = function() {
 			self.element.removeAttribute('rendered');
 			self.element.addEventListener('transitionend', function(e) {
-				if (e.target === self.element) self.element.remove();
-			});
+				if (e.target === self.element) {
+					self.element.remove();
+					fileElements.splice(fileElements.indexOf(self), 1);
+				}
+			}, { once: true });
 		}
 
 		self.upload = async function() {
