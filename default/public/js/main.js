@@ -361,7 +361,7 @@
 		processTransfer(e.clipboardData);
 	});
 
-	document.querySelector('input').addEventListener('change', function() {
+	document.querySelector('.file-select input').addEventListener('change', function() {
 		processFiles(Array.from(this.files));
 		this.value = null;
 	});
