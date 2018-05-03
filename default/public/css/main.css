@@ -32,8 +32,7 @@ a[href] {
 	margin-top: 16px;
 }
 
-button,
-.button {
+button{
 	cursor: pointer;
 	height: 36px;
 	line-height: 36px;
@@ -54,9 +53,7 @@ button,
 }
 
 button:hover,
-button:focus,
-.button:hover,
-.button:focus {
+button:focus {
 	background: rgba(255, 255, 255, 0.12);
 }
 
@@ -125,7 +122,6 @@ main>.bar>.file-select {
 	padding: 0;
 	flex: 1;
 	position: relative;
-	z-index: 0;
 }
 
 main>.bar>.file-select>.hidden {
