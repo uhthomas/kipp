@@ -48,7 +48,7 @@ func (s Server) Cleanup() error {
 			return nil
 		}
 		var exists bool
-		if s.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM files WHERE checksum = ?)", d.Name()).Scan(&exists); err != nil {
+		if err := s.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM files WHERE checksum = ?)", d.Name()).Scan(&exists); err != nil {
 			return err
 		}
 		if exists {
