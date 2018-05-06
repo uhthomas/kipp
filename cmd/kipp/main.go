@@ -22,7 +22,6 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"golang.org/x/crypto/acme/autocert"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -60,12 +59,9 @@ func loadMimeTypes(path string) error {
 	return nil
 }
 
-func CertificateGetter(m *autocert.Manager) func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+func CertificateGetter() func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
 	var cached *tls.Certificate
 	return func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
-		if hello.ServerName != "" {
-			return m.GetCertificate(hello)
-		}
 		if cached != nil {
 			return cached, nil
 		}
@@ -231,11 +227,7 @@ func main() {
 		Addr:    *addr,
 		Handler: s,
 		TLSConfig: &tls.Config{
-			GetCertificate: CertificateGetter(&autocert.Manager{
-				Cache:  autocert.DirCache("certs"),
-				Prompt: autocert.AcceptTOS,
-				// HostPolicy: autocert.HostWhitelist(),
-			}),
+			GetCertificate: CertificateGetter(),
 			CipherSuites: []uint16{
 				tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
 				tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
