@@ -108,7 +108,7 @@ func main() {
 
 	addr := servecmd.
 		Flag("addr", "Server listen address.").
-		Default("127.0.0.1:443").
+		Default("0.0.0.0:443").
 		String()
 	cert := servecmd.
 		Flag("cert", "TLS certificate path.").
