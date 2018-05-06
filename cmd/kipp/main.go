@@ -18,10 +18,6 @@ import (
 
 	"github.com/6f7262/kipp"
 	"github.com/alecthomas/units"
-	_ "github.com/jinzhu/gorm/dialects/mssql"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
