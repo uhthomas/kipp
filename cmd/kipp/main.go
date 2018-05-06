@@ -55,10 +55,18 @@ func loadMimeTypes(path string) error {
 	return nil
 }
 
-func CertificateGetter() func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+func CertificateGetter(certFile, keyFile string) func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
 	var cached *tls.Certificate
 	return func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
 		if cached != nil {
+			return cached, nil
+		}
+		if certFile != "" && keyFile != "" {
+			cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+			if err != nil {
+				return nil, err
+			}
+			cached = &cert
 			return cached, nil
 		}
 		// Generate a self-signed certificate
@@ -205,10 +213,10 @@ func main() {
 	}
 
 	// Make paths for files and temp files
-	if err := os.MkdirAll(s.FilePath, 0755); err != nil {
+	if err := os.MkdirAll(s.FilePath, 0755); err != nil && !os.IsExist(err) {
 		log.Fatal(err)
 	}
-	if err := os.MkdirAll(s.TempPath, 0755); err != nil {
+	if err := os.MkdirAll(s.TempPath, 0755); err != nil && !os.IsExist(err) {
 		log.Fatal(err)
 	}
 
@@ -223,7 +231,7 @@ func main() {
 		Addr:    *addr,
 		Handler: s,
 		TLSConfig: &tls.Config{
-			GetCertificate: CertificateGetter(),
+			GetCertificate: CertificateGetter(*cert, *key),
 			CipherSuites: []uint16{
 				tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
 				tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
@@ -244,5 +252,5 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	// Output a message so users know when the server has been started.
 	log.Printf("Listening on %s", *addr)
-	log.Fatal(hs.ListenAndServeTLS(*cert, *key))
+	log.Fatal(hs.ListenAndServeTLS("", ""))
 }
