@@ -16,8 +16,9 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/6f7262/kipp"
 	"github.com/alecthomas/units"
+	"github.com/boltdb/bolt"
+	"github.com/uhthomas/kipp"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -108,10 +109,8 @@ func CertificateGetter(certFile, keyFile string) func(hello *tls.ClientHelloInfo
 }
 
 func main() {
-	var (
-		d kipp.Driver
-		s kipp.Server
-	)
+	var s kipp.Server
+	var store string
 	servecmd := kingpin.Command("serve", "Start a kipp server.").Default()
 
 	addr := servecmd.
@@ -133,21 +132,9 @@ func main() {
 		PlaceHolder("PATH").
 		String()
 	servecmd.
-		Flag("driver", "Available database drivers: mysql, postgres, sqlite3 and mssql.").
-		Default("sqlite3").
-		StringVar(&d.Dialect)
-	servecmd.
-		Flag("driver-username", "Database driver username.").
-		Default("kipp").
-		StringVar(&d.Username)
-	servecmd.
-		Flag("driver-password", "Database driver password.").
-		PlaceHolder("PASSWORD").
-		StringVar(&d.Password)
-	servecmd.
-		Flag("driver-path", "Database driver path. ex: localhost:8080").
+		Flag("store", "Database file path.").
 		Default("kipp.db").
-		StringVar(&d.Path)
+		StringVar(&store)
 	servecmd.
 		Flag("expiration", "File expiration time.").
 		Default("24h").
@@ -198,11 +185,17 @@ func main() {
 	}
 
 	// Connect to database
-	db, err := d.Open()
+	db, err := bolt.Open(store, 0600, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+	db.Update(func(tx *bolt.Tx) error {
+		if _, err := tx.CreateBucketIfNotExists([]byte("files")); err != nil {
+			return err
+		}
+		_, err := tx.CreateBucketIfNotExists([]byte("ttl"))
+		return err
+	})
 	s.DB = db
 
 	// Load mime types

@@ -4,61 +4,54 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="x-ua-compatible" content="ie=edge">
-	<title>kipp</title>
-	<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32" />
-	<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16" />
-	<meta name="description" content="kipp is an open source temporary file storage server focusing on simplicity, ease of use and security.">
+	<title>Kipp</title>
+	<link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32" />
+	<link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16" />
+	<meta name="description" content="The easy to use, open source, secure, temporary file storage server.">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-	<meta name="theme-color" content="#212121">
+	<meta name="theme-color" content="#202124">
 	<style>
 	body {
-		background: #303030;
+		background: #202124;
 		color: white;
 	}
 	</style>
 	<link rel="stylesheet" href="css/main.css">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Material+Icons%7CRoboto:400,500">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Material+Icons|Product+Sans:400,500">
+	<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
 </head>
 
 <body>
-	<main id="main">
-		<article class="card">
-			<h1>Kipp</h1>
-			<p>An <a href="https://github.com/6f7262/kipp" target="_blank">open source</a> temporary file storage server focusing on simplicity, ease of use and security.</p>
-			<ul>
-				<li>Files can be up to <span class="highlight">150MB</span></li>
-				<li>Files will expire after <span class="highlight">24 hours</span></li>
-			</ul>
-			<h1>ShareX</h1>
-			<p>Import ShareX settings from <a href="sharex" target="_blank">https://kipp.6f.io/sharex</a></p>
-			<h1>cURL</h1>
-			<input class="curl" readonly value="curl https://kipp.6f.io -F file=@<path>">
-		</article>
-		<div class="card bar">
-			<button class="button file-select" title="Select files" onclick="this.querySelector('input').click();">
-				<input id="file-input" class="hidden" type="file" multiple tabindex="-1">
-				<i class="material-icons icon"></i>
-			</button>
-			<button class="encryption" title="Toggle encryption">
-				<i class="material-icons"></i>
-			</button>
-			<i class="material-icons arrow" title="Show or hide information"></i>
+	<main>
+		<div class="header">Kipp</div>
+		<div class="empty">
+			<i class="material-icons icon">folder_open</i>
+			<span>Nothing yet</span>
+			<p>Add some files to get started</p>
+		</div>
+		<div class="drawer">
+			<div id="fab"><input type="file" multiple="" tabindex="-1"></div>
+			<div class="header"></div>
+			<div class="item"><span>The easy to use, <a href="https://github.com/6f7262/kipp" target="_blank">open source</a>, secure, temporary file storage server.</span></div>
+			<div class="item toggle encryption">Encrypt files with AES128-GCM<div class="switch"></div></div>
+			<div class="item" icon="storage">150MB max file size</div>
+			<div class="item" icon="timer">Files will expire after 24 hours</div>
+			<input class="curl" readonly="" value="curl https://kipp.6f.io -F file=@<path>">
 		</div>
 	</main>
 	<template id="file-template">
-		<div class="file card" state="uploading">
-			<div class="content">
-				<i class="material-icons icon"></i>
-				<div class="meta">
-					<a class="name" target="_blank"></a>
-					<div class="size"></div>
+		<div class="file">
+			<div class="top">
+				<div class="info">
+					<div class="overline"></div>
+					<div class="headline"></div>
+					<div class="text"></div>
 				</div>
-				<div class="avatar"></div>
+				<div class="image"></div>
 			</div>
-			<div class="actions">
-				<div class="status"></div>
-				<button class="secondary"></button>
+			<div class="buttons">
 				<button class="primary"></button>
+				<button class="secondary"></button>
 			</div>
 		</div>
 	</template>
@@ -75,7 +68,7 @@
 		<div class="share-container">
 			<div class="share-sheet card">
 				<div class="title">Share</div>
-				<input class="title extra" readonly>
+				<input class="title extra" readonly="">
 				<div class="item open">
 					<i class="material-icons icon">open_in_new</i>
 					<div class="text">Open in new tab</div>
@@ -97,11 +90,11 @@
 			</div>
 		</div>
 	</template>
-	<script src="js/pica.min.js"></script>
-	<script src="js/musicmetadata.min.js"></script>
-	<script src="js/jszip.min.js"></script>
-	<script src="js/filesize.min.js"></script>
-	<script src="js/stackblur.min.js"></script>
+	<script src="/js/pica.min.js"></script>
+	<script src="/js/musicmetadata.min.js"></script>
+	<script src="/js/jszip.min.js"></script>
+	<script src="/js/filesize.min.js"></script>
+	<script src="/js/stackblur.min.js"></script>
 	<script src="js/main.js"></script>
 </body>
 
