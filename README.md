@@ -22,13 +22,13 @@ Start a kipp server.
 
 Flags:
   --help                 Show context-sensitive help (also try --help-long and
-                         --help-man).
+						 --help-man).
   --addr="0.0.0.0:443"   Server listen address.
   --cert=CERT            TLS certificate path.
   --key=KEY              TLS key path.
   --cleanup-interval=5m  Cleanup interval for deleting expired files.
   --mime=PATH            A json formatted collection of extensions and mime
-                         types.
+						 types.
   --store="kipp.db"      Database file path.
   --expiration=24h       File expiration time.
   --max=150MB            The maximum file size for uploads.
@@ -44,7 +44,7 @@ Upload a file.
 
 Flags:
   --help                    Show context-sensitive help (also try --help-long
-                            and --help-man).
+							and --help-man).
   --insecure                Don't verify SSL certificates.
   --private                 Encrypt the uploaded file
   --url=https://kipp.6f.io  Source URL
@@ -70,13 +70,13 @@ server {
 
 	try_files $uri $uri/ @proxy;
 
-    location = / {
-        if ($request_method != POST) {
-            break;
-        }
-        try_files false @proxy;
-    }
-    
+	location = / {
+		if ($request_method != POST) {
+			break;
+		}
+		try_files false @proxy;
+	}
+	
 	location @proxy {
 		proxy_redirect          off;
 		proxy_set_header        Host            $host;
