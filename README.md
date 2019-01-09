@@ -12,26 +12,29 @@ kipp --mime="mime.json"
 ## Help
 ### uploading via curl
 ```
-curl -F "file=@<path>" https://kipp.6f.io
+curl https://kipp.6f.io -F file=@<path>
 ```
-To upload to kipp using its private feature, the CLI or web interface should be used.
 ```
-$ kipp help
-usage: kipp [<flags>] <command> [<args> ...]
+$ kipp help serve
+usage: kipp serve [<flags>]
+
+Start a kipp server.
 
 Flags:
-  --help  Show context-sensitive help (also try --help-long and --help-man).
-
-Commands:
-  help [<command>...]
-    Show help.
-
-  serve* [<flags>]
-    Start a kipp server.
-
-  upload [<flags>] <file>
-    Upload a file.
-
+  --help                 Show context-sensitive help (also try --help-long and
+                         --help-man).
+  --addr="0.0.0.0:443"   Server listen address.
+  --cert=CERT            TLS certificate path.
+  --key=KEY              TLS key path.
+  --cleanup-interval=5m  Cleanup interval for deleting expired files.
+  --mime=PATH            A json formatted collection of extensions and mime
+                         types.
+  --store="kipp.db"      Database file path.
+  --expiration=24h       File expiration time.
+  --max=150MB            The maximum file size for uploads.
+  --files="files"        File path.
+  --tmp="files/tmp"      Temp path for in-progress uploads.
+  --public="public"      Public path for web resources.
 ```
 ```
 $ kipp help upload
