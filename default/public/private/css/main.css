@@ -6,12 +6,10 @@ html, body {
 }
 
 body {
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Product Sans', sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #303030;
-    color: white;
     box-sizing: border-box;
     padding: 24px;
 }
@@ -59,10 +57,11 @@ body {
 }
 
 .done .status .text {
-    border-radius: 8px;
+    border-radius: 16px;
     box-sizing: border-box;
-    background: #2196F3;
+    background: #00e676;
     box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12);
+    color: black;
 }
 
 .done .status .text:hover{
@@ -73,20 +72,23 @@ body {
     box-sizing: border-box;
     z-index: 2;
     display: none;
-    background: #424242;
+    background: #313235;
 }
 
 .done .status .text.download {
     display: flex;
+    color: white;
 }
 
 .status .progress {
     width: 100%;
     height: 5px;
-    background: #424242;
+    background: #313235;
     position: absolute;
     bottom: 0;
     left: 0;
+    overflow: hidden;
+    border-radius: 2.5px;
 }
 
 .done .status .progress {
@@ -98,13 +100,13 @@ body {
 }
 
 .status .progress .bar {
-    background: #2196F3;
+    background: #00e676;
     height: 100%;
     width: 0;
 }
 
 .error .status .progress .bar {
-    background: #F44336;
+    background: #FF1744;
 }
 
 .status .info {

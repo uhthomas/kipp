@@ -1,11 +1,9 @@
 FROM golang:alpine AS build
-ADD . src/github.com/6f7262/kipp
 RUN apk update && \
-    apk add git build-base && \
-    go get -v github.com/6f7262/kipp/cmd/kipp && \
-    go build -v -ldflags "-linkmode external -extldflags -static" -o /kipp github.com/6f7262/kipp/cmd/kipp
+	apk add --no-cache git && \
+	go get -d -v github.com/uhthomas/kipp/cmd/kipp && \
+    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags="-w -s" -o /go/src/github.com/uhthomas/kipp/default/kipp github.com/uhthomas/kipp/cmd/kipp
 
 FROM scratch
-COPY --from=build /kipp /
-ADD default /
-CMD ["/kipp"]
+COPY --from=build /go/src/github.com/uhthomas/kipp/default /
+ENTRYPOINT ["/kipp", "--files", "/data/files", "--tmp", "/data/tmp", "--store", "/data/kipp.db"]

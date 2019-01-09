@@ -3,8 +3,9 @@ package kipp
 import (
 	"bytes"
 	"crypto/rand"
-	"database/sql"
 	"encoding/base64"
+	"encoding/binary"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"io"
@@ -20,13 +21,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/boltdb/bolt"
 	"github.com/minio/blake2b-simd"
 )
 
 // Server acts as the HTTP server, configuration and provides essential core
 // functions such as Cleanup.
 type Server struct {
-	DB         *sql.DB
+	DB         *bolt.DB
 	Expiration time.Duration
 	Max        int64
 	FilePath   string
@@ -36,26 +38,31 @@ type Server struct {
 
 // Cleanup will delete expired files and remove files associated with it as
 // long as it is not used by any other files.
-func (s Server) Cleanup() error {
-	if _, err := s.DB.Exec("DELETE FROM files WHERE expires < ?", time.Now()); err != nil {
+func (s Server) Cleanup() (err error) {
+	var b [8]byte
+	binary.BigEndian.PutUint64(b[:], uint64(time.Now().Unix()))
+
+	tx, err := s.DB.Begin(true)
+	if err != nil {
 		return err
 	}
-	return filepath.Walk(s.FilePath, func(path string, d os.FileInfo, err error) error {
-		if err != nil {
+	defer func() {
+		if e := tx.Commit(); err == nil {
+			err = e
+		}
+	}()
+
+	c := tx.Bucket([]byte("ttl")).Cursor()
+	for k, v := c.First(); k != nil && bytes.Compare(k, b[:]) <= 0; k, v = c.Next() {
+		if err := c.Delete(); err != nil {
 			return err
 		}
-		if d.IsDir() || filepath.Dir(path) != filepath.Clean(s.FilePath) {
-			return nil
-		}
-		var exists bool
-		if err := s.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM files WHERE checksum = ?)", d.Name()).Scan(&exists); err != nil {
+		sum := base64.RawURLEncoding.EncodeToString(v)
+		if err := os.Remove(filepath.Join(s.FilePath, sum)); err != nil {
 			return err
 		}
-		if exists {
-			return nil
-		}
-		return os.Remove(path)
-	})
+	}
+	return nil
 }
 
 // ServeHTTP will serve HTTP requests. It first tries to determine if the
@@ -106,41 +113,44 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if i := strings.Index(name, "."); i > -1 {
 			name = name[:i]
 		}
-		var (
-			checksum  string
-			createdAt time.Time
-			expires   *time.Time
-		)
-		if err := s.DB.QueryRow("SELECT checksum, created_at, expires, name FROM files WHERE id = ?", name).Scan(&checksum, &createdAt, &expires, &name); err != nil {
-			if err == sql.ErrNoRows {
-				return nil, os.ErrNotExist
-			}
+		var out struct {
+			Checksum  string
+			CreatedAt time.Time
+			Expires   *time.Time
+			Name      string
+			Size      uint64
+		}
+		if err := s.DB.View(func(tx *bolt.Tx) error {
+			return gob.NewDecoder(bytes.NewReader(tx.Bucket([]byte("files")).Get([]byte(name)))).Decode(&out)
+		}); err == io.EOF {
+			return nil, os.ErrNotExist
+		} else if err != nil {
 			return nil, err
 		}
+
 		// 1 year
 		cache := "max-age=31536000"
-		if expires != nil {
+		if out.Expires != nil {
 			// duration in seconds until expiration
-			d := int(time.Until(*expires).Seconds())
-			if d > 0 {
-				cache = fmt.Sprintf("public, must-revalidate, max-age=%d", d)
-			} else {
+			d := int(time.Until(*out.Expires).Seconds())
+			if d <= 0 {
 				// catch expired files. the cleanup worker should delete the
 				// file on its own at some point
 				return nil, os.ErrNotExist
 			}
+			cache = fmt.Sprintf("public, must-revalidate, max-age=%d", d)
 		}
-		f, err = os.Open(filepath.Join(s.FilePath, checksum))
+		f, err = os.Open(filepath.Join(s.FilePath, out.Checksum))
 		if err != nil {
-			// looks weird, but we don't want the file server to serve 404.
-			// this is a fatal error and should never happen
-			if os.IsNotExist(err) {
-				err = errors.New(err.Error())
-			}
+			// // looks weird, but we don't want the file server to serve 404.
+			// // this is a fatal error and should never happen
+			// if os.IsNotExist(err) {
+			// 	err = errors.New(err.Error())
+			// }
 			return nil, err
 		}
 		// Detect content type before serving content to filter html files
-		ctype := mime.TypeByExtension(filepath.Ext(name))
+		ctype := mime.TypeByExtension(filepath.Ext(out.Name))
 		if ctype == "" {
 			var b [512]byte
 			n, _ := io.ReadFull(f, b[:])
@@ -157,15 +167,15 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", cache)
 		w.Header().Set("Content-Disposition", fmt.Sprintf(
 			"filename=%q; filename*=UTF-8''%[1]s",
-			url.PathEscape(name),
+			url.PathEscape(out.Name),
 		))
 		w.Header().Set("Content-Type", ctype)
-		w.Header().Set("Etag", strconv.Quote(checksum))
-		if expires != nil {
-			w.Header().Set("Expires", expires.UTC().Format(http.TimeFormat))
+		w.Header().Set("Etag", strconv.Quote(out.Checksum))
+		if out.Expires != nil {
+			w.Header().Set("Expires", out.Expires.Format(http.TimeFormat))
 		}
 		w.Header().Set("X-Content-Type-Options", "nosniff")
-		return file{f, createdAt}, nil
+		return file{f, out.CreatedAt}, nil
 	})).ServeHTTP(w, r)
 }
 
@@ -222,14 +232,7 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	// base64 for checksum encoding since it's slightly more compact than base32 and
-	// is unlikely to be read by humans
-	sum := base64.RawURLEncoding.EncodeToString(h.Sum(nil))
-	var expires *time.Time
-	if s.Expiration > 0 {
-		e := time.Now().Add(s.Expiration)
-		expires = &e
-	}
+	sum := h.Sum(nil)
 	// 9 byte ID as base64 is most efficient when it aligns to len(b) % 3
 	var b [9]byte
 	if _, err := io.ReadFull(rand.Reader, b[:]); err != nil {
@@ -237,31 +240,92 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := base64.RawURLEncoding.EncodeToString(b[:])
-	tx, err := s.DB.Begin()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	now := time.Now().UTC()
+	data := struct {
+		Checksum  string
+		CreatedAt time.Time
+		Expires   *time.Time
+		Name      string
+		Size      uint64
+	}{base64.RawURLEncoding.EncodeToString(sum), now, nil, name, uint64(n)}
+	if s.Expiration > 0 {
+		e := time.Now().Add(s.Expiration)
+		data.Expires = &e
 	}
-	if _, err := tx.Exec("INSERT INTO files (checksum, expires, id, name, size) VALUES (?, ?, ?, ?, ?) ", sum, expires, id, name, n); err != nil {
-		tx.Rollback()
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	var exists bool
-	if err := tx.QueryRow("SELECT EXISTS(SELECT 1 FROM files WHERE checksum = ? AND id <> ?)", sum, id).Scan(&exists); err != nil {
-		tx.Rollback()
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if !exists {
-		p := filepath.Join(s.FilePath, sum)
-		if err := os.Rename(tf.Name(), p); err != nil {
-			tx.Rollback()
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+	if err := s.DB.Update(func(tx *bolt.Tx) error {
+		p := filepath.Join(s.FilePath, data.Checksum)
+		d, err := os.Stat(p)
+		// switch {
+		// // If the file exists then we should delete the current ttl (if any)
+		// case err == nil:
+		// 	var b [8]byte
+		// 	binary.BigEndian.PutUint64(b[:], uint64(d.ModTime().Unix()))
+		// 	if err := tx.Bucket([]byte("ttl")).Delete(append(b[:], sum...)); err != nil {
+		// 		return err
+		// 	}
+		// // if the file doesn't exist then it should be created
+		// case os.IsNotExist(err):
+		// 	if err := os.Rename(tf.Name(), p); err != nil {
+		// 		return err
+		// 	}
+		// default:
+		// 	return err
+		// }
+
+		if os.IsNotExist(err) {
+			if err := os.Rename(tf.Name(), p); err != nil {
+				return err
+			}
+		} else if err != nil {
+			return err
 		}
-	}
-	if err := tx.Commit(); err != nil {
+
+		var ttl time.Time
+		if err == nil {
+			ttl = d.ModTime()
+		}
+		// if the ttl is valid
+		if ttl.IsZero() || ttl.Unix() != 0 {
+			if data.Expires == nil {
+				// and the new ttl is not then invalidate it
+				ttl = time.Unix(0, 0)
+			} else if e := *data.Expires; ttl.Before(e) {
+				// and the current ttl is before the new ttl
+				ttl = e
+			}
+		}
+
+		// if the file exists, the ttl is valid and the old ttl is before the new ttl
+		if err == nil && d.ModTime().Unix() != 0 && d.ModTime().Before(ttl) {
+			var b [8]byte
+			binary.BigEndian.PutUint64(b[:], uint64(d.ModTime().Unix()))
+			if err := tx.Bucket([]byte("ttl")).Delete(append(b[:], sum...)); err != nil {
+				return err
+			}
+		}
+
+		// if the file doesn't exist or the new ttl is not equal to the current ttl then update it
+		if os.IsNotExist(err) || !d.ModTime().Equal(ttl) {
+			if err := os.Chtimes(p, now, ttl); err != nil {
+				return err
+			}
+
+			// if the new ttl is valid then add it to the bucket
+			if ttl.Unix() != 0 {
+				var b [8]byte
+				binary.BigEndian.PutUint64(b[:], uint64(ttl.Unix()))
+				if err := tx.Bucket([]byte("ttl")).Put(append(b[:], sum...), sum); err != nil {
+					return err
+				}
+			}
+		}
+
+		var buf bytes.Buffer
+		if err := gob.NewEncoder(&buf).Encode(data); err != nil {
+			return err
+		}
+		return tx.Bucket([]byte("files")).Put([]byte(id), buf.Bytes())
+	}); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -271,5 +335,6 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	buf.WriteString(id)
 	buf.WriteString(filepath.Ext(name))
 	http.Redirect(w, r, buf.String(), http.StatusSeeOther)
+	buf.WriteRune('\n')
 	buf.WriteTo(w)
 }

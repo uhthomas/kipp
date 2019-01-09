@@ -13,11 +13,13 @@ import (
 	"mime"
 	"net/http"
 	"os"
+	"path"
 	"runtime"
 	"time"
 
-	"github.com/6f7262/kipp"
 	"github.com/alecthomas/units"
+	"github.com/boltdb/bolt"
+	"github.com/uhthomas/kipp"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -55,10 +57,18 @@ func loadMimeTypes(path string) error {
 	return nil
 }
 
-func CertificateGetter() func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+func CertificateGetter(certFile, keyFile string) func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
 	var cached *tls.Certificate
 	return func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
 		if cached != nil {
+			return cached, nil
+		}
+		if certFile != "" && keyFile != "" {
+			cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+			if err != nil {
+				return nil, err
+			}
+			cached = &cert
 			return cached, nil
 		}
 		// Generate a self-signed certificate
@@ -100,10 +110,8 @@ func CertificateGetter() func(hello *tls.ClientHelloInfo) (*tls.Certificate, err
 }
 
 func main() {
-	var (
-		d kipp.Driver
-		s kipp.Server
-	)
+	var s kipp.Server
+	var store string
 	servecmd := kingpin.Command("serve", "Start a kipp server.").Default()
 
 	addr := servecmd.
@@ -125,21 +133,9 @@ func main() {
 		PlaceHolder("PATH").
 		String()
 	servecmd.
-		Flag("driver", "Available database drivers: mysql, postgres, sqlite3 and mssql.").
-		Default("sqlite3").
-		StringVar(&d.Dialect)
-	servecmd.
-		Flag("driver-username", "Database driver username.").
-		Default("kipp").
-		StringVar(&d.Username)
-	servecmd.
-		Flag("driver-password", "Database driver password.").
-		PlaceHolder("PASSWORD").
-		StringVar(&d.Password)
-	servecmd.
-		Flag("driver-path", "Database driver path. ex: localhost:8080").
+		Flag("store", "Database file path.").
 		Default("kipp.db").
-		StringVar(&d.Path)
+		StringVar(&store)
 	servecmd.
 		Flag("expiration", "File expiration time.").
 		Default("24h").
@@ -189,14 +185,6 @@ func main() {
 		return
 	}
 
-	// Connect to database
-	db, err := d.Open()
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-	s.DB = db
-
 	// Load mime types
 	if m := *mime; m != "" {
 		if err := loadMimeTypes(m); err != nil {
@@ -205,12 +193,29 @@ func main() {
 	}
 
 	// Make paths for files and temp files
-	if err := os.MkdirAll(s.FilePath, 0755); err != nil {
+	if err := os.MkdirAll(s.FilePath, 0755); err != nil && !os.IsExist(err) {
 		log.Fatal(err)
 	}
-	if err := os.MkdirAll(s.TempPath, 0755); err != nil {
+	if err := os.MkdirAll(s.TempPath, 0755); err != nil && !os.IsExist(err) {
 		log.Fatal(err)
 	}
+	if err := os.MkdirAll(path.Dir(store), 0755); err != nil && !os.IsExist(err) {
+		log.Fatal(err)
+	}
+
+	// Connect to database
+	db, err := bolt.Open(store, 0600, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	db.Update(func(tx *bolt.Tx) error {
+		if _, err := tx.CreateBucketIfNotExists([]byte("files")); err != nil {
+			return err
+		}
+		_, err := tx.CreateBucketIfNotExists([]byte("ttl"))
+		return err
+	})
+	s.DB = db
 
 	// Start cleanup worker
 	if s.Expiration > 0 {
@@ -223,7 +228,7 @@ func main() {
 		Addr:    *addr,
 		Handler: s,
 		TLSConfig: &tls.Config{
-			GetCertificate: CertificateGetter(),
+			GetCertificate: CertificateGetter(*cert, *key),
 			CipherSuites: []uint16{
 				tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
 				tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
@@ -244,5 +249,5 @@ func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	// Output a message so users know when the server has been started.
 	log.Printf("Listening on %s", *addr)
-	log.Fatal(hs.ListenAndServeTLS(*cert, *key))
+	log.Fatal(hs.ListenAndServeTLS("", ""))
 }
