@@ -1,10 +1,10 @@
 # kipp
-[![GoDoc](https://godoc.org/github.com/6f7262/kipp?status.svg)](https://godoc.org/github.com/6f7262/kipp)
+[![GoDoc](https://godoc.org/github.com/uhthomas/kipp?status.svg)](https://godoc.org/github.com/uhthomas/kipp)
 
 ## Installation and usage
 ```
-go get github.com/6f7262/kipp/cmd/kipp
-cp -r $GOPATH/src/github.com/6f7262/kipp/default kipp
+go get github.com/uhthomas/kipp/cmd/kipp
+cp -r $GOPATH/src/github.com/uhthomas/kipp/default kipp
 cd kipp
 kipp --mime="mime.json"
 ```
