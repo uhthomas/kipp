@@ -184,20 +184,6 @@ func main() {
 		return
 	}
 
-	// Connect to database
-	db, err := bolt.Open(store, 0600, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	db.Update(func(tx *bolt.Tx) error {
-		if _, err := tx.CreateBucketIfNotExists([]byte("files")); err != nil {
-			return err
-		}
-		_, err := tx.CreateBucketIfNotExists([]byte("ttl"))
-		return err
-	})
-	s.DB = db
-
 	// Load mime types
 	if m := *mime; m != "" {
 		if err := loadMimeTypes(m); err != nil {
@@ -212,6 +198,23 @@ func main() {
 	if err := os.MkdirAll(s.TempPath, 0755); err != nil && !os.IsExist(err) {
 		log.Fatal(err)
 	}
+	if err := os.MkDirAll(store, 0755); err != nil && !os.IsExist(err) {
+		log.Fatal(err)
+	}
+
+	// Connect to database
+	db, err := bolt.Open(store, 0600, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	db.Update(func(tx *bolt.Tx) error {
+		if _, err := tx.CreateBucketIfNotExists([]byte("files")); err != nil {
+			return err
+		}
+		_, err := tx.CreateBucketIfNotExists([]byte("ttl"))
+		return err
+	})
+	s.DB = db
 
 	// Start cleanup worker
 	if s.Expiration > 0 {
