@@ -13,6 +13,7 @@ import (
 	"mime"
 	"net/http"
 	"os"
+	"path"
 	"runtime"
 	"time"
 
@@ -198,7 +199,7 @@ func main() {
 	if err := os.MkdirAll(s.TempPath, 0755); err != nil && !os.IsExist(err) {
 		log.Fatal(err)
 	}
-	if err := os.MkDirAll(store, 0755); err != nil && !os.IsExist(err) {
+	if err := os.MkdirAll(path.Dir(store), 0755); err != nil && !os.IsExist(err) {
 		log.Fatal(err)
 	}
 
