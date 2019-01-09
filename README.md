@@ -16,7 +16,7 @@ curl -F "file=@<path>" https://kipp.6f.io
 ```
 To upload to kipp using its private feature, the CLI or web interface should be used.
 ```
-$ kipp --help
+$ kipp help
 usage: kipp [<flags>] <command> [<args> ...]
 
 Flags:
@@ -31,32 +31,7 @@ Commands:
 
   upload [<flags>] <file>
     Upload a file.
-```
-```
-$ kipp help serve
-usage: kipp serve [<flags>]
 
-Start a kipp server.
-
-Flags:
-  --help                      Show context-sensitive help (also try --help-long
-                              and --help-man).
-  --addr="127.0.0.1:443"      Server listen address.
-  --cert=CERT                 TLS certificate path.
-  --key=KEY                   TLS key path.
-  --cleanup-interval=5m       Cleanup interval for deleting expired files.
-  --mime=PATH                 A json formatted collection of extensions and mime
-                              types.
-  --driver="sqlite3"          Available database drivers: mysql, postgres,
-                              sqlite3 and mssql.
-  --driver-username="kipp"    Database driver username.
-  --driver-password=PASSWORD  Database driver password.
-  --driver-path="kipp.db"     Database driver path. ex: localhost:8080
-  --expiration=24h            File expiration time.
-  --max=150MB                 The maximum file size for uploads.
-  --files="files"             File path.
-  --tmp="files/tmp"           Temp path for in-progress uploads.
-  --public="public"           Public path for web resources.
 ```
 ```
 $ kipp help upload
@@ -110,13 +85,7 @@ server {
 		proxy_ssl_verify        off;
 		# required to ensure cached files do not exceed their expiration date.
 		expires                 off;
-		proxy_pass              https://127.0.0.1:1337;
+		proxy_pass              https://127.0.0.1:443;
 	}
 }
 ```
-
-## TODO
-* Compress JS and CSS.
-* Write tests.
-* Cleanup frontend.
-* Improve efficiency of encryption / decryption. Browsers are terrible and don't use i/o streams.
