@@ -70,6 +70,13 @@ server {
 
 	try_files $uri $uri/ @proxy;
 
+    location = / {
+        if ($request_method != POST) {
+            break;
+        }
+        try_files false @proxy;
+    }
+    
 	location @proxy {
 		proxy_redirect          off;
 		proxy_set_header        Host            $host;
