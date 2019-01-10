@@ -127,8 +127,10 @@ button {
     border: none;
     cursor: pointer;
     color: inherit;
+    outline: none;
 }
 
+button:focus,
 button:hover {
 	background: #ffffff1c;
 }
