@@ -15,13 +15,13 @@
 	    ];
 	}
 
-	function dialog(title, text, buttons) {
+	// main and template are bound
+	const dialog = ((main, template,  title, text, buttons) => {
 		const d = document.createElement('div');
-		d.appendChild(document.importNode(document.getElementById('dialog-template').content, true));
+		d.appendChild(document.importNode(template.content, true));
 		const el = d.children[0];
-		el.addEventListener('click', function(e) {
-			if (e.target.tagName === 'BUTTON' || e.target === this) el.remove();
-		});
+		const undarken = darken(() => el.remove());
+		el.addEventListener('click', e => e.target.tagName === 'BUTTON' && undarken());
 		el.querySelector('.title').innerText = title;
 		el.querySelector('.text').innerHTML = text;
 		const elb = el.querySelector('.buttons');
@@ -31,15 +31,49 @@
 			if (buttons[i].f) b.addEventListener('click', buttons[i].f);
 			elb.appendChild(b);
 		}
-		document.body.appendChild(el);
-	}
+		main.appendChild(el);
+	}).bind(this, document.getElementsByTagName('main')[0], document.getElementById('dialog-template'));
+
+	const [darken, undarken] = (() => {
+		const main = document.getElementsByTagName('main')[0];
+		const drawer = document.querySelector('.drawer');
+		var d, callback;
+		const darken = (c, isDrawer) => {
+			if (!d) {
+				d = document.createElement('div');
+				d.className = 'darken';
+				d.onclick = e => e.target == d && undarken();
+				requestAnimationFrame(() => d.classList.add('open'));
+			} else undarken(true);
+
+			d.remove();
+			if (isDrawer) main.insertBefore(d, drawer);
+			else main.appendChild(d);
+
+			callback = c
+
+			return undarken;
+		}
+
+		const undarken = reuse => {
+			if (callback) callback();
+			if (!d || reuse) return;
+			d.addEventListener('transitionend', d.remove);
+			d.classList.remove('open');
+			d = null;
+		}
+		return [darken, undarken];
+	})()
 
 	document.getElementById('fab').onclick = (a => a.click()).bind(this, document.querySelector('#fab input'));
-
-	document.querySelector('main .drawer .header').onclick = (main => main.classList.contains('open')
-		? main.classList.remove('open')
-		: main.classList.add('open')
-	).bind(this, document.getElementsByTagName('main')[0])
+	
+	document.querySelector('main .drawer .header').onclick = (drawer => {
+		if (drawer.classList.contains('open')) return undarken();
+		darken(() => {
+			drawer.classList.remove('open');
+		}, true);
+		drawer.classList.add('open');
+	}).bind(this, document.querySelector('main .drawer'));
 
 	var encryption = localStorage.getItem('encryption') === 'true';
 	document.querySelector('main .drawer .item.encryption').onclick = (s => {
@@ -241,13 +275,17 @@
 					const d = document.createElement('div');
 					d.appendChild(document.importNode(document.getElementById('share-template').content, true));
 					el = d.children[0];
-					// Set remove listener
-					el.addEventListener('click', function(e) {
-						if (!(e.target.classList.contains('item') || e.target.parentElement.classList.contains('item')) && e.target !== this) return;
-						el.removeAttribute('open');
+					const remove = () => {
+						el.classList.remove('open');
 						el.addEventListener('transitionend', e => {
 							if (e.target === el) el.remove();
 						});
+					}
+					const undarken = darken(remove);
+					// Set remove listener
+					el.addEventListener('click', function(e) {
+						if (!(e.target.classList.contains('item') || e.target.parentElement.classList.contains('item'))) return;
+						undarken();
 					});
 					// Set URL
 					const elt = el.querySelector('.extra');
@@ -274,11 +312,11 @@
 					if (!navigator.share)
 						el.querySelector('.item.more').remove();
 					// Append template
-					document.body.appendChild(el);
+					document.body.getElementsByTagName('main')[0].appendChild(el);
 					elt.focus();
 					elt.select();
 					// Render template
-					requestAnimationFrame(() => el.setAttribute('open', true));
+					requestAnimationFrame(() => el.classList.add('open'));
 				}
 				// we only want the headers
 				this.abort();
@@ -310,6 +348,7 @@
 
 	function processFiles(files) {
 		if (!files.length) return;
+		undarken && undarken();
 		if (files.length === 1) return (new FileElement(files[0])).upload();
 		dialog('Archive these files?', 'An archive of files will be created and uploaded rather than uploading each file individually.', [{
 			text: 'No thanks',
