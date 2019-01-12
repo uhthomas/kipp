@@ -1,9 +1,7 @@
 (function() {
 	const pica = window.pica();
 
-	function encode(arr) {
-		return btoa(String.fromCharCode.apply(null, arr)).slice(0, -2).replace(/\+/g, '-').replace(/\//g, '_');
-	}
+	const encode = arr => btoa(String.fromCharCode.apply(null, arr)).slice(0, -2).replace(/\+/g, '-').replace(/\//g, '_')
 
 	async function encrypt(data) {
 	    const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -15,11 +13,15 @@
 	    ];
 	}
 
-	// main and template are bound
-	const dialog = ((main, template,  title, text, buttons) => {
+	const importTemplate = template => {
 		const d = document.createElement('div');
 		d.appendChild(document.importNode(template.content, true));
-		const el = d.children[0];
+		return d.children[0];
+	}
+
+	// main and template are bound
+	const dialog = ((main, template, title, text, buttons) => {
+		const el = importTemplate(template);
 		const undarken = darken(() => el.remove());
 		el.addEventListener('click', e => e.target.tagName === 'BUTTON' && undarken());
 		el.querySelector('.title').innerText = title;
@@ -52,7 +54,7 @@
 
 			callback = c
 
-			return undarken;
+			return () => callback === c && undarken();
 		}
 
 		const undarken = reuse => {
@@ -69,9 +71,7 @@
 	
 	document.querySelector('main .drawer .header').onclick = (drawer => {
 		if (drawer.classList.contains('open')) return undarken();
-		darken(() => {
-			drawer.classList.remove('open');
-		}, true);
+		darken(() => drawer.classList.remove('open'), true);
 		drawer.classList.add('open');
 	}).bind(this, document.querySelector('main .drawer'));
 
@@ -93,7 +93,7 @@
 		self.setImage = async blob => {
 			const u = URL.createObjectURL(blob);
 
-			async function video() {
+			const video = async () => {
 				const video = await new Promise((resolve, reject) => {
 					const video = document.createElement('video');
 					video.onloadeddata = () => resolve(video);
@@ -107,7 +107,7 @@
 				await self.setImage(await pica.toBlob(canvas, 'image/png', 1));
 			}
 
-			async function audio() {
+			const audio = async () => {
 				await self.setImage(await new Promise((resolve, reject) => {
 					musicmetadata(blob, (err, info) => {
 						if (err || info.picture.length < 1) return reject(err || new Error('No album art'));
@@ -119,7 +119,7 @@
 				}));
 			}
 
-			async function image() {
+			const image = async () => {
 				const img = await new Promise((resolve, reject) => {
 					const img = new Image();
 					img.onload = () => resolve(img);
@@ -134,10 +134,8 @@
 				const src = document.createElement('canvas');
 				src.height = img.naturalHeight;
 				src.width = img.naturalWidth;
-				if (nr > r)
-					src.width = src.height * r;
-				else if (nr < r)
-					src.height = src.width / r;
+				if (nr > r)	src.width = src.height * r;
+				else if (nr < r) src.height = src.width / r;
 				src.getContext('2d').drawImage(img, (src.width - img.naturalWidth) / 2, (src.height - img.naturalHeight) / 2);
 
 				const dst = document.createElement('canvas');
@@ -153,8 +151,7 @@
 				// if this is a low resolution then apply a blur equal to how
 				// low the resolution is to prevent thumbnails looking awful.
 				const br = 1// - Math.min(img.naturalWidth / dst.width, img.naturalHeight / dst.height);
-				if (br > 0)
-					StackBlur.canvasRGBA(dst, 0, 0, dst.width, dst.height, br * 20);
+				if (br > 0)	StackBlur.canvasRGBA(dst, 0, 0, dst.width, dst.height, br * 20);
 				
 				const blob = await pica.toBlob(dst, 'image/png', 1);
 
@@ -169,11 +166,9 @@
 				const blob2 = await pica.toBlob(dst, 'image/png', 1);
 				self.element.setAttribute('style', '--background: url(' + URL.createObjectURL(blob) + ')');
 				self.element.querySelector('.image').style.backgroundImage = 'url(' + URL.createObjectURL(blob2) + ')';
-			}
+			}	
 
-			async function none() {
-				throw new Error('Not an image');
-			}
+			const none = async () => { throw new Error('Not an image') };
 
 			try {
 				await ({
@@ -181,11 +176,7 @@
 					'audio': audio,
 					'image': image
 				}[blob.type.split('/')[0]] || none)();
-			} catch (e) {
-				throw e;
-			} finally {				
-				URL.revokeObjectURL(u);
-			}
+			} catch (e) { throw e; } finally { URL.revokeObjectURL(u); }
 		}
 
 		// setBlob will set the underlying Blob to read from. name is an
@@ -271,22 +262,14 @@
 				self.expires = new Date(this.getResponseHeader('Expires'));
 				self.element.querySelector('.buttons button.secondary').onclick = self.remove;
 				self.element.querySelector('.buttons button.primary').onclick = e => {
-					// Make template
-					const d = document.createElement('div');
-					d.appendChild(document.importNode(document.getElementById('share-template').content, true));
-					el = d.children[0];
+					const el = importTemplate(document.getElementById('share-template'));
 					const remove = () => {
 						el.classList.remove('open');
-						el.addEventListener('transitionend', e => {
-							if (e.target === el) el.remove();
-						});
+						el.addEventListener('transitionend', e => e.target === el && el.remove());
 					}
 					const undarken = darken(remove);
 					// Set remove listener
-					el.addEventListener('click', function(e) {
-						if (!(e.target.classList.contains('item') || e.target.parentElement.classList.contains('item'))) return;
-						undarken();
-					});
+					el.addEventListener('click', e => (e.target.classList.contains('item') || e.target.parentElement.classList.contains('item')) && undarken());
 					// Set URL
 					const elt = el.querySelector('.extra');
 					elt.value = u;
@@ -326,10 +309,8 @@
 			try { req.send(data); } catch(e) { err(e); }
 		}
 
-		// Import template and start rendering.
-		const d = document.createElement('div');
-		d.appendChild(document.importNode(document.getElementById('file-template').content, true));
-		self.element = d.children[0];
+		// import template and start rendering.
+		self.element = importTemplate(document.getElementById('file-template'));
 
 		// Add secure class name if the file is encrypted.
 		if (self.encryption) self.element.classList.add('secure');
@@ -411,15 +392,10 @@
 	(function render() {
 		requestAnimationFrame(render);
 		fileElements.forEach(f => {
-			if (!f.rendered) {
-				f.element.setAttribute('rendered', true);
-				f.rendered = true;
-			}
+			if (!f.rendered) f.element.setAttribute('rendered', f.rendered = true);
 			if (!f.expires) return;
-			if (!+f.expires)
-				f.setState('done', 'Permanently uploaded');
-			else if (f.expires >= new Date())
-				f.setState('done', 'Expires in ' + ago(2 * new Date() - f.expires));
+			if (!+f.expires) f.setState('done', 'Permanently uploaded');
+			else if (f.expires >= new Date()) f.setState('done', 'Expires in ' + ago(2 * new Date() - f.expires));
 			else {
 				f.expires = null;
 				f.setState('error', 'Expired');
