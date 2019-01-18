@@ -11,7 +11,7 @@ kipp --mime="mime.json"
 
 ## Docker
 ```
-docker build uhthomas/kipp https://raw.githubusercontent.com/uhthomas/kipp/master/Dockerfile
+docker build -t uhthomas/kipp https://raw.githubusercontent.com/uhthomas/kipp/master/Dockerfile
 ```
 
 ## Help
