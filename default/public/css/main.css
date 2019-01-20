@@ -483,7 +483,6 @@ main .drawer {
 	flex-shrink: 0;
 	transform: translate3d(0, calc(100% - 56px), 0);
 	box-sizing: border-box;
-	padding: 0 16px;
 	bottom: 0;
 	max-width: inherit;
 }
@@ -498,6 +497,8 @@ main .drawer .header {
 	width: 100%;
 	display: flex;
 	letter-spacing: 0.009375rem;
+	padding: 0 16px;
+	box-sizing: border-box;
 }
 
 main .drawer .header .icon {
@@ -536,6 +537,8 @@ main .drawer .item {
 	align-items: center;
 	min-height: 48px;
 	width: 100%;
+	padding: 0 16px;
+	box-sizing: border-box;
 }
 
 main .drawer .item[icon] {
@@ -578,6 +581,6 @@ main .drawer .curl {
 	font-size: inherit;
 	font-family: monospace;
 	background: none;
-	width: 100%;
+	width: calc(100% - 32px);
 	box-sizing: border-box;
 }
