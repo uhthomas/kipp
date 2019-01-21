@@ -187,7 +187,7 @@
 			self.__name__ = name || blob.name || self.__name__ || 'Unknown';
 			self.element.querySelector('.info .headline').textContent = self.__name__;
 			self.element.querySelector('.info .overline').textContent = filesize(blob.size);
-			self.setImage(blob).catch(e => console.warn(e));
+			self.setImage(blob).catch(() => {});
 		}
 
 		self.setState = (state, message) => {
@@ -331,19 +331,14 @@
 		if (!files.length) return;
 		undarken && undarken();
 		if (files.length === 1) return (new FileElement(files[0])).upload();
-		dialog('Archive these files?', 'An archive of files will be created and uploaded rather than uploading each file individually.', [{
-			text: 'No thanks',
-			f: () => files.forEach(f => (new FileElement(f)).upload())
-		}, {
-			text: 'Archive',
-			f: async () => {
+		dialog('Archive these files?', 'An archive of files will be created and uploaded rather than uploading each file individually.', [
+			{ text: 'No thanks', f: () => files.forEach(f => (new FileElement(f)).upload())},
+			{ text: 'Archive', f: async () => {
 				const f = new FileElement(new Blob(), encode(crypto.getRandomValues(new Uint8Array(6))) + '.zip');
 				f.setState('archiving', 'Archive starting');
 
 				try {
-					(function imageSetter(i) {
-						f.setImage(files[i]).catch(e => (++i < files.length) && requestAnimationFrame(imageSetter.bind(this, i)));
-					})(0);
+					(is = i => f.setImage(files[i]).catch(e => (++i < files.length) && requestAnimationFrame(is.bind(null, i))))(0);
 
 					const zip = new JSZip();
 					await files.reduce((acc, file, i) => acc.then(async acc => {
@@ -360,15 +355,19 @@
 					f.element.querySelector('.buttons button.primary').onclick = f.remove;
 				}
 			}
-		}])
+		}]);
 	}
 
-	const processTransfer = transfer => transfer.files.length && processFiles(Array.from(transfer.files));
-
-	const preventDefault = e => {
-		e.preventDefault();
-		return false;
+	const processTransfer = async transfer => {
+		if (transfer.files.length) return processFiles(Array.from(transfer.files));
+		if (!transfer.items.length) return;
+		var item = transfer.items[0], name = encode(crypto.getRandomValues(new Uint8Array(6)));
+		const f = (i, e) => (i.name = name + '.' + (e || i.type.split('/')[1]), processFiles([i]));
+		if (item.kind === 'file') f(item.getAsFile());
+		else if (item.kind === 'string') f(new Blob([await new Promise((resolve, reject) => item.getAsString(resolve))], { type: 'text/plain' }), '.txt');
 	}
+
+	const preventDefault = e => (e.preventDefault(), false);
 
 	document.addEventListener('dragover', preventDefault);
 	document.addEventListener('dragenter', preventDefault);
