@@ -148,10 +148,7 @@
 				const ctx = dst.getContext('2d');
 				ctx.fillStyle = '#00000080';
 				ctx.fillRect(0, 0, dst.width, dst.height);
-				// if this is a low resolution then apply a blur equal to how
-				// low the resolution is to prevent thumbnails looking awful.
-				const br = 1// - Math.min(img.naturalWidth / dst.width, img.naturalHeight / dst.height);
-				if (br > 0)	StackBlur.canvasRGBA(dst, 0, 0, dst.width, dst.height, br * 20);
+				StackBlur.canvasRGBA(dst, 0, 0, dst.width, dst.height, 20);
 				
 				const blob = await pica.toBlob(dst, 'image/png', 1);
 
@@ -194,14 +191,13 @@
 		// remove will remove the animate and remove the element from the page.
 		// TODO: also revoke thumbnail URLs
 		self.remove = () => {
-			var done = false;
 			self.element.removeAttribute('rendered');
-			self.element.addEventListener('transitionend', e => {
-				if (done || e.target !== self.element) return;
-				done = true;
+			self.element.ontransitionend = e => {
+				if (e.target !== self.element) return;
+				self.element.ontransitionend = null;
 				self.element.remove();
 				fileElements.splice(fileElements.indexOf(self), 1);
-			});
+			}
 		}
 
 		self.upload = async () => {

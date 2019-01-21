@@ -1,4 +1,4 @@
-(async function() {
+(async () => {
 	const decrypt = async (iv, key, data) => crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, await crypto.subtle.importKey('raw', key, { name: 'AES-GCM' }, false, ['decrypt']), data);
 
 	const decode = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '=='), c => c.charCodeAt(0));
@@ -10,12 +10,12 @@
 	iv.set(b.slice(0, 12));
 	key.set(b.slice(12, 28));
 
-	const [result, contentType, contentDisposition] = await new Promise(function(resolve, reject) {
+	const req = await new Promise(function(resolve, reject) {
 		var req = new XMLHttpRequest();
 		req.onerror = reject;
 		req.onload = () => {
 			req.onprogress = null;
-			if (req.status === 200) resolve([req.response, req.getResponseHeader('Content-Type'), req.getResponseHeader('Content-Disposition')]);
+			if (req.status === 200) resolve(req);
 			else reject(new Error('File has expired or is invalid'));
 		}
 		req.onprogress = e => document.querySelector('.progress .bar').style.width = ~~(e.loaded / e.total * 100) + '%';
@@ -27,9 +27,9 @@
 	document.querySelector('.progress .bar').style.width = '100%';
 	document.querySelector('.status .text.open').innerHTML = 'Decrypting';
 
-	const blob = new Blob([await decrypt(iv, key, result)], { type: contentType })
+	const blob = new Blob([await decrypt(iv, key, req.response)], { type: req.getResponseHeader('Content-Type') })
 	const u = URL.createObjectURL(blob);
-	const name = decodeURIComponent(contentDisposition.split('"')[1].split('"')[0]);
+	const name = decodeURIComponent(req.getResponseHeader('Content-Disposition').split('"')[1].split('"')[0]);
 	document.body.className = 'done';
 	document.querySelector('.status .text.open').innerHTML = 'Open';
 
@@ -40,12 +40,7 @@
 
 	var a = document.querySelector('.status .text.open');
 	a.href = u;
-	var suggested = false;
-	a.onclick = () => (window.open(u, '_blank').onunload = () => {
-		if (suggested) return;
-		suggested = true;
-		document.body.classList.add('suggest');
-	}, false);
+	a.onclick = () => (window.open(u, '_blank').onunload = () => document.body.classList.add('suggest'), false);
 
 	var ad = document.querySelector('.status .text.download');
 	ad.href = u;
