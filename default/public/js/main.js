@@ -171,11 +171,7 @@
 			const none = async () => { throw new Error('Not an image') };
 
 			try {
-				await ({
-					'video': video,
-					'audio': audio,
-					'image': image
-				}[blob.type.split('/')[0]] || none)();
+				await ({ 'video': video, 'audio': audio, 'image': image	}[blob.type.split('/')[0]] || none)();
 			} catch (e) { throw e; } finally { URL.revokeObjectURL(u); }
 		}
 
@@ -214,9 +210,7 @@
 				self.setState('encrypting', 'Encrypting file');
 				try {
 					[iv, key, blob] = await encrypt(await (new Response(self.__blob__).arrayBuffer()));
-				} catch(e) {
-					return self.setState('error', e || 'Unknown error');
-				}
+				} catch(e) { return self.setState('error', e || 'Unknown error') }
 			}
 
 			self.setState('uploading', 'Upload starting')
@@ -235,10 +229,7 @@
 				self.element.querySelector('.buttons button.primary').onclick = self.remove;
 			}
 
-			req.upload.onprogress = e => {
-				if (!e.lengthComputable || cancelled) return;
-				self.setState('uploading', 'Uploading ' + ((e.loaded / e.total * 100)|0) + '%')
-			}
+			req.upload.onprogress = e => (e.lengthComputable && !cancelled) && self.setState('uploading', 'Uploading ' + ((e.loaded / e.total * 100)|0) + '%');
 
 			const err = () => {
 				self.setState('error', cancelled ? 'Cancelled' : (req.statusText || req.status || 'Unknown error'));
