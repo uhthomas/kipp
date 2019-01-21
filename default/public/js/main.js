@@ -192,12 +192,12 @@
 		// TODO: also revoke thumbnail URLs
 		self.remove = () => {
 			self.element.removeAttribute('rendered');
-			self.element.ontransitionend = e => {
+			const l = self.element.addEventListener('transitionend', e => {
 				if (e.target !== self.element) return;
-				self.element.ontransitionend = null;
+				self.element.removeEventListener('transitionend', l);
 				self.element.remove();
 				fileElements.splice(fileElements.indexOf(self), 1);
-			}
+			});
 		}
 
 		self.upload = async () => {
