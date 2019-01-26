@@ -238,7 +238,6 @@
 				this.onreadystatechange = null;
 				if (this.status !== 200) return err();
 				var u = this.responseURL;
-				// const a = self.element.querySelector('.info .headline');
 				const a = document.createElement('a');
 				a.href = u;
 				if (self.encryption) {
