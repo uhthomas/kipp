@@ -1,9 +1,15 @@
-.material-icons {
-	color: inherit;
+:root{
+	--accent: #00e676;
+	--accent-dark: #00e6768a;
+	--accent-secondary: #FF1744;
 }
 
 ::-webkit-file-upload-button {
 	cursor: pointer;
+}
+
+.material-icons {
+	color: inherit;
 }
 
 a {
@@ -15,13 +21,14 @@ a {
 	transition: color 280ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-a[href] {
-	color: #00e676;
-}
-
 * {
 	padding: 0;
 	margin: 0;
+}
+
+
+a[href] {
+	color: var(--accent);
 }
 
 /* components */
@@ -49,18 +56,18 @@ a[href] {
 }
 
 .switch.on {
-	background: #00e6768a;
+	background: var(--accent-dark);
 }
 
 .switch.on::before {
 	transform: translate3d(16px, 0, 0);
-	background: #00e676;
+	background: var(--accent);
 }
 
 #fab {
 	position: absolute;
 	top: -24px;
-	background: #00e676;
+	background: var(--accent);
 	color: black;
 	z-index: 1;
 	box-shadow: 0 3px 5px -1px rgba(0,0,0,.2), 0 6px 10px 0 rgba(0,0,0,.14), 0 1px 18px 0 rgba(0,0,0,.12);
@@ -302,7 +309,7 @@ main .empty {
 main .empty .icon {
 	font-size: 56px;
 	margin: 18px;
-	color: #00e676;
+	color: var(--accent);
 }
 
 main .empty span {	
@@ -419,7 +426,7 @@ main .file .buttons {
 
 main .file .buttons button {
 	display: none;
-	color: #00e676;
+	color: var(--accent);
 }
 
 main .file[state="error"] .buttons button.primary,
@@ -441,20 +448,12 @@ main .file[state="uploading"] .buttons button.primary:before {
 
 main .file[state="done"] .buttons button.secondary:before {
 	content: 'Remove';
-	color: #FF1744;
+	color: var(--accent-secondary);
 }
 
 main .file[state="done"] .buttons button.primary:before {
 	content: 'Share';
 }
-
-/*main .file .buttons button.share {
-	color: #00e676;
-}
-
-main .file .buttons button.remove {
-	color: #FF1744;
-}*/
 
 main .darken {
 	position: fixed;
@@ -546,6 +545,10 @@ main .drawer .item[icon] {
 	line-height: 56px;
 }
 
+main .drawer.item[icon="report"] {
+	--accent: var(--accent-secondary);
+}
+
 main .drawer .item[icon]::before {
 	font-family: 'Material Icons';
 	font-weight: normal;
@@ -565,7 +568,7 @@ main .drawer .item[icon]::before {
 	float: left;
 	display: block;
 	padding: 16px 16px 16px 0;
-	color: #00e676;
+	color: var(--accent);
 }
 
 main .drawer .item.toggle {
