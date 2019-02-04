@@ -11,14 +11,14 @@ kipp --mime="mime.json"
 
 ## Docker
 ```
-docker build -t uhthomas/kipp https://raw.githubusercontent.com/uhthomas/kipp/master/Dockerfile
+docker pull uhthomas/kipp
 docker volume create kipp
 docker run -d -p 1337:443 -v kipp:/data uhthomas/kipp
 ```
 
 ### Upgrading with docker
 ```
-docker build -t uhthomas/kipp https://raw.githubusercontent.com/uhthomas/kipp/master/Dockerfile --no-cache
+docker pull uhthomas/kipp
 # Get container ID
 docker ps -f "volume=kipp" --format "{{.ID}}"
 # Kill and remove the container
