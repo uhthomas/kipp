@@ -19,12 +19,10 @@ docker run -d -p 1337:443 -v kipp:/data uhthomas/kipp
 ### Upgrading with docker
 ```
 docker build -t uhthomas/kipp https://raw.githubusercontent.com/uhthomas/kipp/master/Dockerfile --no-cache
-# Get container IDs
+# Get container ID
 docker ps -f "volume=kipp" --format "{{.ID}}"
-# Kill containers with those ids
-docker kill <ID>
-# Remove the container
-docker rm <ID>
+# Kill and remove the container
+docker rm -f <ID>
 # Start the process again
 docker run -d -p 1337:443 -v kipp:/data uhthomas/kipp
 ```
