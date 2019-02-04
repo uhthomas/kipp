@@ -545,7 +545,7 @@ main .drawer .item[icon] {
 	line-height: 56px;
 }
 
-main .drawer.item[icon="report"] {
+main .drawer .item[icon="report"] {
 	--accent: var(--accent-secondary);
 }
 
