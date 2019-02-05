@@ -349,8 +349,9 @@
 		if (!transfer.items.length) return;
 		var item = transfer.items[0], name = encode(crypto.getRandomValues(new Uint8Array(6)));
 		const f = (i, e) => (i.name = name + '.' + (e || i.type.split('/')[1]), processFiles([i]));
+		const utf8bytes = s => Uint8Array.from(s.split('').map(c => c.charCodeAt(0)));
 		if (item.kind === 'file') f(item.getAsFile());
-		else if (item.kind === 'string') f(new Blob([await new Promise((resolve, reject) => item.getAsString(resolve))], { type: 'text/plain' }), '.txt');
+		else if (item.kind === 'string') f(new Blob([utf8bytes(await new Promise((resolve, reject) => item.getAsString(resolve)))]), 'txt');
 	}
 
 	const preventDefault = e => (e.preventDefault(), false);
