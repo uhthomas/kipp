@@ -1,5 +1,5 @@
 # kipp
-[![GoDoc](https://godoc.org/github.com/uhthomas/kipp?status.svg)](https://godoc.org/github.com/uhthomas/kipp)
+[![GoDoc](https://godoc.org/github.com/uhthomas/kipp?status.svg)](https://godoc.org/github.com/uhthomas/kipp) ![](https://img.shields.io/docker/build/uhthomas/kipp.svg?style=flat)
 
 ## Installation and usage
 ```
