@@ -18,11 +18,10 @@ docker run -d -p 1337:443 -v kipp:/data uhthomas/kipp
 
 ### Upgrading with docker
 ```
+# Pull latest version
 docker pull uhthomas/kipp
-# Get container ID
-docker ps -f "volume=kipp" --format "{{.ID}}"
-# Kill and remove the container
-docker rm -f <ID>
+# Get the container ID then kill and remove the container
+docker rm -f $(docker ps -f "volume=kipp" --format "{{.ID}}")
 # Start the process again
 docker run -d -p 1337:443 -v kipp:/data uhthomas/kipp
 ```
