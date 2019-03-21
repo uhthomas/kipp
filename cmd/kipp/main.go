@@ -84,7 +84,7 @@ func CertificateGetter(certFile, keyFile string) func(hello *tls.ClientHelloInfo
 			KeyUsage:              x509.KeyUsageCertSign,
 			ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 			BasicConstraintsValid: true,
-			IsCA: true,
+			IsCA:                  true,
 		}
 		k, err := rsa.GenerateKey(rand.Reader, 2048)
 		if err != nil {
