@@ -329,12 +329,17 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	// "/" + id + ext
-	var buf bytes.Buffer
+
+	ext := filepath.Ext(name)
+
+	var buf strings.Builder
+	buf.Grow(len(id) + len(ext) + 2)
 	buf.WriteRune('/')
 	buf.WriteString(id)
-	buf.WriteString(filepath.Ext(name))
+	buf.WriteString(ext)
+
 	http.Redirect(w, r, buf.String(), http.StatusSeeOther)
+
 	buf.WriteRune('\n')
-	buf.WriteTo(w)
+	_, _ = w.Write([]byte(buf.String()))
 }
