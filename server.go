@@ -36,6 +36,10 @@ type Server struct {
 	PublicPath string
 }
 
+func New(fs FileSystem) *Server {
+
+}
+
 // Cleanup will delete expired files and remove files associated with it as
 // long as it is not used by any other files.
 func (s Server) Cleanup() (err error) {
