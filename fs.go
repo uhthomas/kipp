@@ -15,15 +15,9 @@ type fileSystemFunc func(string) (http.File, error)
 func (f fileSystemFunc) Open(name string) (http.File, error) { return f(name) }
 
 type file struct {
+	fs.ReadSeekCloser
 	entry database.Entry
-	file  fs.ReadSeekCloser
 }
-
-func (f *file) Close() error { return f.file.Close() }
-
-func (f *file) Read(b []byte) (n int, err error) { return f.file.Read(b) }
-
-func (f *file) Seek(offset int64, whence int) (int64, error) { return f.file.Seek(offset, whence) }
 
 func (f *file) Readdir(int) ([]os.FileInfo, error) { return nil, nil }
 

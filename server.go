@@ -135,7 +135,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Expires", e.Lifetime.Format(http.TimeFormat))
 		}
 		w.Header().Set("X-Content-Type-Options", "nosniff")
-		return &file{entry: e, file: f}, nil
+		return &file{ReadSeekCloser: f, entry: e}, nil
 	})).ServeHTTP(w, r)
 }
 
