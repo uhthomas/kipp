@@ -8,8 +8,8 @@ import (
 // A FileSystem is a persistent store of objects uniquely identified by name.
 type FileSystem interface {
 	Create(ctx context.Context, name string) (io.WriteCloser, error)
-	Delete(ctx context.Context, name string) error
 	Open(ctx context.Context, name string) (ReadSeekCloser, error)
+	Remove(ctx context.Context, name string) error
 }
 
 type ReadSeekCloser interface {

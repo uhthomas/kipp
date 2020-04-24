@@ -36,3 +36,8 @@ func (fs FileSystem) Create(_ context.Context, name string) (io.WriteCloser, err
 func (fs FileSystem) Open(_ context.Context, name string) (fs.ReadSeekCloser, error) {
 	return os.Open(filepath.Join(fs.path, name))
 }
+
+// Remove removes the named file.
+func (fs FileSystem) Remove(_ context.Context, name string) error {
+	return os.Remove(name)
+}
