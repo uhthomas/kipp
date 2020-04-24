@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/uhthomas/kipp/database"
-	"github.com/uhthomas/kipp/fs"
+	"github.com/uhthomas/kipp/filesystem"
 )
 
 // fileSystemFunc implements http.FileSystem.
@@ -15,7 +15,7 @@ type fileSystemFunc func(string) (http.File, error)
 func (f fileSystemFunc) Open(name string) (http.File, error) { return f(name) }
 
 type file struct {
-	fs.ReadSeekCloser
+	filesystem.ReadSeekCloser
 	entry database.Entry
 }
 

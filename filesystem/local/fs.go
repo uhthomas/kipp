@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/uhthomas/kipp/fs"
+	"github.com/uhthomas/kipp/filesystem"
 )
 
 type FileSystem struct{ path, tempPath string }
@@ -33,7 +33,7 @@ func (fs FileSystem) Create(_ context.Context, name string) (io.WriteCloser, err
 }
 
 // Open opens the named file.
-func (fs FileSystem) Open(_ context.Context, name string) (fs.ReadSeekCloser, error) {
+func (fs FileSystem) Open(_ context.Context, name string) (filesystem.ReadSeekCloser, error) {
 	return os.Open(filepath.Join(fs.path, name))
 }
 

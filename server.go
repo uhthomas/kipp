@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/uhthomas/kipp/database"
-	"github.com/uhthomas/kipp/fs"
+	"github.com/uhthomas/kipp/filesystem"
 	"github.com/zeebo/blake3"
 )
 
@@ -26,7 +26,7 @@ import (
 // functions such as Cleanup.
 type Server struct {
 	Database   database.Database
-	FileSystem fs.FileSystem
+	FileSystem filesystem.FileSystem
 
 	Lifetime   time.Duration
 	Limit      int64
