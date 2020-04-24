@@ -200,22 +200,20 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	now := time.Now()
-
-	var lifetime *time.Time
-	if s.Lifetime > 0 {
-		l := now.Add(s.Lifetime)
-		lifetime = &l
-	}
-
-	if err := s.Database.Create(r.Context(), database.Entry{
+	e := database.Entry{
 		ID:        id,
 		Name:      name,
 		Sum:       base64.RawURLEncoding.EncodeToString(h.Sum(nil)),
 		Size:      n,
-		Lifetime:  lifetime,
-		Timestamp: now,
-	}); err != nil {
+		Timestamp: time.Now(),
+	}
+
+	if s.Lifetime > 0 {
+		l := e.Timestamp.Add(s.Lifetime)
+		e.Lifetime = &l
+	}
+
+	if err := s.Database.Create(r.Context(), e); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
