@@ -10,7 +10,7 @@ type tempFile struct {
 	name string
 }
 
-// Close links the named file, and deletes the old reference.
+// Close links the named file, and removes the old link.
 func (f *tempFile) Close() error {
 	name := f.File.Name()
 	if err := os.Link(name, f.name); err != nil && !os.IsExist(err) {

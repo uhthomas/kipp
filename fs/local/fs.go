@@ -11,12 +11,10 @@ import (
 	"github.com/uhthomas/kipp/fs"
 )
 
-type FileSystem struct {
-	path, tempPath string
-}
+type FileSystem struct{ path, tempPath string }
 
-func New(path, tempPath string) FileSystem {
-	return FileSystem{path: path, tempPath: tempPath}
+func New(path, tempPath string) *FileSystem {
+	return &FileSystem{path: path, tempPath: tempPath}
 }
 
 // Create creates a temporary file, and wraps it so when the file is closed,

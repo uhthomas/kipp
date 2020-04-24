@@ -1,22 +1,25 @@
 package database
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type Database interface {
 	// Create persists the entry to the underlying database, returning
 	// any errors if present.
-	Create(e Entry) error
+	Create(ctx context.Context, e Entry) error
 	// Remove removes the named entry.
-	Remove(id string) error
+	Remove(ctx context.Context, id string) error
 	// Lookup looks up the named entry.
-	Lookup(id string) (Entry, error)
+	Lookup(ctx context.Context, id string) (Entry, error)
 }
 
 type Entry struct {
 	ID        string
 	Name      string
 	Sum       string
-	Size      uint64
+	Size      int64
 	Lifetime  *time.Time
 	Timestamp time.Time
 }
