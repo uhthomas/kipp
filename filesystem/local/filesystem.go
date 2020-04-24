@@ -13,8 +13,16 @@ import (
 
 type FileSystem struct{ path, tempPath string }
 
-func New(path, tempPath string) *FileSystem {
-	return &FileSystem{path: path, tempPath: tempPath}
+// New creates a new FileSystem, and makes the relevant directories for
+// path and tempPath.
+func New(path, tempPath string) (*FileSystem, error) {
+	if err := os.MkdirAll(path, 0755); err != nil && !os.IsExist(err) {
+		return nil, err
+	}
+	if err := os.MkdirAll(tempPath, 0755); err != nil && !os.IsExist(err) {
+		return nil, err
+	}
+	return &FileSystem{path: path, tempPath: tempPath}, nil
 }
 
 // Create creates a temporary file, and wraps it so when the file is closed,
