@@ -1,9 +1,15 @@
-FROM golang:alpine AS build
-RUN apk update && \
-	apk add --no-cache git && \
-	go get -d -v github.com/uhthomas/kipp/cmd/kipp && \
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags="-w -s" -o /go/src/github.com/uhthomas/kipp/default/kipp github.com/uhthomas/kipp/cmd/kipp
+FROM golang:1.14 as build
 
-FROM scratch
-COPY --from=build /go/src/github.com/uhthomas/kipp/default /
+WORKDIR /build
+
+COPY . .
+
+RUN go build -ldflags "-s -w" -o /kipp ./cmd/kipp
+
+FROM gcr.io/distroless/base-debian10
+
+COPY --from=build /build/default /default
+
+COPY --from=build /kipp /
+
 ENTRYPOINT ["/kipp", "--mime", "mime.json", "--files", "/data/files", "--tmp", "/data/tmp", "--store", "/data/kipp.db"]
