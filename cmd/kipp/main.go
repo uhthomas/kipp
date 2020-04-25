@@ -5,25 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 )
-
-type worker time.Duration
-
-func (w worker) Do(ctx context.Context, f func() error) {
-	for {
-		if err := f(); err != nil {
-			log.Fatal(err)
-		}
-		t := time.NewTimer(time.Duration(w))
-		select {
-		case <-t.C:
-		case <-ctx.Done():
-			t.Stop()
-			return
-		}
-	}
-}
 
 func Main(ctx context.Context) error {
 	var cmd string
