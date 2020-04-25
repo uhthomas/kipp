@@ -12,4 +12,4 @@ COPY --from=build /build/default /default
 
 COPY --from=build /kipp /
 
-ENTRYPOINT ["/kipp", "--mime", "mime.json", "--files", "/data/files", "--tmp", "/data/tmp", "--store", "/data/kipp.db"]
+ENTRYPOINT ["/kipp", "--dir", "/data/files", "--tmp", "/data/tmp", "--dsn", "/data/kipp.db"]
