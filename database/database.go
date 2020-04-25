@@ -13,6 +13,8 @@ type Database interface {
 	Remove(ctx context.Context, id string) error
 	// Lookup looks up the named entry.
 	Lookup(ctx context.Context, id string) (Entry, error)
+	// Close closes the database.
+	Close(ctx context.Context) error
 }
 
 type Entry struct {
