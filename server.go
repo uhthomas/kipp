@@ -87,6 +87,9 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		e, err := s.Database.Lookup(r.Context(), name)
 		if err != nil {
+			if errors.Is(err, database.ErrNoResults) {
+				return nil, os.ErrNotExist
+			}
 			return nil, err
 		}
 
@@ -103,7 +106,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			cache = fmt.Sprintf("public, must-revalidate, max-age=%d", d)
 		}
 
-		f, err := s.FileSystem.Open(r.Context(), e.Name)
+		f, err := s.FileSystem.Open(r.Context(), e.Slug)
 		if err != nil {
 			return nil, err
 		}
@@ -177,16 +180,16 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 9 byte ID as base64 is most efficient when it aligns to len(b) % 3
+	// 9 bytes as base64 is most efficient when aligned to len(b) % 3
 	var b [9]byte
 	if _, err := io.ReadFull(rand.Reader, b[:]); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	id := base64.RawURLEncoding.EncodeToString(b[:])
+	slug := base64.RawURLEncoding.EncodeToString(b[:])
 
-	f, err := s.FileSystem.Create(r.Context(), id)
+	f, err := s.FileSystem.Create(r.Context(), slug)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -194,14 +197,14 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	defer f.Close()
 
 	h := blake3.New()
-	n, err := io.Copy(io.MultiWriter(f, h), r.Body)
+	n, err := io.Copy(io.MultiWriter(f, h), p)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	e := database.Entry{
-		ID:        id,
+		Slug:      slug,
 		Name:      name,
 		Sum:       base64.RawURLEncoding.EncodeToString(h.Sum(nil)),
 		Size:      n,
@@ -221,9 +224,9 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	ext := filepath.Ext(name)
 
 	var buf strings.Builder
-	buf.Grow(len(id) + len(ext) + 2)
+	buf.Grow(len(slug) + len(ext) + 2)
 	buf.WriteRune('/')
-	buf.WriteString(id)
+	buf.WriteString(slug)
 	buf.WriteString(ext)
 
 	http.Redirect(w, r, buf.String(), http.StatusSeeOther)

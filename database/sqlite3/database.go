@@ -3,6 +3,7 @@ package sqlite3
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -16,6 +17,18 @@ type Database struct {
 	lookupStmt *sql.Stmt
 }
 
+const initQuery = `CREATE TABLE IF NOT EXISTS entries (
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	slug VARCHAR(16) NOT NULL,
+	name VARCHAR(255) NOT NULL,
+	sum varchar(87) NOT NULL, -- len(b64([64]byte))
+	size INTEGER NOT NULL,
+	lifetime TIMESTAMP,
+	timestamp TIMESTAMP NOT NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_slug ON entries (slug)`
+
 func New(ctx context.Context, name string) (*Database, error) {
 	db, err := sql.Open("sqlite3", name)
 	if err != nil {
@@ -23,6 +36,9 @@ func New(ctx context.Context, name string) (*Database, error) {
 	}
 	if err := db.PingContext(ctx); err != nil {
 		return nil, fmt.Errorf("ping: %w", err)
+	}
+	if _, err := db.ExecContext(ctx, initQuery); err != nil {
+		return nil, fmt.Errorf("exec init: %w", err)
 	}
 
 	d := &Database{db: db}
@@ -43,18 +59,17 @@ func New(ctx context.Context, name string) (*Database, error) {
 }
 
 const createQuery = `INSERT INTO entries (
-	id,
+	slug,
 	name,
-	size,
 	sum,
 	size,
 	lifetime,
 	timestamp
-) VALUES (?, ?, ?, ?, ?)`
+) VALUES (?, ?, ?, ?, ?, ?)`
 
 func (db *Database) Create(ctx context.Context, e database.Entry) error {
 	if _, err := db.createStmt.ExecContext(ctx,
-		e.ID,
+		e.Slug,
 		e.Name,
 		e.Sum,
 		e.Size,
@@ -66,19 +81,29 @@ func (db *Database) Create(ctx context.Context, e database.Entry) error {
 	return nil
 }
 
-const removeQuery = "DELETE FROM entries WHERE id = ?"
+const removeQuery = "DELETE FROM entries WHERE slug = ?"
 
-func (db *Database) Remove(ctx context.Context, id string) error {
-	if _, err := db.removeStmt.ExecContext(ctx, id); err != nil {
+func (db *Database) Remove(ctx context.Context, slug string) error {
+	if _, err := db.removeStmt.ExecContext(ctx, slug); err != nil {
 		return fmt.Errorf("exec: %w", err)
 	}
 	return nil
 }
 
-const lookupQuery = "SELECT * FROM entries WHERE id = ?"
+const lookupQuery = "SELECT slug, name, sum, size, lifetime, timestamp FROM entries WHERE slug = ?"
 
-func (db *Database) Lookup(ctx context.Context, id string) (e database.Entry, err error) {
-	if err := db.lookupStmt.QueryRowContext(ctx, id).Scan(&e); err != nil {
+func (db *Database) Lookup(ctx context.Context, slug string) (e database.Entry, err error) {
+	if err := db.lookupStmt.QueryRowContext(ctx, slug).Scan(
+		&e.Slug,
+		&e.Name,
+		&e.Sum,
+		&e.Size,
+		&e.Lifetime,
+		&e.Timestamp,
+	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return e, database.ErrNoResults
+		}
 		return e, fmt.Errorf("query row: %w", err)
 	}
 	return e, nil
