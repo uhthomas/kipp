@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/uhthomas/kipp/database"
 )
 
@@ -16,7 +17,7 @@ type Database struct {
 }
 
 func New(ctx context.Context, name string) (*Database, error) {
-	db, err := sql.Open("sqlit3", name)
+	db, err := sql.Open("sqlite3", name)
 	if err != nil {
 		return nil, fmt.Errorf("sql open: %w", err)
 	}
