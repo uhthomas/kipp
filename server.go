@@ -189,8 +189,6 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	slug := base64.RawURLEncoding.EncodeToString(b[:])
 
-	// what happens if the upload fails? we need to cancel and/or delete
-	// the file
 	f, err := s.FileSystem.Create(r.Context(), slug)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
