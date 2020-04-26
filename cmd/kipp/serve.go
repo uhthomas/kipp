@@ -11,10 +11,9 @@ import (
 	"os"
 	"time"
 
+	"github.com/uhthomas/kipp"
 	"github.com/uhthomas/kipp/database/sqlite3"
 	"github.com/uhthomas/kipp/filesystem/local"
-
-	"github.com/uhthomas/kipp"
 )
 
 func serve(ctx context.Context) error {
