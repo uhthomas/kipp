@@ -15,7 +15,7 @@ type fileSystemFunc func(string) (http.File, error)
 func (f fileSystemFunc) Open(name string) (http.File, error) { return f(name) }
 
 type file struct {
-	filesystem.ReadSeekCloser
+	filesystem.Reader
 	entry database.Entry
 }
 

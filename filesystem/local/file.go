@@ -5,16 +5,13 @@ import (
 	"os"
 )
 
-type tempFile struct {
+type file struct {
 	*os.File
 	name string
 }
 
-// Close closes and links the named file, removing the old link.
-func (f *tempFile) Close() error {
-	if err := f.File.Close(); err != nil {
-		return fmt.Errorf("close: %w", err)
-	}
+// Sync links the named file, and removes the old link.
+func (f *file) Sync() error {
 	name := f.File.Name()
 	if err := os.Link(name, f.name); err != nil && !os.IsExist(err) {
 		return fmt.Errorf("link: %w", err)
@@ -22,5 +19,5 @@ func (f *tempFile) Close() error {
 	if err := os.Remove(name); err != nil {
 		return fmt.Errorf("remove: %w", err)
 	}
-	return nil
+	return f.File.Sync()
 }

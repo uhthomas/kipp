@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var ErrNoResults = errors.New("no result")
+var ErrNoResults = errors.New("no results")
 
 type Database interface {
 	// Create persists the entry to the underlying database, returning

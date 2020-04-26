@@ -138,7 +138,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Expires", e.Lifetime.Format(http.TimeFormat))
 		}
 		w.Header().Set("X-Content-Type-Options", "nosniff")
-		return &file{ReadSeekCloser: f, entry: e}, nil
+		return &file{Reader: f, entry: e}, nil
 	})).ServeHTTP(w, r)
 }
 
@@ -189,6 +189,8 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	slug := base64.RawURLEncoding.EncodeToString(b[:])
 
+	// what happens if the upload fails? we need to cancel and/or delete
+	// the file
 	f, err := s.FileSystem.Create(r.Context(), slug)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -217,6 +219,11 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := s.Database.Create(r.Context(), e); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err := f.Sync(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

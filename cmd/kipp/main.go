@@ -12,6 +12,7 @@ func Main(ctx context.Context) error {
 	if len(os.Args) > 1 {
 		cmd = os.Args[1]
 	}
+
 	if len(cmd) > 0 && cmd[0] == '-' {
 		cmd = ""
 	}
