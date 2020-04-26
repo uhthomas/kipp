@@ -7,10 +7,11 @@ import (
 
 type file struct {
 	*os.File
-	name string
+	name   string
+	synced bool
 }
 
-// Sync links the named file, and removes the old link.
+// Sync links the named file, removes the old link and syncs.
 func (f *file) Sync() error {
 	name := f.File.Name()
 	if err := os.Link(name, f.name); err != nil && !os.IsExist(err) {
@@ -19,5 +20,21 @@ func (f *file) Sync() error {
 	if err := os.Remove(name); err != nil {
 		return fmt.Errorf("remove: %w", err)
 	}
-	return f.File.Sync()
+	if err := f.File.Sync(); err != nil {
+		return fmt.Errorf("sync: %w", err)
+	}
+	f.synced = true
+	return nil
+}
+
+func (f *file) Close() error {
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("close: %w", err)
+	}
+	if !f.synced {
+		if err := os.Remove(f.Name()); err != nil {
+			return fmt.Errorf("remove: %w", err)
+		}
+	}
+	return nil
 }

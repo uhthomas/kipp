@@ -12,6 +12,8 @@ type FileSystem interface {
 	Remove(ctx context.Context, name string) error
 }
 
+// A Writer is a writable stream for persisting files. Calls to Close should
+// cleanup the file if Sync has not been called.
 type Writer interface {
 	io.WriteCloser
 	// Sync flushes the data to persistent storage. Sync must be called
