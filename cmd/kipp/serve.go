@@ -21,6 +21,7 @@ func serve(ctx context.Context) error {
 	dsn := flag.String("dsn", "file::memory:?cache=shared", "data source name")
 	dir := flag.String("dir", "files", "file directory")
 	tmp := flag.String("tmp", os.TempDir(), "tmp directory")
+	web := flag.String("web", "web", "web directory")
 	limit := flagBytesValue("limit", 150<<20, "upload limit")
 	lifetime := flag.Duration("lifetime", 24*time.Hour, "file lifetime")
 	flag.Parse()
@@ -53,7 +54,7 @@ func serve(ctx context.Context) error {
 			FileSystem: fs,
 			Limit:      int64(*limit),
 			Lifetime:   *lifetime,
-			PublicPath: "some public path",
+			PublicPath: *web,
 		},
 		// ReadTimeout:  5 * time.Second,
 		// WriteTimeout: 10 * time.Second,
