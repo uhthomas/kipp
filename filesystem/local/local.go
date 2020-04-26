@@ -10,6 +10,7 @@ import (
 	"github.com/uhthomas/kipp/filesystem"
 )
 
+// A FileSystem contains information about the local filesystem.
 type FileSystem struct{ dir, tmp string }
 
 // New creates a new FileSystem, and makes the relevant directories for

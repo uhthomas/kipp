@@ -27,6 +27,7 @@ func (f *file) Sync() error {
 	return nil
 }
 
+// Close closes the underlying file, and if not synced, removes it.
 func (f *file) Close() error {
 	if err := f.Close(); err != nil {
 		return fmt.Errorf("close: %w", err)

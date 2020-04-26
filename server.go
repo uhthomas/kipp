@@ -22,8 +22,7 @@ import (
 	"github.com/zeebo/blake3"
 )
 
-// Server acts as the HTTP server, configuration and provides essential core
-// functions such as Cleanup.
+// Server acts as the HTTP server and configuration.
 type Server struct {
 	Database   database.Database
 	FileSystem filesystem.FileSystem
@@ -142,11 +141,9 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	})).ServeHTTP(w, r)
 }
 
-// UploadHandler will read the request body and write it to the disk whilst also
-// calculating a blake2b checksum. It will then insert the file information
-// into the database and if the file doesn't already exist, it will be moved
-// into the FilePath. It will then return StatusSeeOther with the location
-// of the file.
+// UploadHandler write the contents of the "file" part to a filesystem.Reader,
+// persists the entry to the database and writes the location of the file
+// to the response.
 func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	if r.ContentLength > s.Limit {
 		http.Error(w, http.StatusText(http.StatusRequestEntityTooLarge), http.StatusRequestEntityTooLarge)

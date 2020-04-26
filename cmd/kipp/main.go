@@ -5,8 +5,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
+// Main makes writing programs easier by taking a context, and returning an
+// error. It gives a more natural way to write mains.
 func Main(ctx context.Context) error {
 	var cmd string
 	if len(os.Args) > 1 {

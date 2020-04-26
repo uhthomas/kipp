@@ -6,10 +6,11 @@ import (
 	"errors"
 	"fmt"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/uhthomas/kipp/database"
 )
 
+// A Database is a wrapper around a sqlite3 db which provides high level
+// functions defined in database.Database.
 type Database struct {
 	db         *sql.DB
 	createStmt *sql.Stmt
@@ -29,6 +30,7 @@ const initQuery = `CREATE TABLE IF NOT EXISTS entries (
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_slug ON entries (slug)`
 
+// New opens a new sqlite3 db and prepares relevant statements.
 func New(ctx context.Context, name string) (*Database, error) {
 	db, err := sql.Open("sqlite3", name)
 	if err != nil {
@@ -67,6 +69,7 @@ const createQuery = `INSERT INTO entries (
 	timestamp
 ) VALUES (?, ?, ?, ?, ?, ?)`
 
+// Create inserts e into the underlying db.
 func (db *Database) Create(ctx context.Context, e database.Entry) error {
 	if _, err := db.createStmt.ExecContext(ctx,
 		e.Slug,
@@ -83,6 +86,7 @@ func (db *Database) Create(ctx context.Context, e database.Entry) error {
 
 const removeQuery = "DELETE FROM entries WHERE slug = ?"
 
+// Remove removes the entry with the given slug.
 func (db *Database) Remove(ctx context.Context, slug string) error {
 	if _, err := db.removeStmt.ExecContext(ctx, slug); err != nil {
 		return fmt.Errorf("exec: %w", err)
@@ -92,6 +96,7 @@ func (db *Database) Remove(ctx context.Context, slug string) error {
 
 const lookupQuery = "SELECT slug, name, sum, size, lifetime, timestamp FROM entries WHERE slug = ?"
 
+// Lookup looks up the entry for the given slug.
 func (db *Database) Lookup(ctx context.Context, slug string) (e database.Entry, err error) {
 	if err := db.lookupStmt.QueryRowContext(ctx, slug).Scan(
 		&e.Slug,
@@ -109,4 +114,5 @@ func (db *Database) Lookup(ctx context.Context, slug string) (e database.Entry, 
 	return e, nil
 }
 
+// Close closes the underlying db.
 func (db *Database) Close(_ context.Context) error { return db.db.Close() }

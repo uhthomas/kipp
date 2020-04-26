@@ -6,8 +6,10 @@ import (
 	"time"
 )
 
+// ErrNoResults is returned when there are no results for the given query.
 var ErrNoResults = errors.New("no results")
 
+// A Database stores and manages data.
 type Database interface {
 	// Create persists the entry to the underlying database, returning
 	// any errors if present.
@@ -20,6 +22,7 @@ type Database interface {
 	Close(ctx context.Context) error
 }
 
+// An Entry stores relevant metadata for files.
 type Entry struct {
 	Slug      string
 	Name      string

@@ -22,6 +22,7 @@ type Writer interface {
 	Sync() error
 }
 
+// A Reader is a readable, seekable stream for reading files.
 type Reader interface {
 	io.ReadSeeker
 	io.Closer
