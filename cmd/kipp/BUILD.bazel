@@ -41,6 +41,7 @@ go_image(
     goarch = "amd64",
     goos = "linux",
     cgo = True,
+    pure = "on",
     data = glob([":web/**"]),
 )
 
