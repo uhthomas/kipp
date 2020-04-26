@@ -42,7 +42,6 @@ go_image(
     goos = "linux",
     cgo = True,
     data = glob([":web/**"]),
-    base = "@go_image_base//image",
 )
 
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")

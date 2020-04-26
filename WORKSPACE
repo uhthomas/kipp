@@ -44,22 +44,6 @@ load(
 
 container_repositories()
 
-load("@io_bazel_rules_docker//repositories:deps.bzl", container_deps = "deps")
-
-container_deps()
-
-load(
-    "@io_bazel_rules_docker//container:container.bzl",
-    "container_pull",
-)
-
-container_pull(
-    name = "go_image_base",
-    registry = "gcr.io",
-    repository = "distroless/base-debian10",
-    digest = "sha256:61b11e41972578b2417e4e9c9b0a3057b896bd9bd2e3bda961c4b784ea3987ba",
-)
-
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load(
     "@io_bazel_rules_docker//go:image.bzl",
