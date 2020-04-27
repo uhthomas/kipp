@@ -213,6 +213,7 @@ go_repository(
     importpath = "github.com/dgraph-io/badger/v2",
     sum = "h1:inzdf6VF/NZ+tJ8RwwYMjJMvsOALTHYdozn0qSl6XJI=",
     version = "v2.0.3",
+    build_file_proto_mode = "disable",
 )
 
 go_repository(
