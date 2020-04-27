@@ -1,0 +1,12 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["badger.go"],
+    importpath = "github.com/uhthomas/kipp/database/badger",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//database:go_default_library",
+        "@com_github_dgraph_io_badger_v2//:go_default_library",
+    ],
+)

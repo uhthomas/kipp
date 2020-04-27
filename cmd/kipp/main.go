@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 // Main makes writing programs easier by taking a context, and returning an

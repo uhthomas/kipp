@@ -12,10 +12,9 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//:go_default_library",
-        "//database/sqlite3:go_default_library",
+        "//database/badger:go_default_library",
         "//filesystem/local:go_default_library",
         "@com_github_alecthomas_units//:go_default_library",
-        "@com_github_mattn_go_sqlite3//:go_default_library",
     ],
 )
 
@@ -33,15 +32,12 @@ go_image(
     visibility = ["//visibility:private"],
     deps = [
         "//:go_default_library",
-        "//database/sqlite3:go_default_library",
+        "//database/badger:go_default_library",
         "//filesystem/local:go_default_library",
         "@com_github_alecthomas_units//:go_default_library",
-        "@com_github_mattn_go_sqlite3//:go_default_library",
     ],
     goarch = "amd64",
     goos = "linux",
-    cgo = True,
-    pure = "on",
     data = glob([":web/**"]),
 )
 

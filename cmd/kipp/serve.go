@@ -12,13 +12,13 @@ import (
 	"time"
 
 	"github.com/uhthomas/kipp"
-	"github.com/uhthomas/kipp/database/sqlite3"
+	"github.com/uhthomas/kipp/database/badger"
 	"github.com/uhthomas/kipp/filesystem/local"
 )
 
 func serve(ctx context.Context) error {
 	addr := flag.String("addr", ":80", "listen addr")
-	dsn := flag.String("dsn", "file::memory:?cache=shared", "data source name")
+	dsn := flag.String("dsn", "badger", "data source name")
 	dir := flag.String("dir", "files", "file directory")
 	tmp := flag.String("tmp", os.TempDir(), "tmp directory")
 	web := flag.String("web", "web", "web directory")
@@ -39,9 +39,9 @@ func serve(ctx context.Context) error {
 		return fmt.Errorf("new local filesystem: %w", err)
 	}
 
-	db, err := sqlite3.New(ctx, *dsn)
+	db, err := badger.New(*dsn)
 	if err != nil {
-		return fmt.Errorf("new sqlite3 database: %w", err)
+		return fmt.Errorf("new badger database: %w", err)
 	}
 	defer db.Close(ctx)
 

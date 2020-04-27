@@ -45,12 +45,12 @@ func New(ctx context.Context, name string) (*Database, error) {
 
 	d := &Database{db: db}
 	for _, v := range []struct {
-		out   **sql.Stmt
 		query string
+		out   **sql.Stmt
 	}{
-		{out: &d.createStmt, query: createQuery},
-		{out: &d.removeStmt, query: removeQuery},
-		{out: &d.lookupStmt, query: lookupQuery},
+		{query: createQuery, out: &d.createStmt},
+		{query: removeQuery, out: &d.removeStmt},
+		{query: lookupQuery, out: &d.lookupStmt},
 	} {
 		var err error
 		if *v.out, err = db.PrepareContext(ctx, v.query); err != nil {
