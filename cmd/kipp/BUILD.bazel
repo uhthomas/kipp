@@ -41,14 +41,14 @@ go_image(
     data = glob([":web/**"]),
 )
 
-load("@io_bazel_rules_docker//container:container.bzl", "container_push")
-load("tags.bzl", "tags")
+load("@io_bazel_rules_docker//docker:docker.bzl", "docker_push")
+load("tags.bzl", "tag", "tags")
 
-container_push(
+docker_push(
     name = "push",
     image = ":kipp",
-    format = "Docker",
     registry = "docker.pkg.github.com",
     repository = "uhthomas/kipp/kipp",
+    tag = tag(),
     tags = tags(),
 )

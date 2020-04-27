@@ -1,3 +1,8 @@
+def tag(branch):
+    if branch == "master":
+        return "latest"
+    return "local"
+
 def tags():
     if "$(CI)" != "true":
         return []
