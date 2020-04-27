@@ -1,0 +1,51 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "flag.go",
+        "main.go",
+        "mime.go",
+        "serve.go",
+    ],
+    importpath = "github.com/uhthomas/kipp/cmd/kipp",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//:go_default_library",
+        "//database/badger:go_default_library",
+        "//filesystem/local:go_default_library",
+        "@com_github_alecthomas_units//:go_default_library",
+    ],
+)
+
+load("@io_bazel_rules_docker//go:image.bzl", "go_image")
+
+go_image(
+    name = "kipp",
+    srcs = [
+        "flag.go",
+        "main.go",
+        "mime.go",
+        "serve.go",
+    ],
+    importpath = "github.com/uhthomas/kipp/cmd/kipp",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//:go_default_library",
+        "//database/badger:go_default_library",
+        "//filesystem/local:go_default_library",
+        "@com_github_alecthomas_units//:go_default_library",
+    ],
+    goarch = "amd64",
+    goos = "linux",
+    data = glob([":web/**"]),
+)
+
+load("@io_bazel_rules_docker//docker:docker.bzl", "docker_push")
+
+docker_push(
+    name = "push",
+    image = ":kipp",
+    registry = "docker.pkg.github.com",
+    repository = "uhthomas/kipp/kipp",
+)

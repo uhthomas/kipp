@@ -1,0 +1,24 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+load("@bazel_gazelle//:def.bzl", "gazelle")
+
+gazelle(
+    name = "gazelle",
+    prefix = "github.com/uhthomas/kipp",
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "fs.go",
+        "server.go",
+    ],
+    importpath = "github.com/uhthomas/kipp",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//database:go_default_library",
+        "//filesystem:go_default_library",
+        "@com_github_zeebo_blake3//:go_default_library",
+    ],
+)
+
+exports_files(["web"])

@@ -1,0 +1,9 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = ["sqlite3.go"],
+    importpath = "github.com/uhthomas/kipp/database/sqlite3",
+    visibility = ["//visibility:public"],
+    deps = ["//database:go_default_library"],
+)
