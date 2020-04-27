@@ -42,6 +42,7 @@ go_image(
 )
 
 load("@io_bazel_rules_docker//container:container.bzl", "container_push")
+load("tags.bzl", "tags")
 
 container_push(
     name = "push",
@@ -49,5 +50,5 @@ container_push(
     format = "Docker",
     registry = "docker.pkg.github.com",
     repository = "uhthomas/kipp/kipp",
-    tag = "latest",
+    tags = tags(),
 )
