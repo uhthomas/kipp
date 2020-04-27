@@ -6,18 +6,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-#      - uses: actions/cache@v1
-#        with:
-#          path: /home/runner/.cache/bazel
-#          key: bazel
-
       - name: Install bazelisk
         run: |
           curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/v1.1.0/bazelisk-linux-amd64"
           mkdir -p "${GITHUB_WORKSPACE}/bin/"
           mv bazelisk-linux-amd64 "${GITHUB_WORKSPACE}/bin/bazel"
           chmod +x "${GITHUB_WORKSPACE}/bin/bazel"
-      - run: echo "\nbuild --remote_cache=grpcs://bazel:${BAZEL_REMOTE_CACHE_SECRET}@bzl.6f.io:443\ntest --remote_cache=grpcs://bazel:${BAZEL_REMOTE_CACHE_SECRET}@bzl.6f.io:443" >> .bazelrc
       - run: bazel build //...
       - run: bazel test //...
       - uses: azure/docker-login@v1
