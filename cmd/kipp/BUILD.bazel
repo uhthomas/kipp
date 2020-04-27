@@ -42,7 +42,6 @@ go_image(
 )
 
 load("@io_bazel_rules_docker//docker:docker.bzl", "docker_push")
-load("tags.bzl", "tag", "tags")
 
 docker_push(
     name = "push",
