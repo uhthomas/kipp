@@ -49,6 +49,6 @@ docker_push(
     image = ":kipp",
     registry = "docker.pkg.github.com",
     repository = "uhthomas/kipp/kipp",
-    tag = tag(),
+    tag = tag("not master"),
     tags = tags(),
 )
