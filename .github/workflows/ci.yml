@@ -17,7 +17,6 @@ jobs:
           mkdir -p "${GITHUB_WORKSPACE}/bin/"
           mv bazelisk-linux-amd64 "${GITHUB_WORKSPACE}/bin/bazel"
           chmod +x "${GITHUB_WORKSPACE}/bin/bazel"
-      - run: echo "build --remote_cache=grpcs://bzl.6f.io:443\ntest --remote_cache=grpcs://bzl.6f.io:443" >> .bazelrc
       - run: bazel build //...
       - run: bazel test //...
       - uses: azure/docker-login@v1
