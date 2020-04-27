@@ -1,4 +1,2 @@
 # run --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64
 # build --platforms=@io_bazel_rules_go//go/toolchain:linux_amd64
-build --remote_cache=grpcs://bzl.6f.io:443
-test --remote_cache=grpcs://bzl.6f.io:443
