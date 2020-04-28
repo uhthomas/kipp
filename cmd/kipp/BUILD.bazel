@@ -48,4 +48,5 @@ docker_push(
     image = ":kipp",
     registry = "docker.pkg.github.com",
     repository = "uhthomas/kipp/kipp",
+    tag = "latest",
 )

@@ -13,7 +13,7 @@ type file struct {
 
 // Sync links the named file, removes the old link and syncs.
 func (f *file) Sync() error {
-	name := f.File.Name()
+	name := f.Name()
 	if err := os.Link(name, f.name); err != nil && !os.IsExist(err) {
 		return fmt.Errorf("link: %w", err)
 	}
@@ -29,7 +29,7 @@ func (f *file) Sync() error {
 
 // Close closes the underlying file, and if not synced, removes it.
 func (f *file) Close() error {
-	if err := f.Close(); err != nil {
+	if err := f.File.Close(); err != nil {
 		return fmt.Errorf("close: %w", err)
 	}
 	if !f.synced {

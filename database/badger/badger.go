@@ -16,7 +16,7 @@ type Database struct{ db *badger.DB }
 
 // Open opens a new badger database.
 func Open(name string) (*Database, error) {
-	db, err := badger.Open(badger.DefaultOptions(name))
+	db, err := badger.Open(badger.DefaultOptions(name).WithLogger(nil))
 	if err != nil {
 		return nil, fmt.Errorf("open: %w", err)
 	}
