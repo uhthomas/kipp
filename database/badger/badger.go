@@ -14,8 +14,8 @@ import (
 // functions to act a kipp entry database.
 type Database struct{ db *badger.DB }
 
-// New opens a new badger database.
-func New(name string) (*Database, error) {
+// Open opens a new badger database.
+func Open(name string) (*Database, error) {
 	db, err := badger.Open(badger.DefaultOptions(name))
 	if err != nil {
 		return nil, fmt.Errorf("open: %w", err)

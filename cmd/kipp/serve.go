@@ -39,7 +39,7 @@ func serve(ctx context.Context) error {
 		return fmt.Errorf("new local filesystem: %w", err)
 	}
 
-	db, err := badger.New(*dsn)
+	db, err := badger.Open(*dsn)
 	if err != nil {
 		return fmt.Errorf("new badger database: %w", err)
 	}

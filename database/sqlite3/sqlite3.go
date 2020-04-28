@@ -30,8 +30,8 @@ const initQuery = `CREATE TABLE IF NOT EXISTS entries (
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_slug ON entries (slug)`
 
-// New opens a new sqlite3 db and prepares relevant statements.
-func New(ctx context.Context, name string) (*Database, error) {
+// Open opens a new sqlite3 database and prepares relevant statements.
+func Open(ctx context.Context, name string) (*Database, error) {
 	db, err := sql.Open("sqlite3", name)
 	if err != nil {
 		return nil, fmt.Errorf("sql open: %w", err)
