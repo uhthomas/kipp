@@ -39,9 +39,8 @@ be uploaded by POSTing a multipart form to the `/` endpoint like so:
 ```
 curl https://kipp.6f.io -F file="some content"
 ```
-The service will then response with a `302 (See Other)` status with a redirect
-to the new location of the file. It will also write the location to the response
-body.
+The service will then respond with a `302 (See Other)` status and the location
+of the file. It will also write the location to the response body.
 
 Kipp also serves all files located in the `web` directory by default, but can
 either be disabled or changed to a different location.
