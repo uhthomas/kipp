@@ -53,7 +53,7 @@ func (fs *FileSystem) Open(ctx context.Context, name string) (filesystem.Reader,
 	return aws.ReadSeekCloser(obj.Body), nil
 }
 
-// Removes removes the s3 object specified with key, name, from the bucket.
+// Remove removes the s3 object specified with key, name, from the bucket.
 func (fs *FileSystem) Remove(ctx context.Context, name string) error {
 	if _, err := fs.client.DeleteObjectWithContext(ctx, &s3.DeleteObjectInput{
 		Bucket: &fs.bucket,
