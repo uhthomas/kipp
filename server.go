@@ -36,13 +36,14 @@ type Server struct {
 // request is for uploading, it then tries to serve static files and then will
 // try to serve public files.
 func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path == "/" && r.Method == http.MethodPost {
-		s.UploadHandler(w, r)
-		return
-	}
-
 	switch r.Method {
 	case http.MethodGet, http.MethodHead:
+	case http.MethodPost:
+		if r.URL.Path == "/" {
+			s.UploadHandler(w, r)
+			return
+		}
+		fallthrough
 	default:
 		allow := "GET, HEAD, OPTIONS"
 		if r.URL.Path == "/" {

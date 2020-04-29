@@ -38,7 +38,7 @@ go_image(
     ],
     goarch = "amd64",
     goos = "linux",
-    data = glob([":web/**"]),
+    data = ["//:web"],
 )
 
 load("@io_bazel_rules_docker//docker:docker.bzl", "docker_push")
