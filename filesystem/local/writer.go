@@ -14,7 +14,7 @@ type writer struct {
 // Write writes b to f.
 func (w *writer) Write(b []byte) (n int, err error) { return w.f.Write(b) }
 
-// Sync links the named writer, removes the old link and syncs.
+// Sync links the named file, removes the old link and syncs.
 func (w *writer) Sync() error {
 	name := w.f.Name()
 	if err := os.Link(name, w.name); err != nil && !os.IsExist(err) {
