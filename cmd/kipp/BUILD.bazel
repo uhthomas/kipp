@@ -46,7 +46,7 @@ load("@io_bazel_rules_docker//docker:docker.bzl", "docker_push")
 docker_push(
     name = "push",
     image = ":kipp",
-    registry = "docker.pkg.github.com",
-    repository = "uhthomas/kipp/kipp",
+    registry = "index.docker.io",
+    repository = "uhthomas/kipp",
     tag = "latest",
 )
