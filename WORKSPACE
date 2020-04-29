@@ -443,3 +443,10 @@ go_repository(
     sum = "h1:OS12ieG61fsCg5+qLJ+SsW9NicxNkg3b25OyT2yCeUc=",
     version = "v0.3.0",
 )
+
+go_repository(
+    name = "com_github_kurin_blazer",
+    importpath = "github.com/kurin/blazer",
+    sum = "h1:SAgYv0TKU0kN/ETfO5ExjNAPyMt2FocO2s/UlCHfjAk=",
+    version = "v0.5.3",
+)
