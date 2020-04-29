@@ -145,6 +145,12 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // persists the entry to the database and writes the location of the file
 // to the response.
 func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
+	// Due to the overhead of multipart bodies, the actual limit for files
+	// is smaller than it should be. It's not really feasible to calculate
+	// the overhead so this is *good enough* for the time being.
+	//
+	// TODO(thomas): is there a better way to limit the size for the
+	//      part, rather than the whole body?
 	if r.ContentLength > s.Limit {
 		http.Error(w, http.StatusText(http.StatusRequestEntityTooLarge), http.StatusRequestEntityTooLarge)
 		return
@@ -160,8 +166,7 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	var p *multipart.Part
 	for {
-		p, err = mr.NextPart()
-		if err != nil {
+		if p, err = mr.NextPart(); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
