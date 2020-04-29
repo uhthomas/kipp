@@ -1,101 +1,47 @@
 # kipp
-[![GoDoc](https://godoc.org/github.com/uhthomas/kipp?status.svg)](https://godoc.org/github.com/uhthomas/kipp) [![Go Report Card](https://goreportcard.com/badge/github.com/uhthomas/kipp)](https://goreportcard.com/report/github.com/uhthomas/kipp) [![Docker Hub](https://img.shields.io/docker/build/uhthomas/kipp.svg?style=flat)](https://hub.docker.com/r/uhthomas/kipp)
+[![GoDoc](https://godoc.org/github.com/uhthomas/kipp?status.svg)](https://godoc.org/github.com/uhthomas/kipp)
+[![Go Report Card](https://goreportcard.com/badge/github.com/uhthomas/kipp)](https://goreportcard.com/report/github.com/uhthomas/kipp)
 
-## Installation and usage
+## Getting started
+The easiest way to get started with kipp, is by using the image published to
+[Docker Hub](https://hub.docker.com/repository/docker/uhthomas/kipp). The
+service is then available simply by running
 ```
-git clone git@github.com:uhthomas/kipp]
+docker pull uhthomas/kipp
+docker run uhthomas/kipp
+```
+
+## Support
+Kipp is designed to be interoperable with a number of providers for both the
+database, and the file system. The current support is limited, but it's trivial
+to add new sources.
+
+### Databases
+* [Badger](https://github.com/dgraph-io/badger)
+
+### File systems
+* Local (your local file system)
+* [AWS S3](https://aws.amazon.com/s3/) (currently testing)
+* [Backblaze B2](https://www.backblaze.com/b2/cloud-storage.html) (coming soon)
+
+## Building from source
+Kipp is built, tested and compiled using [Bazel](https://bazel.build). To run
+locally with bazel:
+```
+git clone git@github.com:uhthomas/kipp
 cd kipp
-bazel build //cmd/kipp:kipp
-docker run bazel/cmd/kipp:kipp
+bazel run //cmd/kipp
 ```
 
-## Help
-### uploading via curl
+## API
+Kipp has two main components; uploading files and downloading files. Files can
+be uploaded by POSTing a multipart form to the `/` endpoint like so:
 ```
-curl https://kipp.6f.io -F file=@<path>
+curl https://kipp.6f.io -F file="some content"
 ```
-```
-$ kipp help serve
-usage: kipp serve [<flags>]
+The service will then response with a `302 (See Other)` status with a redirect
+to the new location of the file. It will also write the location to the response
+body.
 
-Start a kipp server.
-
-Flags:
-  --help                 Show context-sensitive help (also try --help-long and
-						 --help-man).
-  --addr="0.0.0.0:443"   Server listen address.
-  --cert=CERT            TLS certificate path.
-  --key=KEY              TLS key path.
-  --cleanup-interval=5m  Cleanup interval for deleting expired files.
-  --mime=PATH            A json formatted collection of extensions and mime
-						 types.
-  --store="kipp.db"      Database file path.
-  --expiration=24h       File expiration time.
-  --max=150MB            The maximum file size for uploads.
-  --files="files"        File path.
-  --tmp="files/tmp"      Temp path for in-progress uploads.
-  --public="public"      Public path for web resources.
-```
-```
-$ kipp help upload
-usage: kipp upload [<flags>] <file>
-
-Upload a file.
-
-Flags:
-  --help                    Show context-sensitive help (also try --help-long
-							and --help-man).
-  --insecure                Don't verify SSL certificates.
-  --private                 Encrypt the uploaded file
-  --url=https://kipp.6f.io  Source URL
-
-Args:
-  <file>  File to be uploaded
-```
-
-## Notes
-* Does not support IE.
-* --files and --tmp must be located on the same drive as kipp uploads files to --tmp and then will move it to --files.
-* It's recommended that extra mime types are used. This can be done by running kipp with `--mime /path/to/mime.json`
-* It's recommended to use nginx as a proxy to serve public files. For instance, kipp will only handle requests for uploading and viewing uploaded files then nginx will handle serving static files such as its index, js or css. nginx configuration snippet:
-```kipp
-server {
-	server_name kipp.6f.io;
-	listen 80;
-	
-	client_max_body_size 150m;
-	expires max;
-
-	root ~/kipp/public;
-
-	try_files $uri $uri/ @proxy;
-
-	location = / {
-		if ($request_method != POST) {
-			break;
-		}
-		try_files false @proxy;
-	}
-	
-	location @proxy {
-		proxy_redirect          off;
-		proxy_set_header        Host            $host;
-		proxy_set_header        X-Real-IP       $remote_addr;
-		proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-		proxy_set_header        Upgrade         $http_upgrade;
-		proxy_set_header        Connection      $http_connection;
-		client_body_buffer_size 128k;
-		proxy_connect_timeout   90;
-		proxy_read_timeout      31540000;
-		proxy_send_timeout      31540000;
-		proxy_buffers           32 4k;
-		proxy_buffering         off;
-		proxy_request_buffering off;
-		proxy_http_version      1.1;
-		proxy_ssl_verify        off;
-		# required to ensure cached files do not exceed their expiration date.
-		expires                 off;
-		proxy_pass              https://127.0.0.1:443;
-	}
-}
-```
+Kipp also serves all files located in the `web` directory by default, but can
+either be disabled or changed to a different location.
