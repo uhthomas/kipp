@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"testing"
-	"testing/quick"
 	"time"
 
 	"github.com/uhthomas/kipp/database"
@@ -44,10 +43,6 @@ func (r fakeFileSystemReader) Seek(offset int64, whence int) (n int64, err error
 func (fakeFileSystemReader) Close() error { return nil }
 
 func TestFileReaddir(t *testing.T) {
-	f := &file{
-		Reader: fakeFileSystemReader{limit: 10},
-		entry:  database.Entry{},
-	}
 	files, err := (&file{}).Readdir(-1)
 	if err != nil {
 		t.Fatal(err)
@@ -70,8 +65,8 @@ func TestFileStat(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := quick.CheckEqual(e, fi.(*fileInfo).entry, nil); err != nil {
-		t.Fatal(err)
+	if got, want := fi.(*fileInfo).entry, e; got != want {
+		t.Fatalf("entries are not equal; got %#v, want %#v", got, want)
 	}
 }
 
