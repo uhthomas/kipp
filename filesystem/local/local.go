@@ -25,22 +25,22 @@ func New(dir, tmp string) (*FileSystem, error) {
 	return &FileSystem{dir: dir, tmp: tmp}, nil
 }
 
-// Create creates a temporary file, and wraps it so when the file is closed,
+// Create creates a temporary writer, and wraps it so when the writer is closed,
 // it is moved to name.
 func (fs FileSystem) Create(_ context.Context, name string) (filesystem.Writer, error) {
 	f, err := ioutil.TempFile(fs.tmp, "kipp")
 	if err != nil {
-		return nil, fmt.Errorf("temp file: %w", err)
+		return nil, fmt.Errorf("temp writer: %w", err)
 	}
-	return &file{File: f, name: filepath.Join(fs.dir, name)}, nil
+	return &writer{f: f, name: filepath.Join(fs.dir, name)}, nil
 }
 
-// Open opens the named file.
+// Open opens the named writer.
 func (fs FileSystem) Open(_ context.Context, name string) (filesystem.Reader, error) {
 	return os.Open(filepath.Join(fs.dir, name))
 }
 
-// Remove removes the named file.
+// Remove removes the named writer.
 func (fs FileSystem) Remove(_ context.Context, name string) error {
 	return os.Remove(name)
 }

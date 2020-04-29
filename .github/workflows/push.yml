@@ -1,4 +1,4 @@
-name: Test
+name: Push
 on:
   push:
     branches: master
@@ -16,7 +16,6 @@ jobs:
           chmod +x "${GITHUB_WORKSPACE}/bin/bazel"
       - uses: azure/docker-login@v1
         with:
-          login-server: docker.pkg.github.com
-          username: $GITHUB_ACTOR
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: uhthomas
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
       - run: bazel run //cmd/kipp:push
