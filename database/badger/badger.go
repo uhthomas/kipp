@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/gob"
+	"errors"
 	"fmt"
 
 	"github.com/dgraph-io/badger/v2"
@@ -52,6 +53,9 @@ func (db *Database) Lookup(_ context.Context, slug string) (e database.Entry, er
 		b, err = v.ValueCopy(b)
 		return err
 	}); err != nil {
+		if errors.Is(err, badger.ErrKeyNotFound) {
+			return database.Entry{}, database.ErrNoResults
+		}
 		return database.Entry{}, fmt.Errorf("view: %w", err)
 	}
 	return e, gob.NewDecoder(bytes.NewReader(b)).Decode(&e)
