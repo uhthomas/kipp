@@ -41,7 +41,7 @@ func (fs *FileSystem) Create(ctx context.Context, name string) (filesystem.Write
 	return newWriter(ctx, fs.uploader, fs.bucket, name), nil
 }
 
-// Open gets the object with the specified key, name and returns the body.
+// Open gets the object with the specified key, name.
 func (fs *FileSystem) Open(ctx context.Context, name string) (filesystem.Reader, error) {
 	obj, err := fs.client.GetObjectWithContext(ctx, &s3.GetObjectInput{
 		Bucket: &fs.bucket,
@@ -53,6 +53,7 @@ func (fs *FileSystem) Open(ctx context.Context, name string) (filesystem.Reader,
 	return aws.ReadSeekCloser(obj.Body), nil
 }
 
+// Removes removes the s3 object specified with key, name, from the bucket.
 func (fs *FileSystem) Remove(ctx context.Context, name string) error {
 	if _, err := fs.client.DeleteObjectWithContext(ctx, &s3.DeleteObjectInput{
 		Bucket: &fs.bucket,
