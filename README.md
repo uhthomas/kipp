@@ -20,9 +20,33 @@ to add new sources.
 * [Badger](https://github.com/dgraph-io/badger)
 
 ### File systems
-* Local (your local file system)
-* [AWS S3](https://aws.amazon.com/s3/) (currently testing)
-* [Backblaze B2](https://www.backblaze.com/b2/cloud-storage.html) (coming soon)
+File systems can be configured using the `--filesystem` flag. The flag requires
+the input be parsable as a URL. See the [url.Parse](https://golang.org/pkg/net/url/#Parse)
+docs for more info.
+#### Local (your local file system)
+The local filesystem does not require any special formatting, and can be used
+like a regular path such
+
+```
+--filesystem /path/to/files
+```
+
+#### [AWS S3](https://aws.amazon.com/s3/)
+AWS S3 requires the `s3` scheme, and has the following syntax:
+
+```
+--filesystem s3://some-token:some-secet@some-region/some-bucket?endpoint=some-endpoint.
+```
+
+The `region` and `bucket` are *required*.
+
+The [user info](https://tools.ietf.org/html/rfc2396#section-3.2.2) section is
+optional, if present, will create new static credentials. Otherwise, the default
+AWS SDK credentials will be used.
+
+The `endpoint` is optional, and will use the default AWS endpoint if not present.
+
+#### [Backblaze B2](https://www.backblaze.com/b2/cloud-storage.html) (experimental)
 
 ## Building from source
 Kipp is built, tested and compiled using [Bazel](https://bazel.build). To run

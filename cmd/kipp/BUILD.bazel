@@ -13,7 +13,7 @@ go_library(
     deps = [
         "//:go_default_library",
         "//database/badger:go_default_library",
-        "//filesystem/local:go_default_library",
+        "//internal/filesystemutil:go_default_library",
         "@com_github_alecthomas_units//:go_default_library",
     ],
 )
@@ -33,7 +33,7 @@ go_image(
     deps = [
         "//:go_default_library",
         "//database/badger:go_default_library",
-        "//filesystem/local:go_default_library",
+        "//internal/filesystemutil:go_default_library",
         "@com_github_alecthomas_units//:go_default_library",
     ],
     goarch = "amd64",
@@ -49,4 +49,5 @@ docker_push(
     registry = "index.docker.io",
     repository = "uhthomas/kipp",
     tag = "latest",
+    tags = ["{BUILD_TIMESTAMP}"],
 )

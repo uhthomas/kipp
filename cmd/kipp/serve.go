@@ -8,19 +8,17 @@ import (
 	"mime"
 	"net"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/uhthomas/kipp"
 	"github.com/uhthomas/kipp/database/badger"
-	"github.com/uhthomas/kipp/filesystem/local"
+	"github.com/uhthomas/kipp/internal/filesystemutil"
 )
 
 func serve(ctx context.Context) error {
 	addr := flag.String("addr", ":80", "listen addr")
 	dsn := flag.String("dsn", "badger", "data source name")
-	dir := flag.String("dir", "files", "file directory")
-	tmp := flag.String("tmp", os.TempDir(), "tmp directory")
+	fsf := flag.String("filesystem", "files", "filesystem - see docs for more information")
 	web := flag.String("web", "web", "web directory")
 	limit := flagBytesValue("limit", 150<<20, "upload limit")
 	lifetime := flag.Duration("lifetime", 24*time.Hour, "file lifetime")
@@ -34,14 +32,14 @@ func serve(ctx context.Context) error {
 		}
 	}
 
-	fs, err := local.New(*dir, *tmp)
+	fs, err := filesystemutil.Parse(*fsf)
 	if err != nil {
-		return fmt.Errorf("new local filesystem: %w", err)
+		return fmt.Errorf("parse filesystem: %w", err)
 	}
 
 	db, err := badger.Open(*dsn)
 	if err != nil {
-		return fmt.Errorf("new badger database: %w", err)
+		return fmt.Errorf("open badger: %w", err)
 	}
 	defer db.Close(ctx)
 
