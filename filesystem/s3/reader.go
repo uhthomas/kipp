@@ -33,6 +33,7 @@ func (r *reader) Seek(offset int64, whence int) (int64, error) {
 	if offset < 0 {
 		return 0, errors.New("invalid offset")
 	}
+	r.offset = offset
 	if err := r.reset(); err != nil {
 		return 0, err
 	}
