@@ -1,0 +1,16 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "b2.go",
+        "rangeseeker.go",
+        "reader.go",
+    ],
+    importpath = "github.com/uhthomas/kipp/filesystem/b2",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//filesystem:go_default_library",
+        "@com_github_kurin_blazer//b2:go_default_library",
+    ],
+)
