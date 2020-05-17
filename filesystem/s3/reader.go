@@ -42,7 +42,9 @@ func (r *reader) Seek(offset int64, whence int) (int64, error) {
 func (r *reader) Close() error { return r.obj.Body.Close() }
 
 func (r *reader) reset() error {
-	r.Close()
+	if r.obj != nil {
+		r.Close()
+	}
 
 	in := &s3.GetObjectInput{Bucket: &r.bucket, Key: &r.name}
 	if r.offset > 0 {
