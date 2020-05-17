@@ -10,10 +10,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/uhthomas/kipp/internal/filesystemutil"
-
 	"github.com/uhthomas/kipp"
 	"github.com/uhthomas/kipp/database/badger"
+	"github.com/uhthomas/kipp/internal/filesystemutil"
 )
 
 func serve(ctx context.Context) error {
