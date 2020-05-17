@@ -43,14 +43,16 @@ func (fs *FileSystem) Create(ctx context.Context, name string) (filesystem.Write
 
 // Open gets the object with the specified key, name.
 func (fs *FileSystem) Open(ctx context.Context, name string) (filesystem.Reader, error) {
-	obj, err := fs.client.GetObjectWithContext(ctx, &s3.GetObjectInput{
-		Bucket: &fs.bucket,
-		Key:    &name,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("get object %s/%s: %w", fs.bucket, name, err)
+	r := &reader{
+		ctx:    ctx,
+		client: fs.client,
+		bucket: fs.bucket,
+		name:   name,
 	}
-	return aws.ReadSeekCloser(obj.Body), nil
+	if err := r.reset(); err != nil {
+		return nil, err
+	}
+	return r, nil
 }
 
 // Remove removes the s3 object specified with key, name, from the bucket.

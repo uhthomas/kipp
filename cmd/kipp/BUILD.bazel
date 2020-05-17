@@ -49,4 +49,5 @@ docker_push(
     registry = "index.docker.io",
     repository = "uhthomas/kipp",
     tag = "latest",
+    tags = ["{BUILD_TIMESTAMP},
 )

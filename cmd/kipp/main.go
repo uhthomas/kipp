@@ -10,6 +10,7 @@ import (
 // Main makes writing programs easier by taking a context, and returning an
 // error. It gives a more natural way to write mains.
 func Main(ctx context.Context) error {
+	flag.Parse()
 	switch cmd := flag.Arg(0); cmd {
 	case "", "serve":
 		return serve(ctx)

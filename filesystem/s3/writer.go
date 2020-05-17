@@ -28,8 +28,7 @@ func newWriter(ctx context.Context, u *s3manager.Uploader, bucket, name string) 
 	return &writer{pw: pw}
 }
 
-// Write writes b to pw.
-func (w *writer) Write(b []byte) (n int, err error) { return w.pw.Write(b) }
+func (w *writer) Write(p []byte) (n int, err error) { return w.pw.Write(p) }
 
 // Sync closes pw, which in turn makes all subsequent calls from Read
 // return io.EOF, indicating a successful upload. This then persists the file
