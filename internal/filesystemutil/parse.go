@@ -23,7 +23,7 @@ func Parse(s string) (filesystem.FileSystem, error) {
 	case "":
 		return local.New(u.Path, os.TempDir())
 	// s3 follows the form:
-	//      s3://key:token@region/bucket?endpoint=optional
+	//      s3://key:token@region/bucket?endpoint=v
 	case "s3":
 		c := &aws.Config{Region: &u.Host}
 		if u.User != nil {
