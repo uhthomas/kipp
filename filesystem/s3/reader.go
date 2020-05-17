@@ -56,6 +56,8 @@ func (r *reader) reset() error {
 		return fmt.Errorf("get object: %w", err)
 	}
 	r.obj = obj
-	r.size = *obj.ContentLength
+	if r.size == 0 {
+		r.size = *obj.ContentLength
+	}
 	return nil
 }
