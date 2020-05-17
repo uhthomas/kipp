@@ -3,11 +3,9 @@ package filesystemutil
 import (
 	"fmt"
 	"net/url"
-	"os"
-
-	"github.com/aws/aws-sdk-go/aws/credentials"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/uhthomas/kipp/filesystem"
 	"github.com/uhthomas/kipp/filesystem/local"
 	"github.com/uhthomas/kipp/filesystem/s3"
@@ -21,7 +19,7 @@ func Parse(s string) (filesystem.FileSystem, error) {
 	}
 	switch u.Scheme {
 	case "":
-		return local.New(u.Path, os.TempDir())
+		return local.New(u.Path)
 	// s3 follows the form:
 	//      s3://key:token@region/bucket?endpoint=v
 	case "s3":
