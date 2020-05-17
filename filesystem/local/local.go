@@ -15,10 +15,8 @@ type FileSystem struct{ dir, tmp string }
 
 // New creates a new FileSystem, and makes the relevant directories for
 // dir and tmp.
-func New(dir, tmp string) (*FileSystem, error) {
-	if err := os.MkdirAll(dir, 0755); err != nil && !os.IsExist(err) {
-		return nil, err
-	}
+func New(dir string) (*FileSystem, error) {
+	tmp := filepath.Join(dir, "tmp")
 	if err := os.MkdirAll(tmp, 0755); err != nil && !os.IsExist(err) {
 		return nil, err
 	}
