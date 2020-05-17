@@ -32,10 +32,6 @@ func serve(ctx context.Context) error {
 		}
 	}
 
-	// s3://some-key:some-token@some-region/some-bucket
-	// b2://some-token@some-region/some-bucket
-	// gcp://some-token@some-region/some-bucket
-
 	fs, err := filesystemutil.Parse(*fsf)
 	if err != nil {
 		return fmt.Errorf("parse filesystem: %w", err)
