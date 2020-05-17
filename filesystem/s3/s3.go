@@ -20,7 +20,7 @@ type FileSystem struct {
 }
 
 // New creates a new aws session and s3 client.
-func New(endpoint, region, bucket string) (*FileSystem, error) {
+func New(region, bucket string) (*FileSystem, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Endpoint: &endpoint,
 		Region:   &region,
