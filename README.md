@@ -35,7 +35,7 @@ like a regular path such
 AWS S3 requires the `s3` scheme, and has the following syntax:
 
 ```
---filesystem s3://your-token:your-secet@your-region/your-bucket?endpoint=your-endpoint.
+--filesystem s3://some-token:some-secet@some-region/some-bucket?endpoint=some-endpoint.
 ```
 
 The `region` and `bucket` are *required*.
