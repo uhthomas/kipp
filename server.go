@@ -94,13 +94,13 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// ~ 1 year
-		expire := 31536000 * time.Second
+		now := time.Now()
+		expire := now.Add(31536000 * time.Second)
 		if e.Lifetime != nil {
-			d := time.Until(*e.Lifetime)
-			if d <= 0 {
+			if now.After(*e.Lifetime) {
 				return nil, os.ErrNotExist
 			}
-			expire = d
+			expire = *e.Lifetime
 		}
 
 		f, err := s.FileSystem.Open(r.Context(), e.Slug)
@@ -131,14 +131,14 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return nil, fmt.Errorf("locate: %w", err)
 			}
 			w.Header().Set("Content-Location", l)
-			if now := time.Now(); now.Add(expire).After(e) {
-				expire = now.Sub(e)
+			if expire.After(e) {
+				expire = e
 			}
 		}
 
 		w.Header().Set("Cache-Control", fmt.Sprintf(
 			"public, must-revalidate, max-age=%d",
-			int(expire.Seconds()),
+			int(now.Sub(expire).Seconds()),
 		))
 		w.Header().Set("Content-Disposition", fmt.Sprintf(
 			"filename=%q; filename*=UTF-8''%[1]s",
@@ -147,7 +147,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", ctype)
 		w.Header().Set("Etag", strconv.Quote(e.Sum))
 		if e.Lifetime != nil {
-			w.Header().Set("Expires", e.Lifetime.Format(http.TimeFormat))
+			w.Header().Set("Expires", expire.Format(http.TimeFormat))
 		}
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		return &file{Reader: f, entry: e}, nil
