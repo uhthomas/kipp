@@ -136,7 +136,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			//      corresponding to this particular entity at the time of the request.
 			//
 			// We can therefore infer that this URI is only relevant
-			// for the time this request was made, such is may
+			// for the time this request was made, such it may
 			// expire in future.
 			w.Header().Set("Content-Location", l)
 		}
