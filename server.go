@@ -93,9 +93,8 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return nil, err
 		}
 
-		// ~ 1 year
 		now := time.Now()
-		expire := now.Add(31536000 * time.Second)
+		expire := now.Add(31536000 * time.Second) // ~ 1 year
 		if e.Lifetime != nil {
 			if now.After(*e.Lifetime) {
 				return nil, os.ErrNotExist
@@ -126,14 +125,20 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if l, ok := f.(filesystem.Locator); ok {
-			l, e, err := l.Locate(r.Context())
+			l, err := l.Locate(r.Context())
 			if err != nil {
 				return nil, fmt.Errorf("locate: %w", err)
 			}
+			// According to RFC 2616, 14.14 (https://tools.ietf.org/html/rfc2616#section-14.14):
+			//
+			//      The Content-Location value is not a replacement for the original
+			//      requested URI; it is only a statement of the location of the resource
+			//      corresponding to this particular entity at the time of the request.
+			//
+			// We can therefore infer that this URI is only relevant
+			// for the time this request was made, such is may
+			// expire in future.
 			w.Header().Set("Content-Location", l)
-			if e.Before(expire) {
-				expire = e
-			}
 		}
 
 		w.Header().Set("Cache-Control", fmt.Sprintf(
@@ -147,7 +152,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", ctype)
 		w.Header().Set("Etag", strconv.Quote(e.Sum))
 		if e.Lifetime != nil {
-			w.Header().Set("Expires", expire.Format(http.TimeFormat))
+			w.Header().Set("Expires", e.Lifetime.Format(http.TimeFormat))
 		}
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		return &file{Reader: f, entry: e}, nil

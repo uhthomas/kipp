@@ -3,7 +3,6 @@ package filesystem
 import (
 	"context"
 	"io"
-	"time"
 )
 
 // A FileSystem is a persistent store of objects uniquely identified by name.
@@ -30,13 +29,13 @@ type Reader interface {
 }
 
 // The Locator interface is implemented by Readers that support resolving
-// a permanent URL location.
+// a publicly accessible URI.
 //
 // The location will be served in the Content-Location header for the upstream
 // response.
 type Locator interface {
-	// Locate resolves a publicly accessible URL for the underlying
-	// stream. The URL may expire, and the time must be reported correctly.
-	// If the URL does not expire, a zero time should be returned.
-	Locate(ctx context.Context) (location string, expire time.Time, err error)
+	// Locate resolves a publicly accessible URI for the underlying
+	// stream. The URI may expire, as long as it is relevant at the time the
+	// request was made.
+	Locate(ctx context.Context) (location string, err error)
 }
