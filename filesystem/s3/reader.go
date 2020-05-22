@@ -76,10 +76,18 @@ func (r *reader) reset() error {
 	return nil
 }
 
-func (r *reader) Locate(_ context.Context) (string, error) {
+// Locate pre-signs the object's URL and expires after 15 minutes.
+func (r *reader) Locate(_ context.Context) (string, time.Time, error) {
+	const expire = 15 * time.Minute
+	t := time.Now().Add(expire)
+
 	req, _ := r.client.GetObjectRequest(&s3.GetObjectInput{
 		Bucket: &r.bucket,
 		Key:    &r.name,
 	})
-	return req.Presign(15 * time.Minute)
+	l, err := req.Presign(expire)
+	if err != nil {
+		return "", time.Time{}, fmt.Errorf("presign: %w", err)
+	}
+	return l, t, nil
 }

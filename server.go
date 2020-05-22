@@ -131,7 +131,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				return nil, fmt.Errorf("locate: %w", err)
 			}
 			w.Header().Set("Content-Location", l)
-			if expire.After(e) {
+			if e.Before(expire) {
 				expire = e
 			}
 		}
