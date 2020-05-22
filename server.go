@@ -138,7 +138,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Cache-Control", fmt.Sprintf(
 			"public, must-revalidate, max-age=%d",
-			int(now.Sub(expire).Seconds()),
+			int(expire.Sub(now).Seconds()),
 		))
 		w.Header().Set("Content-Disposition", fmt.Sprintf(
 			"filename=%q; filename*=UTF-8''%[1]s",
