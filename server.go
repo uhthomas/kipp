@@ -93,17 +93,14 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return nil, err
 		}
 
-		// 1 year
-		cache := "max-age=31536000"
+		// ~ 1 year
+		expire := 31536000 * time.Second
 		if e.Lifetime != nil {
-			// duration in seconds until expiration
-			d := int(time.Until(*e.Lifetime).Seconds())
+			d := time.Until(*e.Lifetime)
 			if d <= 0 {
-				// catch expired files. the cleanup worker should delete the
-				// file on its own at some point
 				return nil, os.ErrNotExist
 			}
-			cache = fmt.Sprintf("public, must-revalidate, max-age=%d", d)
+			expire = d
 		}
 
 		f, err := s.FileSystem.Open(r.Context(), e.Slug)
@@ -129,14 +126,20 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if l, ok := f.(filesystem.Locator); ok {
-			l, err := l.Locate(r.Context())
+			l, e, err := l.Locate(r.Context())
 			if err != nil {
 				return nil, fmt.Errorf("locate: %w", err)
 			}
 			w.Header().Set("Content-Location", l)
+			if now := time.Now(); now.Add(expire).After(e) {
+				expire = now.Sub(e)
+			}
 		}
 
-		w.Header().Set("Cache-Control", cache)
+		w.Header().Set("Cache-Control", fmt.Sprintf(
+			"public, must-revalidate, max-age=%d",
+			int(expire.Seconds()),
+		))
 		w.Header().Set("Content-Disposition", fmt.Sprintf(
 			"filename=%q; filename*=UTF-8''%[1]s",
 			url.PathEscape(e.Name),
