@@ -28,7 +28,7 @@ func New(dir string) (*FileSystem, error) {
 func (fs FileSystem) Create(_ context.Context, name string) (filesystem.Writer, error) {
 	f, err := ioutil.TempFile(fs.tmp, "kipp")
 	if err != nil {
-		return nil, fmt.Errorf("temp writer: %w", err)
+		return nil, fmt.Errorf("temp file: %w", err)
 	}
 	return &writer{f: f, name: filepath.Join(fs.dir, name)}, nil
 }
