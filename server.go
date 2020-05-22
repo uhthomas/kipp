@@ -127,6 +127,15 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(ctype, prefix) {
 			ctype = "text/plain" + ctype[len(prefix):]
 		}
+
+		if l, ok := f.(filesystem.Locator); ok {
+			l, err := l.Locate(r.Context())
+			if err != nil {
+				return nil, fmt.Errorf("locate: %w", err)
+			}
+			w.Header().Set("Content-Location", l)
+		}
+
 		w.Header().Set("Cache-Control", cache)
 		w.Header().Set("Content-Disposition", fmt.Sprintf(
 			"filename=%q; filename*=UTF-8''%[1]s",

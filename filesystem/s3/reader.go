@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -16,6 +17,19 @@ type reader struct {
 	bucket, name string
 	obj          *s3.GetObjectOutput
 	offset, size int64
+}
+
+func newReader(ctx context.Context, client *s3.S3, bucket, name string) (*reader, error) {
+	r := &reader{
+		ctx:    ctx,
+		client: client,
+		bucket: bucket,
+		name:   name,
+	}
+	if err := r.reset(); err != nil {
+		return nil, fmt.Errorf("reset: %w", err)
+	}
+	return r, nil
 }
 
 func (r *reader) Read(p []byte) (n int, err error) { return r.obj.Body.Read(p) }
@@ -60,4 +74,12 @@ func (r *reader) reset() error {
 		r.size = *obj.ContentLength
 	}
 	return nil
+}
+
+func (r *reader) Locate(_ context.Context) (string, error) {
+	req, _ := r.client.GetObjectRequest(&s3.GetObjectInput{
+		Bucket: &r.bucket,
+		Key:    &r.name,
+	})
+	return req.Presign(15 * time.Minute)
 }

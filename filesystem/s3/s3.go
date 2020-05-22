@@ -40,16 +40,7 @@ func (fs *FileSystem) Create(ctx context.Context, name string) (filesystem.Write
 
 // Open gets the object with the specified key, name.
 func (fs *FileSystem) Open(ctx context.Context, name string) (filesystem.Reader, error) {
-	r := &reader{
-		ctx:    ctx,
-		client: fs.client,
-		bucket: fs.bucket,
-		name:   name,
-	}
-	if err := r.reset(); err != nil {
-		return nil, err
-	}
-	return r, nil
+	return newReader(ctx, fs.client, fs.bucket, name)
 }
 
 // Remove removes the s3 object specified with key, name, from the bucket.
