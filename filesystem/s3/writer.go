@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
@@ -26,6 +27,7 @@ func newWriter(ctx context.Context, u *s3manager.Uploader, bucket, name string) 
 			Key:    &name,
 		})
 		if err != nil {
+			log.Println(err)
 			pr.CloseWithError(fmt.Errorf("upload: %w", err))
 		}
 		c <- err
