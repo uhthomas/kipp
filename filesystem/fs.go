@@ -22,8 +22,20 @@ type Writer interface {
 	Sync() error
 }
 
-// A Reader is a readable, seekable stream for reading files.
+// A Reader is a readable, seekable and closable file stream.
 type Reader interface {
 	io.ReadSeeker
 	io.Closer
+}
+
+// The Locator interface is implemented by Readers that support resolving
+// a publicly accessible URI.
+//
+// The location will be served in the Content-Location header for the upstream
+// response.
+type Locator interface {
+	// Locate resolves a publicly accessible URI for the underlying
+	// stream. The URI may expire, as long as it is relevant at the time the
+	// request was made.
+	Locate(ctx context.Context) (location string, err error)
 }

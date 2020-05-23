@@ -93,17 +93,13 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return nil, err
 		}
 
-		// 1 year
-		cache := "max-age=31536000"
+		now := time.Now()
+		expire := now.Add(31536000 * time.Second) // ~ 1 year
 		if e.Lifetime != nil {
-			// duration in seconds until expiration
-			d := int(time.Until(*e.Lifetime).Seconds())
-			if d <= 0 {
-				// catch expired files. the cleanup worker should delete the
-				// file on its own at some point
+			if now.After(*e.Lifetime) {
 				return nil, os.ErrNotExist
 			}
-			cache = fmt.Sprintf("public, must-revalidate, max-age=%d", d)
+			expire = *e.Lifetime
 		}
 
 		f, err := s.FileSystem.Open(r.Context(), e.Slug)
@@ -127,7 +123,28 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(ctype, prefix) {
 			ctype = "text/plain" + ctype[len(prefix):]
 		}
-		w.Header().Set("Cache-Control", cache)
+
+		if l, ok := f.(filesystem.Locator); ok {
+			l, err := l.Locate(r.Context())
+			if err != nil {
+				return nil, fmt.Errorf("locate: %w", err)
+			}
+			// According to RFC 2616, 14.14 (https://tools.ietf.org/html/rfc2616#section-14.14):
+			//
+			//      The Content-Location value is not a replacement for the original
+			//      requested URI; it is only a statement of the location of the resource
+			//      corresponding to this particular entity at the time of the request.
+			//
+			// We can therefore infer that this URI is only relevant
+			// for the time this request was made, such it may
+			// expire in future.
+			w.Header().Set("Content-Location", l)
+		}
+
+		w.Header().Set("Cache-Control", fmt.Sprintf(
+			"public, must-revalidate, max-age=%d",
+			int(expire.Sub(now).Seconds()),
+		))
 		w.Header().Set("Content-Disposition", fmt.Sprintf(
 			"filename=%q; filename*=UTF-8''%[1]s",
 			url.PathEscape(e.Name),
