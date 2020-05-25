@@ -51,6 +51,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.Method == http.MethodOptions {
 			w.Header().Set("Access-Control-Allow-Methods", allow)
+			w.Header().Set("Access-Control-Allow-Origin", "*")
 		} else {
 			w.Header().Set("Allow", allow)
 			http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
