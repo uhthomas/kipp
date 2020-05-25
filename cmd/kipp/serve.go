@@ -8,6 +8,7 @@ import (
 	"mime"
 	"net"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/uhthomas/kipp"
@@ -22,6 +23,7 @@ func serve(ctx context.Context) error {
 	web := flag.String("web", "web", "web directory")
 	limit := flagBytesValue("limit", 150<<20, "upload limit")
 	lifetime := flag.Duration("lifetime", 24*time.Hour, "file lifetime")
+	baseURL := flag.String("base-url", "", "base url to create once files have uploaded. A blank value will create a relative URL")
 	flag.Parse()
 
 	for k, v := range mimeTypes {
@@ -43,6 +45,11 @@ func serve(ctx context.Context) error {
 	}
 	defer db.Close(ctx)
 
+	burl, err := url.Parse(*baseURL)
+	if err != nil {
+		return fmt.Errorf("parse base url: %w", err)
+	}
+
 	log.Printf("listening on %s", *addr)
 
 	return (&http.Server{
@@ -53,6 +60,7 @@ func serve(ctx context.Context) error {
 			Limit:      int64(*limit),
 			Lifetime:   *lifetime,
 			PublicPath: *web,
+			BaseURL:    burl,
 		},
 		// ReadTimeout:  5 * time.Second,
 		// WriteTimeout: 10 * time.Second,

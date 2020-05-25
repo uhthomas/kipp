@@ -26,10 +26,10 @@ import (
 type Server struct {
 	Database   database.Database
 	FileSystem filesystem.FileSystem
-
 	Lifetime   time.Duration
 	Limit      int64
 	PublicPath string
+	BaseURL    *url.URL
 }
 
 // ServeHTTP will serve HTTP requests. It first tries to determine if the
@@ -246,16 +246,11 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ext := filepath.Ext(name)
+	u := *s.BaseURL
+	u.Path = path.Join(u.Path, slug+filepath.Ext(name))
+	us := u.String()
 
-	var buf strings.Builder
-	buf.Grow(len(slug) + len(ext) + 2)
-	buf.WriteRune('/')
-	buf.WriteString(slug)
-	buf.WriteString(ext)
-
-	http.Redirect(w, r, buf.String(), http.StatusSeeOther)
-
-	buf.WriteRune('\n')
-	_, _ = w.Write([]byte(buf.String()))
+	http.Redirect(w, r, us, http.StatusSeeOther)
+	io.WriteString(w, us)
+	w.Write([]byte{'\n'})
 }
