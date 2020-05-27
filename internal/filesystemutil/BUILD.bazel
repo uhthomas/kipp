@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["parse.go"],
-    importpath = "github.com/uhthomas/kipp/internal/databaseutil",
+    importpath = "github.com/uhthomas/kipp/internal/filesystemutil",
     visibility = ["//:__subpackages__"],
     deps = [
         "//filesystem:go_default_library",
