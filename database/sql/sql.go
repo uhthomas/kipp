@@ -67,7 +67,7 @@ const createQuery = `INSERT INTO entries (
 	size,
 	lifetime,
 	timestamp
-) VALUES (?, ?, ?, ?, ?, ?)`
+) VALUES ($1, $2, $3, $4, $5, $6)`
 
 // Create inserts e into the underlying db.
 func (db *Database) Create(ctx context.Context, e database.Entry) error {
@@ -84,7 +84,7 @@ func (db *Database) Create(ctx context.Context, e database.Entry) error {
 	return nil
 }
 
-const removeQuery = "DELETE FROM entries WHERE slug = ?"
+const removeQuery = "DELETE FROM entries WHERE slug = $1"
 
 // Remove removes the entry with the given slug.
 func (db *Database) Remove(ctx context.Context, slug string) error {
@@ -94,7 +94,7 @@ func (db *Database) Remove(ctx context.Context, slug string) error {
 	return nil
 }
 
-const lookupQuery = "SELECT slug, name, sum, size, lifetime, timestamp FROM entries WHERE slug = ?"
+const lookupQuery = "SELECT slug, name, sum, size, lifetime, timestamp FROM entries WHERE slug = $1"
 
 // Lookup looks up the entry for the given slug.
 func (db *Database) Lookup(ctx context.Context, slug string) (e database.Entry, err error) {
