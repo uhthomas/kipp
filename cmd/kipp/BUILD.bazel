@@ -12,9 +12,10 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//:go_default_library",
-        "//database/badger:go_default_library",
+        "//internal/databaseutil:go_default_library",
         "//internal/filesystemutil:go_default_library",
         "@com_github_alecthomas_units//:go_default_library",
+        "@com_github_lib_pq//:go_default_library",
     ],
 )
 
