@@ -20,7 +20,6 @@ func Parse(ctx context.Context, s string) (database.Database, error) {
 	case "":
 		return badger.Open(u.Path)
 	case "postgresql":
-		u.Query().Set("sslmode", "require")
 		return sql.Open(ctx, "postgresql", u.String())
 	}
 	return nil, fmt.Errorf("invalid scheme: %s", u.Scheme)
