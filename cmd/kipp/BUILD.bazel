@@ -43,20 +43,30 @@ go_image(
     data = ["//:web"],
 )
 
-load("@io_bazel_rules_docker//docker:docker.bzl", "docker_push")
+load("@io_bazel_rules_docker//docker:docker.bzl", "container_bundle", "docker_push")
+
+container_bundle(
+    name = ":kipp_bundle",
+    images = {
+        "index.docker.io/uhthomas/kipp:latest": ":kipp",
+        "index.docker.io/uhthomas/kipp:{BUILD_TIMESTAMP}": ":kipp",
+    },
+)
+
+container_bundle(
+    name = ":kipp_bundle_github",
+    images = {
+        "docker.pkg.github.com/uhthomas/kipp/kipp:latest": ":kipp",
+        "docker.pkg.github.com/uhthomas/kipp/kipp:{BUILD_TIMESTAMP}": ":kipp",
+    },
+)
 
 docker_push(
     name = "push",
-    image = ":kipp",
-    registry = "index.docker.io",
-    repository = "uhthomas/kipp",
-    tag = "{BUILD_TIMESTAMP}",
+    bundle = ":kipp_bundle",
 )
 
 docker_push(
     name = "push_github",
-    image = ":kipp",
-    registry = "docker.pkg.github.com",
-    repository = "uhthomas/kipp/kipp",
-    tag = "{BUILD_TIMESTAMP}",
+    bundle = ":kipp_bundle_github",
 )
