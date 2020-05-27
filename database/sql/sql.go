@@ -19,7 +19,7 @@ type Database struct {
 }
 
 const initQuery = `CREATE TABLE IF NOT EXISTS entries (
-	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+	id SERIAL PRIMARY KEY NOT NULL,
 	slug VARCHAR(16) NOT NULL,
 	name VARCHAR(255) NOT NULL,
 	sum varchar(87) NOT NULL, -- len(b64([64]byte))
