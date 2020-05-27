@@ -1,26 +1,35 @@
-package databaseutil
+package filesystemutil
 
 import (
-	"context"
 	"fmt"
 	"net/url"
 
-	"github.com/uhthomas/kipp/database"
-	"github.com/uhthomas/kipp/database/badger"
-	"github.com/uhthomas/kipp/database/sql"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/uhthomas/kipp/filesystem"
+	"github.com/uhthomas/kipp/filesystem/local"
+	"github.com/uhthomas/kipp/filesystem/s3"
 )
 
-// Parse parses s, and will create the appropriate database for the scheme.
-func Parse(ctx context.Context, s string) (database.Database, error) {
+// Parse parses s, and will create the appropriate filesystem for the scheme.
+func Parse(s string) (filesystem.FileSystem, error) {
 	u, err := url.Parse(s)
 	if err != nil {
 		return nil, err
 	}
 	switch u.Scheme {
 	case "":
-		return badger.Open(u.Path)
-	case "postgresql":
-		return sql.Open(ctx, "postgresql", u.String())
+		return local.New(u.Path)
+	case "s3":
+		c := &aws.Config{Region: &u.Host}
+		if u.User != nil {
+			p, _ := u.User.Password()
+			c.Credentials = credentials.NewStaticCredentials(u.User.Username(), p, "")
+		}
+		if e := u.Query().Get("endpoint"); e != "" {
+			c.Endpoint = &e
+		}
+		return s3.New(u.Path, c)
 	}
 	return nil, fmt.Errorf("invalid scheme: %s", u.Scheme)
 }

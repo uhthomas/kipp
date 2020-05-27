@@ -1,37 +1,26 @@
-package filesystemutil
+package databaseutil
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/uhthomas/kipp/filesystem"
-	"github.com/uhthomas/kipp/filesystem/local"
-	"github.com/uhthomas/kipp/filesystem/s3"
+	"github.com/uhthomas/kipp/database"
+	"github.com/uhthomas/kipp/database/badger"
+	"github.com/uhthomas/kipp/database/sql"
 )
 
-// Parse parses s, and will create the appropriate filesystem for the scheme.
-func Parse(s string) (filesystem.FileSystem, error) {
+// Parse parses s, and will create the appropriate database for the scheme.
+func Parse(ctx context.Context, s string) (database.Database, error) {
 	u, err := url.Parse(s)
 	if err != nil {
 		return nil, err
 	}
 	switch u.Scheme {
 	case "":
-		return local.New(u.Path)
-	// s3 follows the form:
-	//      s3://key:token@region/bucket?endpoint=v
-	case "s3":
-		c := &aws.Config{Region: &u.Host}
-		if u.User != nil {
-			p, _ := u.User.Password()
-			c.Credentials = credentials.NewStaticCredentials(u.User.Username(), p, "")
-		}
-		if e := u.Query().Get("endpoint"); e != "" {
-			c.Endpoint = &e
-		}
-		return s3.New(u.Path, c)
+		return badger.Open(u.Path)
+	case "psql", "postgres", "postgresql":
+		return sql.Open(ctx, "postgres", u.String())
 	}
 	return nil, fmt.Errorf("invalid scheme: %s", u.Scheme)
 }
