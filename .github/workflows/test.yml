@@ -26,8 +26,8 @@ jobs:
           mv bazelisk-linux-amd64 "${GITHUB_WORKSPACE}/bin/bazel"
           chmod +x "${GITHUB_WORKSPACE}/bin/bazel"
       - uses: azure/docker-login@v1
-          with:
-            login-server: docker.pkg.github.com
-            username: $GITHUB_ACTOR
-            password: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          login-server: docker.pkg.github.com
+          username: $GITHUB_ACTOR
+          password: ${{ secrets.GITHUB_TOKEN }}
       - run: bazel run //cmd/kipp:push_github
