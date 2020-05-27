@@ -12,8 +12,8 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/uhthomas/kipp"
-	filesystemutil "github.com/uhthomas/kipp/internal/databaseutil"
-	databaseutil "github.com/uhthomas/kipp/internal/filesystemutil"
+	"github.com/uhthomas/kipp/internal/databaseutil"
+	"github.com/uhthomas/kipp/internal/filesystemutil"
 )
 
 func serve(ctx context.Context) error {
