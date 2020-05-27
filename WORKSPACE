@@ -450,3 +450,10 @@ go_repository(
     sum = "h1:SAgYv0TKU0kN/ETfO5ExjNAPyMt2FocO2s/UlCHfjAk=",
     version = "v0.5.3",
 )
+
+go_repository(
+    name = "com_github_lib_pq",
+    importpath = "github.com/lib/pq",
+    sum = "h1:yTSXVswvWUOQ3k1sd7vJfDrbSl8lKuscqFJRqjC0ifw=",
+    version = "v1.5.2",
+)

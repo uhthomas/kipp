@@ -1,4 +1,4 @@
-package sqlite3
+package sql
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/uhthomas/kipp/database"
 )
 
-// A Database is a wrapper around a sqlite3 db which provides high level
+// A Database is a wrapper around a sql db which provides high level
 // functions defined in database.Database.
 type Database struct {
 	db         *sql.DB
@@ -30,9 +30,9 @@ const initQuery = `CREATE TABLE IF NOT EXISTS entries (
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_slug ON entries (slug)`
 
-// Open opens a new sqlite3 database and prepares relevant statements.
-func Open(ctx context.Context, name string) (*Database, error) {
-	db, err := sql.Open("sqlite3", name)
+// Open opens a new sql database and prepares relevant statements.
+func Open(ctx context.Context, driver, name string) (*Database, error) {
+	db, err := sql.Open(driver, name)
 	if err != nil {
 		return nil, fmt.Errorf("sql open: %w", err)
 	}

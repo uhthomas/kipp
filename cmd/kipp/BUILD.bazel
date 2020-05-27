@@ -12,9 +12,10 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//:go_default_library",
-        "//database/badger:go_default_library",
+        "//internal/databaseutil:go_default_library",
         "//internal/filesystemutil:go_default_library",
         "@com_github_alecthomas_units//:go_default_library",
+        "@com_github_lib_pq//:go_default_library",
     ],
 )
 
@@ -32,22 +33,42 @@ go_image(
     visibility = ["//visibility:private"],
     deps = [
         "//:go_default_library",
-        "//database/badger:go_default_library",
+        "//internal/databaseutil:go_default_library",
         "//internal/filesystemutil:go_default_library",
         "@com_github_alecthomas_units//:go_default_library",
+        "@com_github_lib_pq//:go_default_library",
     ],
     goarch = "amd64",
     goos = "linux",
     data = ["//:web"],
 )
 
-load("@io_bazel_rules_docker//docker:docker.bzl", "docker_push")
+load("@io_bazel_rules_docker//docker:docker.bzl", "docker_bundle")
+
+docker_bundle(
+    name = "kipp_bundle",
+    images = {
+        "index.docker.io/uhthomas/kipp:latest": ":kipp",
+        "index.docker.io/uhthomas/kipp:{BUILD_TIMESTAMP}": ":kipp",
+    },
+)
+
+docker_bundle(
+    name = "kipp_bundle_github",
+    images = {
+        "docker.pkg.github.com/uhthomas/kipp/kipp:latest": ":kipp",
+        "docker.pkg.github.com/uhthomas/kipp/kipp:{BUILD_TIMESTAMP}": ":kipp",
+    },
+)
+
+load("@io_bazel_rules_docker//contrib:push-all.bzl", "docker_push")
 
 docker_push(
     name = "push",
-    image = ":kipp",
-    registry = "index.docker.io",
-    repository = "uhthomas/kipp",
-    tag = "latest",
-    tags = ["{BUILD_TIMESTAMP}"],
+    bundle = "kipp_bundle",
+)
+
+docker_push(
+    name = "push_github",
+    bundle = "kipp_bundle_github",
 )

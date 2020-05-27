@@ -10,14 +10,15 @@ import (
 	"net/http"
 	"time"
 
+	_ "github.com/lib/pq"
 	"github.com/uhthomas/kipp"
-	"github.com/uhthomas/kipp/database/badger"
-	"github.com/uhthomas/kipp/internal/filesystemutil"
+	filesystemutil "github.com/uhthomas/kipp/internal/databaseutil"
+	databaseutil "github.com/uhthomas/kipp/internal/filesystemutil"
 )
 
 func serve(ctx context.Context) error {
 	addr := flag.String("addr", ":80", "listen addr")
-	dsn := flag.String("dsn", "badger", "data source name")
+	dbf := flag.String("database", "badger", "database - see docs for more information")
 	fsf := flag.String("filesystem", "files", "filesystem - see docs for more information")
 	web := flag.String("web", "web", "web directory")
 	limit := flagBytesValue("limit", 150<<20, "upload limit")
@@ -37,9 +38,9 @@ func serve(ctx context.Context) error {
 		return fmt.Errorf("parse filesystem: %w", err)
 	}
 
-	db, err := badger.Open(*dsn)
+	db, err := databaseutil.Parse(ctx, *dbf)
 	if err != nil {
-		return fmt.Errorf("open badger: %w", err)
+		return fmt.Errorf("parse database: %w", err)
 	}
 	defer db.Close(ctx)
 

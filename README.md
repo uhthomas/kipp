@@ -5,19 +5,32 @@
 ## Getting started
 The easiest way to get started with kipp, is by using the image published to
 [Docker Hub](https://hub.docker.com/repository/docker/uhthomas/kipp). The
-service is then available simply by running
+service is then available simply by running:
 ```
 docker pull uhthomas/kipp
 docker run uhthomas/kipp
 ```
 
 ## Databases
-* [Badger](https://github.com/dgraph-io/badger)
+Databases can be configured using the `--database` flag. The flag requires
+the input be parsable as a URL. See the [url.Parse](https://golang.org/pkg/net/url/#Parse)
+docs for more info.
+
+### [Badger](https://github.com/dgraph-io/badger)
+Badger is a fast, embedded database which is great for single instances.
+
+### SQL
+Kipp uses a generic SQL driver, but currently only loads:
+* [PostgreSQL](https://www.postgresql.org/)
+
+As long as a database supports Go's [sql](https://golang.org/pkg/database/sql/)
+package, it can be used. Please file an issue for requests.
 
 ## File systems
 File systems can be configured using the `--filesystem` flag. The flag requires
 the input be parsable as a URL. See the [url.Parse](https://golang.org/pkg/net/url/#Parse)
 docs for more info.
+
 ### Local (your local file system)
 The local filesystem does not require any special formatting, and can be used
 like a regular path such
@@ -43,6 +56,8 @@ The `endpoint` is optional, and will use the default AWS endpoint if not present
 This is useful for using S3-compatible services such as:
 * [Google Cloud Storage](https://cloud.google.com/storage) - storage.googleapis.com
 * [Linode Object Storage](https://www.linode.com/products/object-storage/) - linodeobjects.com
+* [Backblaze B2](https://www.backblaze.com/b2/cloud-storage.html) - backblazeb2.com
+* [DigitalOcean Spaces](https://www.digitalocean.com/products/spaces/) - digitaloceanspaces.com
 * ... etc
 
 #### Policy
@@ -53,10 +68,8 @@ Required actions:
 
 This is subject to change in future as more features are added.
 
-### [Backblaze B2](https://www.backblaze.com/b2/cloud-storage.html) (experimental)
-
 ## Building from source
-Kipp is built, tested and compiled using [Bazel](https://bazel.build). To run
+Kipp builds, tests and compiles using [Bazel](https://bazel.build). To run/build
 locally with bazel:
 ```
 git clone git@github.com:uhthomas/kipp
