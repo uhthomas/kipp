@@ -33,9 +33,10 @@ go_image(
     visibility = ["//visibility:private"],
     deps = [
         "//:go_default_library",
-        "//database/badger:go_default_library",
+        "//internal/databaseutil:go_default_library",
         "//internal/filesystemutil:go_default_library",
         "@com_github_alecthomas_units//:go_default_library",
+        "@com_github_lib_pq//:go_default_library",
     ],
     goarch = "amd64",
     goos = "linux",
@@ -49,6 +50,13 @@ docker_push(
     image = ":kipp",
     registry = "index.docker.io",
     repository = "uhthomas/kipp",
-    tag = "latest",
-    tags = ["{BUILD_TIMESTAMP}"],
+    tag = "{BUILD_TIMESTAMP}",
+)
+
+docker_push(
+    name = "push_github",
+    image = ":kipp",
+    registry = "docker.pkg.github.com",
+    repository = "uhthomas/kipp/kipp",
+    tag = "{BUILD_TIMESTAMP}",
 )
