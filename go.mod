@@ -9,5 +9,5 @@ require (
 	github.com/dgraph-io/ristretto v0.0.2 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/lib/pq v1.5.2
-	github.com/zeebo/blake3 v0.0.1
+	github.com/zeebo/blake3 v0.0.4
 )
