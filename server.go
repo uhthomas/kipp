@@ -26,7 +26,6 @@ import (
 type Server struct {
 	Database   database.Database
 	FileSystem filesystem.FileSystem
-
 	Lifetime   time.Duration
 	Limit      int64
 	PublicPath string
@@ -183,7 +182,6 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 9 bytes as base64 is most efficient when aligned to len(b) % 3
 	var b [9]byte
 	if _, err := io.ReadFull(rand.Reader, b[:]); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -192,39 +190,31 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	slug := base64.RawURLEncoding.EncodeToString(b[:])
 
-	f, err := s.FileSystem.Create(r.Context(), slug)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer f.Close()
+	if err := s.FileSystem.Create(r.Context(), slug, filesystem.PipeReader(func(w io.Writer) error {
+		h := blake3.New()
+		n, err := io.Copy(io.MultiWriter(w, h), p)
+		if err != nil {
+			return fmt.Errorf("copy: %w", err)
+		}
 
-	h := blake3.New()
-	n, err := io.Copy(io.MultiWriter(f, h), p)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+		e := database.Entry{
+			Slug:      slug,
+			Name:      name,
+			Sum:       base64.RawURLEncoding.EncodeToString(h.Sum(nil)),
+			Size:      n,
+			Timestamp: time.Now(),
+		}
 
-	e := database.Entry{
-		Slug:      slug,
-		Name:      name,
-		Sum:       base64.RawURLEncoding.EncodeToString(h.Sum(nil)),
-		Size:      n,
-		Timestamp: time.Now(),
-	}
+		if s.Lifetime > 0 {
+			l := e.Timestamp.Add(s.Lifetime)
+			e.Lifetime = &l
+		}
 
-	if s.Lifetime > 0 {
-		l := e.Timestamp.Add(s.Lifetime)
-		e.Lifetime = &l
-	}
-
-	if err := s.Database.Create(r.Context(), e); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if err := f.Sync(); err != nil {
+		if err := s.Database.Create(r.Context(), e); err != nil {
+			return fmt.Errorf("create entity: %w", err)
+		}
+		return nil
+	})); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -240,5 +230,5 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, buf.String(), http.StatusSeeOther)
 
 	buf.WriteRune('\n')
-	_, _ = w.Write([]byte(buf.String()))
+	w.Write([]byte(buf.String()))
 }

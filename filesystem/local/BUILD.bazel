@@ -2,10 +2,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
-    srcs = [
-        "local.go",
-        "writer.go",
-    ],
+    srcs = ["local.go"],
     importpath = "github.com/uhthomas/kipp/filesystem/local",
     visibility = ["//visibility:public"],
     deps = ["//filesystem:go_default_library"],

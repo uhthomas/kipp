@@ -3,6 +3,7 @@ package local
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -23,14 +24,22 @@ func New(dir string) (*FileSystem, error) {
 	return &FileSystem{dir: dir, tmp: tmp}, nil
 }
 
-// Create creates a temporary file, and wraps it so when the file is closed,
-// it is moved to name.
-func (fs FileSystem) Create(_ context.Context, name string) (filesystem.Writer, error) {
+// Create writer r to a temporary file, and links it to a permanent location
+// upon success.
+func (fs FileSystem) Create(_ context.Context, name string, r io.Reader) error {
 	f, err := ioutil.TempFile(fs.tmp, "kipp")
 	if err != nil {
-		return nil, fmt.Errorf("temp file: %w", err)
+		return fmt.Errorf("temp file: %w", err)
 	}
-	return &writer{f: f, name: filepath.Join(fs.dir, name)}, nil
+	defer os.Remove(f.Name())
+	defer f.Close()
+	if _, err := io.Copy(f, r); err != nil {
+		return fmt.Errorf("copy: %w", err)
+	}
+	if err := os.Link(f.Name(), filepath.Join(fs.dir, name)); err != nil && !os.IsExist(err) {
+		return fmt.Errorf("link: %w", err)
+	}
+	return nil
 }
 
 // Open opens the named file.

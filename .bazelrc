@@ -1,3 +1,0 @@
-run --remote_cache=grpcs://bzl.6f.io
-build --remote_cache=grpcs://bzl.6f.io
-test --remote_cache=grpcs://bzl.6f.io
