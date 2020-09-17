@@ -24,11 +24,6 @@ type Reader interface {
 // PipeReader pipes r to f(w).
 func PipeReader(f func(w io.Writer) error) io.Reader {
 	pr, pw := io.Pipe()
-	go func() {
-		defer pw.Close()
-		if err := f(pw); err != nil {
-			pw.CloseWithError(err)
-		}
-	}()
+	go func() { pw.CloseWithError(f(pw)) }()
 	return pr
 }
