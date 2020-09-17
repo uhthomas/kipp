@@ -7,23 +7,28 @@ import (
 
 // A FileSystem is a persistent store of objects uniquely identified by name.
 type FileSystem interface {
-	Create(ctx context.Context, name string) (Writer, error)
+	// Create creates an object with the specified name, and will read
+	// from r up to io.EOF. The reader is explicitly passed in to allow
+	// implementations to cleanup, and guarantee consistency.
+	Create(ctx context.Context, name string, r io.Reader) error
 	Open(ctx context.Context, name string) (Reader, error)
 	Remove(ctx context.Context, name string) error
-}
-
-// A Writer is a writable stream for persisting files. Calls to Close should
-// cleanup the file if Sync has not been called.
-type Writer interface {
-	io.WriteCloser
-	// Sync flushes the data to persistent storage. Sync must be called
-	// be called before Close, otherwise the implementation should abort
-	// the write.
-	Sync() error
 }
 
 // A Reader is a readable, seekable and closable file stream.
 type Reader interface {
 	io.ReadSeeker
 	io.Closer
+}
+
+// PipeReader pipes r to f(w).
+func PipeReader(f func(w io.Writer) error) io.Reader {
+	pr, pw := io.Pipe()
+	go func() {
+		defer pw.Close()
+		if err := f(pw); err != nil {
+			pw.CloseWithError(err)
+		}
+	}()
+	return pr
 }

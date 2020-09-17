@@ -3,6 +3,7 @@ package s3
 import (
 	"context"
 	"fmt"
+	"io"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -33,9 +34,16 @@ func New(bucket string, config *aws.Config) (*FileSystem, error) {
 	}, nil
 }
 
-// Create creates a new writer which uploads the s3 object, name, to the bucket.
-func (fs *FileSystem) Create(ctx context.Context, name string) (filesystem.Writer, error) {
-	return newWriter(ctx, fs.uploader, fs.bucket, name), nil
+// Create writes r to the named s3 bucket/object.
+func (fs *FileSystem) Create(ctx context.Context, name string, r io.Reader) error {
+	if _, err := fs.uploader.UploadWithContext(ctx, &s3manager.UploadInput{
+		Body:   r,
+		Bucket: aws.String(fs.bucket),
+		Key:    &name,
+	}); err != nil {
+		return fmt.Errorf("upload: %w", err)
+	}
+	return nil
 }
 
 // Open gets the object with the specified key, name.

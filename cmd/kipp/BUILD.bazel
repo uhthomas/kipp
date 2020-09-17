@@ -29,6 +29,9 @@ go_image(
         "mime.go",
         "serve.go",
     ],
+    data = ["//:web"],
+    goarch = "amd64",
+    goos = "linux",
     importpath = "github.com/uhthomas/kipp/cmd/kipp",
     visibility = ["//visibility:private"],
     deps = [
@@ -38,9 +41,6 @@ go_image(
         "@com_github_alecthomas_units//:go_default_library",
         "@com_github_lib_pq//:go_default_library",
     ],
-    goarch = "amd64",
-    goos = "linux",
-    data = ["//:web"],
 )
 
 load("@io_bazel_rules_docker//docker:docker.bzl", "docker_bundle")

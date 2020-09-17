@@ -5,7 +5,6 @@ go_library(
     srcs = [
         "reader.go",
         "s3.go",
-        "writer.go",
     ],
     importpath = "github.com/uhthomas/kipp/filesystem/s3",
     visibility = ["//visibility:public"],
