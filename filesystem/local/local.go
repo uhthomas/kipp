@@ -24,7 +24,7 @@ func New(dir string) (*FileSystem, error) {
 	return &FileSystem{dir: dir, tmp: tmp}, nil
 }
 
-// Create writer r to a temporary file, and links it to a permanent location
+// Create writes r to a temporary file, and links it to a permanent location
 // upon success.
 func (fs FileSystem) Create(_ context.Context, name string, r io.Reader) error {
 	f, err := ioutil.TempFile(fs.tmp, "kipp")
@@ -36,7 +36,10 @@ func (fs FileSystem) Create(_ context.Context, name string, r io.Reader) error {
 	if _, err := io.Copy(f, r); err != nil {
 		return fmt.Errorf("copy: %w", err)
 	}
-	if err := os.Link(f.Name(), filepath.Join(fs.dir, name)); err != nil && !os.IsExist(err) {
+	if err := f.Close(); err != nil {
+		return fmt.Errorf("close: %w", err)
+	}
+	if err := os.Link(f.Name(), fs.path(name)); err != nil && !os.IsExist(err) {
 		return fmt.Errorf("link: %w", err)
 	}
 	return nil
@@ -44,10 +47,13 @@ func (fs FileSystem) Create(_ context.Context, name string, r io.Reader) error {
 
 // Open opens the named file.
 func (fs FileSystem) Open(_ context.Context, name string) (filesystem.Reader, error) {
-	return os.Open(filepath.Join(fs.dir, name))
+	return os.Open(fs.path(name))
 }
 
 // Remove removes the named file.
 func (fs FileSystem) Remove(_ context.Context, name string) error {
-	return os.Remove(name)
+	return os.Remove(fs.path(name))
 }
+
+// path returns the path of the named file relative to the file system.
+func (fs FileSystem) path(name string) string { return filepath.Join(fs.dir, name) }
