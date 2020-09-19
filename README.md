@@ -3,7 +3,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/uhthomas/kipp)](https://goreportcard.com/report/github.com/uhthomas/kipp)
 
 ## Getting started
-The easiest way to get started with kipp, is by using the image published to
+The easiest way to get started with kipp is by using the image published to
 [Docker Hub](https://hub.docker.com/repository/docker/uhthomas/kipp). The
 service is then available simply by running:
 ```

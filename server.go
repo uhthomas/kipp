@@ -57,7 +57,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.FileServer(fileSystemFunc(func(name string) (http.File, error) {
+	http.FileServer(fileSystemFunc(func(name string) (_ http.File, err error) {
 		if f, err := http.Dir(s.PublicPath).Open(name); !os.IsNotExist(err) {
 			d, err := f.Stat()
 			if err != nil {
@@ -108,6 +108,11 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return nil, err
 		}
+		defer func() {
+			if err != nil {
+				f.Close()
+			}
+		}()
 
 		// Detect content type before serving content to filter html files
 		ctype := mime.TypeByExtension(filepath.Ext(e.Name))
@@ -197,21 +202,23 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 			return fmt.Errorf("copy: %w", err)
 		}
 
-		e := database.Entry{
+		now := time.Now()
+
+		var l *time.Time
+		if s.Lifetime > 0 {
+			t := now.Add(s.Lifetime)
+			l = &t
+		}
+
+		if err := s.Database.Create(r.Context(), database.Entry{
 			Slug:      slug,
 			Name:      name,
 			Sum:       base64.RawURLEncoding.EncodeToString(h.Sum(nil)),
 			Size:      n,
-			Timestamp: time.Now(),
-		}
-
-		if s.Lifetime > 0 {
-			l := e.Timestamp.Add(s.Lifetime)
-			e.Lifetime = &l
-		}
-
-		if err := s.Database.Create(r.Context(), e); err != nil {
-			return fmt.Errorf("create entity: %w", err)
+			Timestamp: now,
+			Lifetime:  l,
+		}); err != nil {
+			return fmt.Errorf("create entry: %w", err)
 		}
 		return nil
 	})); err != nil {
@@ -221,14 +228,14 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	ext := filepath.Ext(name)
 
-	var buf strings.Builder
-	buf.Grow(len(slug) + len(ext) + 2)
-	buf.WriteRune('/')
-	buf.WriteString(slug)
-	buf.WriteString(ext)
+	var sb strings.Builder
+	sb.Grow(len(slug) + len(ext) + 2)
+	sb.WriteRune('/')
+	sb.WriteString(slug)
+	sb.WriteString(ext)
 
-	http.Redirect(w, r, buf.String(), http.StatusSeeOther)
+	http.Redirect(w, r, sb.String(), http.StatusSeeOther)
 
-	buf.WriteRune('\n')
-	w.Write([]byte(buf.String()))
+	sb.WriteRune('\n')
+	io.WriteString(w, sb.String())
 }

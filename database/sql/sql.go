@@ -115,4 +115,4 @@ func (db *Database) Lookup(ctx context.Context, slug string) (e database.Entry, 
 }
 
 // Close closes the underlying db.
-func (db *Database) Close(_ context.Context) error { return db.db.Close() }
+func (db *Database) Close(context.Context) error { return db.db.Close() }
