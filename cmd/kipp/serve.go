@@ -48,6 +48,8 @@ func serve(ctx context.Context) error {
 
 	log.Printf("listening on %s", *addr)
 
+	g, ctx := errgroup.WithContext(ctx)
+
 	s := &http.Server{
 		Addr: *addr,
 		Handler: &kipp.Server{
@@ -61,8 +63,6 @@ func serve(ctx context.Context) error {
 		// WriteTimeout: 10 * time.Second,
 		BaseContext: func(net.Listener) context.Context { return ctx },
 	}
-
-	g, ctx := errgroup.WithContext(ctx)
 
 	g.Go(func() error {
 		ctx, cancel := context.WithTimeout(ctx, time.Minute)
