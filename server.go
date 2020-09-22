@@ -57,6 +57,10 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if r.URL.Path == "/healthz" {
+		return
+	}
+
 	http.FileServer(fileSystemFunc(func(name string) (_ http.File, err error) {
 		if f, err := http.Dir(s.PublicPath).Open(name); !os.IsNotExist(err) {
 			d, err := f.Stat()

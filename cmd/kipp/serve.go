@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -14,6 +15,7 @@ import (
 	"github.com/uhthomas/kipp"
 	"github.com/uhthomas/kipp/internal/databaseutil"
 	"github.com/uhthomas/kipp/internal/filesystemutil"
+	"golang.org/x/sync/errgroup"
 )
 
 func serve(ctx context.Context) error {
@@ -46,7 +48,9 @@ func serve(ctx context.Context) error {
 
 	log.Printf("listening on %s", *addr)
 
-	return (&http.Server{
+	g, ctx := errgroup.WithContext(ctx)
+
+	s := &http.Server{
 		Addr: *addr,
 		Handler: &kipp.Server{
 			Database:   db,
@@ -58,5 +62,20 @@ func serve(ctx context.Context) error {
 		// ReadTimeout:  5 * time.Second,
 		// WriteTimeout: 10 * time.Second,
 		BaseContext: func(net.Listener) context.Context { return ctx },
-	}).ListenAndServe()
+	}
+
+	g.Go(func() error {
+		ctx, cancel := context.WithTimeout(ctx, time.Minute)
+		defer cancel()
+		return s.Shutdown(ctx)
+	})
+
+	g.Go(func() error {
+		if err := s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			return fmt.Errorf("listen and serve: %w", err)
+		}
+		return nil
+	})
+
+	return g.Wait()
 }

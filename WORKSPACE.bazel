@@ -42,6 +42,20 @@ go_register_toolchains()
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 
+go_repository(
+    name = "com_github_zeebo_pcg",
+    importpath = "github.com/zeebo/pcg",
+    sum = "h1:4pW5fMvVkrgkMXdvIsVRRTs69DWYA8uNNQsu1stfVKU=",
+    version = "v0.0.0-20181207190024-3cdc6b625a05",
+)
+
+go_repository(
+    name = "org_golang_x_sync",
+    importpath = "golang.org/x/sync",
+    sum = "h1:qwRHBd0NqMbJxfbotnDhm2ByMI1Shq4Y6oRJo21SGJA=",
+    version = "v0.0.0-20200625203802-6e8e738ad208",
+)
+
 gazelle_dependencies(go_repository_default_config = "@//:WORKSPACE.bazel")
 
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
@@ -111,15 +125,8 @@ go_repository(
 go_repository(
     name = "com_github_zeebo_blake3",
     importpath = "github.com/zeebo/blake3",
-    sum = "h1:nZUbpoC0IddEMH+XSzRlqmLLpxg+knEXBx3b2u0kzWY=",
-    version = "v0.0.1",
-)
-
-go_repository(
-    name = "com_github_zeebo_wyhash",
-    importpath = "github.com/zeebo/wyhash",
-    sum = "h1:TOU5RnQDg4xXZdtEprz5Hp0PzsUII39yoOBhiffngf8=",
-    version = "v0.0.0-20191228005337-11a718112e35",
+    sum = "h1:vtZ4X8B2lKXZFg2Xyg6Wo36mvmnJvc2VQYTtA4RDCkI=",
+    version = "v0.0.4",
 )
 
 go_repository(
@@ -139,8 +146,8 @@ go_repository(
 go_repository(
     name = "org_golang_x_sys",
     importpath = "golang.org/x/sys",
-    sum = "h1:LfCXLvNmTYH9kEmVgqbnsWfruoXZIrh4YBgqVHtDvw0=",
-    version = "v0.0.0-20200202164722-d101bd2416d5",
+    sum = "h1:YEu4SMq7D0cmT7CBbXfcH0NZeuChAXwsHe/9XueUO6o=",
+    version = "v0.0.0-20200922070232-aee5d888a860",
 )
 
 go_repository(
@@ -203,15 +210,15 @@ go_repository(
     name = "com_github_dgraph_io_badger_v2",
     build_file_proto_mode = "disable",
     importpath = "github.com/dgraph-io/badger/v2",
-    sum = "h1:inzdf6VF/NZ+tJ8RwwYMjJMvsOALTHYdozn0qSl6XJI=",
-    version = "v2.0.3",
+    sum = "h1:EjjK0KqwaFMlPin1ajhP943VPENHJdEz1KLIegjaI3k=",
+    version = "v2.2007.2",
 )
 
 go_repository(
     name = "com_github_dgraph_io_ristretto",
     importpath = "github.com/dgraph-io/ristretto",
-    sum = "h1:a5WaUrDa0qm0YrAAS1tUykT5El3kt62KNZZeMxQn3po=",
-    version = "v0.0.2",
+    sum = "h1:t0UHb5vdojIDUqktM6+xJAfScFBsVpXZmqC9dsgJmeA=",
+    version = "v0.0.3-0.20200630154024-f66de99634de",
 )
 
 go_repository(
@@ -420,8 +427,8 @@ go_repository(
 go_repository(
     name = "com_github_aws_aws_sdk_go",
     importpath = "github.com/aws/aws-sdk-go",
-    sum = "h1:1eabOZiVGl+XB02/VG9NpR+3fngaNc74pgb5RmyzgLY=",
-    version = "v1.30.16",
+    sum = "h1:qBqccUrlz43Zermh0U1O502bHYZsgMlBm+LUVabzBPA=",
+    version = "v1.34.27",
 )
 
 go_repository(
@@ -441,6 +448,6 @@ go_repository(
 go_repository(
     name = "com_github_lib_pq",
     importpath = "github.com/lib/pq",
-    sum = "h1:yTSXVswvWUOQ3k1sd7vJfDrbSl8lKuscqFJRqjC0ifw=",
-    version = "v1.5.2",
+    sum = "h1:9xohqzkUwzR4Ga4ivdTcawVS89YSDVxXMa3xJX3cGzg=",
+    version = "v1.8.0",
 )
