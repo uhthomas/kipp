@@ -49,6 +49,13 @@ go_repository(
     version = "v0.0.0-20181207190024-3cdc6b625a05",
 )
 
+go_repository(
+    name = "org_golang_x_sync",
+    importpath = "golang.org/x/sync",
+    sum = "h1:qwRHBd0NqMbJxfbotnDhm2ByMI1Shq4Y6oRJo21SGJA=",
+    version = "v0.0.0-20200625203802-6e8e738ad208",
+)
+
 gazelle_dependencies(go_repository_default_config = "@//:WORKSPACE.bazel")
 
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
@@ -123,13 +130,6 @@ go_repository(
 )
 
 go_repository(
-    name = "com_github_zeebo_wyhash",
-    importpath = "github.com/zeebo/wyhash",
-    sum = "h1:TOU5RnQDg4xXZdtEprz5Hp0PzsUII39yoOBhiffngf8=",
-    version = "v0.0.0-20191228005337-11a718112e35",
-)
-
-go_repository(
     name = "in_gopkg_check_v1",
     importpath = "gopkg.in/check.v1",
     sum = "h1:YR8cESwS4TdDjEe65xsg0ogRM/Nc3DYOhEAlW+xobZo=",
@@ -146,8 +146,8 @@ go_repository(
 go_repository(
     name = "org_golang_x_sys",
     importpath = "golang.org/x/sys",
-    sum = "h1:LfCXLvNmTYH9kEmVgqbnsWfruoXZIrh4YBgqVHtDvw0=",
-    version = "v0.0.0-20200202164722-d101bd2416d5",
+    sum = "h1:YEu4SMq7D0cmT7CBbXfcH0NZeuChAXwsHe/9XueUO6o=",
+    version = "v0.0.0-20200922070232-aee5d888a860",
 )
 
 go_repository(

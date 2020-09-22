@@ -10,4 +10,5 @@ require (
 	github.com/lib/pq v1.8.0
 	github.com/zeebo/blake3 v0.0.4
 	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
+	golang.org/x/sys v0.0.0-20200922070232-aee5d888a860 // indirect
 )
