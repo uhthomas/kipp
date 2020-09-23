@@ -1,10 +1,10 @@
-name: Push
+name: Docker Push
 on:
   push:
     branches: master
 jobs:
   push:
-    name: Push
+    name: Bazel Run & Push
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
