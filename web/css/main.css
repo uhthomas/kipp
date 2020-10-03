@@ -42,8 +42,8 @@ a[href] {
 	position: relative;
 	margin-left: auto;
 	background: linear-gradient(to right, var(--accent-dark) 50%, #6d6d6d 50%);
-	background-size: 100% 200%;
-	background-position-x: -100%;
+	background-size: 200% 100%;
+	background-position-x: 100%;
 }
 
 .switch::before {
