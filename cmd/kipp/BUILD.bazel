@@ -52,14 +52,7 @@ docker_bundle(
     images = {
         "index.docker.io/uhthomas/kipp:latest": ":kipp",
         "index.docker.io/uhthomas/kipp:{BUILD_TIMESTAMP}": ":kipp",
-    },
-)
-
-docker_bundle(
-    name = "kipp_bundle_github",
-    images = {
-        "docker.pkg.github.com/uhthomas/kipp/kipp:latest": ":kipp",
-        "docker.pkg.github.com/uhthomas/kipp/kipp:{BUILD_TIMESTAMP}": ":kipp",
+        "ghcr.io/uhthomas/kipp:{BUILD_TIMESTAMP}": ":kipp",
     },
 )
 
@@ -68,9 +61,4 @@ load("@io_bazel_rules_docker//contrib:push-all.bzl", "docker_push")
 docker_push(
     name = "push",
     bundle = "kipp_bundle",
-)
-
-docker_push(
-    name = "push_github",
-    bundle = "kipp_bundle_github",
 )
