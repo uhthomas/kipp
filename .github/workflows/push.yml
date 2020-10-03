@@ -14,4 +14,9 @@ jobs:
         with:
           username: uhthomas
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - uses: azure/docker-login@v1
+        with:
+          login-server: ghcr.io
+          username: $GITHUB_ACTOR
+          password: ${{ secrets.CR_PAT }}
       - run: bazel run //cmd/kipp:push
