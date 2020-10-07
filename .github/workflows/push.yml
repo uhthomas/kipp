@@ -10,6 +10,7 @@ jobs:
       - uses: actions/checkout@v1
       - name: Install bazelisk
         run: curl -L "https://github.com/bazelbuild/bazelisk/releases/download/v1.6.1/bazelisk-linux-amd64" | install -D /dev/stdin "${GITHUB_WORKSPACE}/bin/bazel"
+      - run: bazel test //...
       - uses: azure/docker-login@v1
         with:
           username: uhthomas
