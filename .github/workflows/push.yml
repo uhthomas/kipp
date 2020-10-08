@@ -1,30 +1,24 @@
 name: Push
 on: [push]
 jobs:
-  test:
-    name: Test
+  push:
+    name: Test and push
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - name: Install bazelisk
         run: curl -L "https://github.com/bazelbuild/bazelisk/releases/download/v1.6.1/bazelisk-linux-amd64" | install -D /dev/stdin "${GITHUB_WORKSPACE}/bin/bazel"
       - run: bazel test //...
-  push:
-    name: Push
-    runs-on: ubuntu-latest
-    needs: test
-    if: github.ref == 'refs/heads/master'
-    steps:
-      - uses: actions/checkout@v1
-      - name: Install bazelisk
-        run: curl -L "https://github.com/bazelbuild/bazelisk/releases/download/v1.6.1/bazelisk-linux-amd64" | install -D /dev/stdin "${GITHUB_WORKSPACE}/bin/bazel"
       - uses: azure/docker-login@v1
+        if: github.ref == 'refs/heads/master'
         with:
           username: uhthomas
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
       - uses: azure/docker-login@v1
+        if: github.ref == 'refs/heads/master'
         with:
           login-server: ghcr.io
           username: $GITHUB_ACTOR
           password: ${{ secrets.CR_PAT }}
       - run: bazel run //cmd/kipp:push
+        if: github.ref == 'refs/heads/master'
