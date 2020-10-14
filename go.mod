@@ -7,6 +7,6 @@ require (
 	github.com/aws/aws-sdk-go v1.35.7
 	github.com/dgraph-io/badger/v2 v2.2007.2
 	github.com/lib/pq v1.8.0
-	github.com/zeebo/blake3 v0.0.4
+	github.com/zeebo/blake3 v0.1.0
 	golang.org/x/sync v0.0.0-20201008141435-b3e1573b7520
 )
