@@ -62,7 +62,7 @@ func serve(ctx context.Context) error {
 		},
 		// ReadTimeout:  5 * time.Second,
 		// WriteTimeout: 10 * time.Second,
-		BaseContext: func(net.Listener) context.Context { return xcontext.Detatch(ctx) },
+		BaseContext: func(net.Listener) context.Context { return xcontext.Detach(ctx) },
 	}
 
 	g.Go(func() error {
