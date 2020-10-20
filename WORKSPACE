@@ -83,8 +83,8 @@ go_repository(
 go_repository(
     name = "com_github_aws_aws_sdk_go",
     importpath = "github.com/aws/aws-sdk-go",
-    sum = "h1:qK+noh6b9KW+5CP1NmmWsQCUbnzucSGrjHEs69MEl6A=",
-    version = "v1.35.2",
+    sum = "h1:FsJtrOS7P+Qmq1rPTGgS/+qC1Y9eGuAJHvAZpZlhmb4=",
+    version = "v1.35.10",
 )
 
 go_repository(
@@ -177,13 +177,6 @@ go_repository(
     importpath = "github.com/fsnotify/fsnotify",
     sum = "h1:IXs+QLmnXW2CcXuY+8Mzv/fWEsPGWxqefPtCP5CnV9I=",
     version = "v1.4.7",
-)
-
-go_repository(
-    name = "com_github_go_sql_driver_mysql",
-    importpath = "github.com/go-sql-driver/mysql",
-    sum = "h1:ozyZYNQW3x3HtqT1jira07DN2PArx2v7/mN66gGcHOs=",
-    version = "v1.5.0",
 )
 
 go_repository(
@@ -399,8 +392,8 @@ go_repository(
 go_repository(
     name = "com_github_zeebo_blake3",
     importpath = "github.com/zeebo/blake3",
-    sum = "h1:vtZ4X8B2lKXZFg2Xyg6Wo36mvmnJvc2VQYTtA4RDCkI=",
-    version = "v0.0.4",
+    sum = "h1:sP3n5SxSbzU8x4Svc4ZcQv7SmQOqCkiKBeAZWP+hePo=",
+    version = "v0.1.0",
 )
 
 go_repository(
@@ -441,8 +434,8 @@ go_repository(
 go_repository(
     name = "org_golang_x_sync",
     importpath = "golang.org/x/sync",
-    sum = "h1:JnxiSYT3Nm0BT2a8CyvYyM6cnrWpidecD1UuSYbhKm0=",
-    version = "v0.0.0-20200930132711-30421366ff76",
+    sum = "h1:SQFwaSi55rU7vdNs9Yr0Z324VNlrF+0wMqRXT4St8ck=",
+    version = "v0.0.0-20201020160332-67f06af15bc9",
 )
 
 go_repository(

@@ -15,6 +15,7 @@ import (
 	"github.com/uhthomas/kipp"
 	"github.com/uhthomas/kipp/internal/databaseutil"
 	"github.com/uhthomas/kipp/internal/filesystemutil"
+	xcontext "github.com/uhthomas/kipp/internal/x/context"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -61,7 +62,7 @@ func serve(ctx context.Context) error {
 		},
 		// ReadTimeout:  5 * time.Second,
 		// WriteTimeout: 10 * time.Second,
-		BaseContext: func(net.Listener) context.Context { return ctx },
+		BaseContext: func(net.Listener) context.Context { return xcontext.Detatch(ctx) },
 	}
 
 	g.Go(func() error {
