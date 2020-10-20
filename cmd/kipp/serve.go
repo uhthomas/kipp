@@ -67,7 +67,7 @@ func serve(ctx context.Context) error {
 
 	g.Go(func() error {
 		<-ctx.Done()
-		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+		ctx, cancel := context.WithTimeout(xcontext.Detach(ctx), time.Minute)
 		defer cancel()
 		return s.Shutdown(ctx)
 	})
