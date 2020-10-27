@@ -26,6 +26,9 @@ func serve(ctx context.Context) error {
 	web := flag.String("web", "web", "web directory")
 	limit := flagBytesValue("limit", 150<<20, "upload limit")
 	lifetime := flag.Duration("lifetime", 24*time.Hour, "file lifetime")
+	// a negative grace period waits indefinitely
+	// a zero grace period immediately terminates
+	gracePeriod := flag.Duration("grace-period", time.Minute, "termination grace period")
 	flag.Parse()
 
 	for k, v := range mimeTypes {
@@ -67,8 +70,15 @@ func serve(ctx context.Context) error {
 
 	g.Go(func() error {
 		<-ctx.Done()
-		ctx, cancel := context.WithTimeout(xcontext.Detach(ctx), time.Minute)
-		defer cancel()
+		ctx := ctx
+		if *gracePeriod != 0 {
+			ctx = xcontext.Detach(ctx)
+			if *gracePeriod > 0 {
+				var cancel context.CancelFunc
+				ctx, cancel = context.WithTimeout(ctx, *gracePeriod)
+				defer cancel()
+			}
+		}
 		return s.Shutdown(ctx)
 	})
 
