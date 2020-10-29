@@ -1,5 +1,10 @@
 (function() {
 	const pica = window.pica();
+	const qr = new QRious({
+		size: 256,
+		backgroundAlpha: 0,
+		foreground: 'white'
+	});
 
 	const encode = arr => btoa(String.fromCharCode.apply(null, arr)).slice(0, -2).replace(/\+/g, '-').replace(/\//g, '_')
 
@@ -20,12 +25,13 @@
 	}
 
 	// main and template are bound
-	const dialog = ((main, template, title, text, buttons) => {
+	const dialog = ((main, template, title, content, buttons) => {
 		const el = importTemplate(template);
 		const undarken = darken(() => el.remove());
 		el.addEventListener('click', e => e.target.tagName === 'BUTTON' && undarken());
 		el.querySelector('.title').innerText = title;
-		el.querySelector('.text').innerHTML = text;
+		if (typeof content === 'function') content(el.querySelector('.text'));
+		else el.querySelector('.text').innerHTML = content;
 		const elb = el.querySelector('.buttons');
 		for (var i = 0; i < buttons.length; i++) {
 			const b = document.createElement('button');
@@ -268,11 +274,14 @@
 						document.execCommand('Copy');
 					}
 					// QR item
-					el.querySelector('.item.qr').onclick = () => dialog(
-						'QR code',
-						'<img width="256" height="256" src="https://chart.googleapis.com/chart?cht=qr&chs=256x256&chl=' + encodeURIComponent(u) + '">',
-						[{ text: 'Close' }]
-					);
+					el.querySelector('.item.qr').onclick = () => {
+						qr.set({value: u})
+						dialog(
+							'QR code',
+							el => el.appendChild(qr.canvas),
+							[{ text: 'Close' }]
+						);
+					}
 					// More item
 					el.querySelector('.item.more').onclick = () => navigator.share({
 						title: self.__name__,
