@@ -17,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/uhthomas/kipp/database"
 	"github.com/uhthomas/kipp/filesystem"
 	"github.com/zeebo/blake3"
@@ -238,20 +239,19 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, sb.String())
 }
 
-// detectContentType sniffs up-to the first 512 bytes of the stream,
+// detectContentType sniffs up-to the first 3072 bytes of the stream,
 // falling back to extension if the content type could not be detected.
 func detectContentType(name string, r io.ReadSeeker) (string, error) {
-	var b [512]byte
+	var b [3072]byte
 	n, _ := io.ReadFull(r, b[:])
-	ctype := http.DetectContentType(b[:n])
 	if _, err := r.Seek(0, io.SeekStart); err != nil {
 		return "", errors.New("seeker can't seek")
 	}
-	if ctype != "application/octet-stream" {
-		return ctype, nil
+	m := mimetype.Detect(b[:n])
+	if m.Is("application/octet-stream") {
+		if ctype := mime.TypeByExtension(filepath.Ext(name)); ctype != "" {
+			return ctype, nil
+		}
 	}
-	if ctype := mime.TypeByExtension(filepath.Ext(name)); ctype != "" {
-		return ctype, nil
-	}
-	return ctype, nil
+	return m.String(), nil
 }

@@ -64,6 +64,13 @@ _go_image_repos()
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 
+go_repository(
+    name = "com_github_gabriel_vasile_mimetype",
+    importpath = "github.com/gabriel-vasile/mimetype",
+    sum = "h1:qbN9MPuRf3bstHu9zkI9jDWNfH//9+9kHxr9oRBBBOA=",
+    version = "v1.1.1",
+)
+
 gazelle_dependencies()
 
 go_repository(
@@ -83,8 +90,8 @@ go_repository(
 go_repository(
     name = "com_github_aws_aws_sdk_go",
     importpath = "github.com/aws/aws-sdk-go",
-    sum = "h1:FsJtrOS7P+Qmq1rPTGgS/+qC1Y9eGuAJHvAZpZlhmb4=",
-    version = "v1.35.10",
+    sum = "h1:Gka1bopihF2e9XFhuVZPrgafmOFpCsRtAPMYLp/0AfA=",
+    version = "v1.35.18",
 )
 
 go_repository(

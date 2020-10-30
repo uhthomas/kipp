@@ -15,6 +15,7 @@ go_library(
     deps = [
         "//database:go_default_library",
         "//filesystem:go_default_library",
+        "@com_github_gabriel_vasile_mimetype//:go_default_library",
         "@com_github_zeebo_blake3//:go_default_library",
     ],
 )
