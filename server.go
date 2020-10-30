@@ -118,15 +118,9 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}()
 
-		// Detect content type before serving content to filter html files
-		ctype := mime.TypeByExtension(filepath.Ext(e.Name))
-		if ctype == "" {
-			var b [512]byte
-			n, _ := io.ReadFull(f, b[:])
-			ctype = http.DetectContentType(b[:n])
-			if _, err := f.Seek(0, io.SeekStart); err != nil {
-				return nil, errors.New("seeker can't seek")
-			}
+		ctype, err := detectContentType(e.Name, f)
+		if err != nil {
+			return nil, fmt.Errorf("detect content type: %w", err)
 		}
 
 		// catches text/html and text/html; charset=utf-8
@@ -242,4 +236,22 @@ func (s Server) UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	sb.WriteRune('\n')
 	io.WriteString(w, sb.String())
+}
+
+// detectContentType sniffs up-to the first 512 bytes of the stream,
+// falling back to extension if the content type could not be detected.
+func detectContentType(name string, r io.ReadSeeker) (string, error) {
+	var b [512]byte
+	n, _ := io.ReadFull(r, b[:])
+	ctype := http.DetectContentType(b[:n])
+	if _, err := r.Seek(0, io.SeekStart); err != nil {
+		return "", errors.New("seeker can't seek")
+	}
+	if ctype != "application/octet-stream" {
+		return ctype, nil
+	}
+	if ctype := mime.TypeByExtension(filepath.Ext(name)); ctype != "" {
+		return ctype, nil
+	}
+	return ctype, nil
 }

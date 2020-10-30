@@ -18,20 +18,24 @@ type reader struct {
 	offset, size int64
 }
 
-func newReader(ctx context.Context, client *s3.S3, bucket, name string) (*reader, error) {
-	r := &reader{
+func newReader(ctx context.Context, client *s3.S3, bucket, name string) *reader {
+	return &reader{
 		ctx:    ctx,
 		client: client,
 		bucket: bucket,
 		name:   name,
 	}
-	if err := r.reset(); err != nil {
-		return nil, fmt.Errorf("reset: %w", err)
-	}
-	return r, nil
 }
 
-func (r *reader) Read(p []byte) (n int, err error) { return r.obj.Body.Read(p) }
+func (r *reader) Read(p []byte) (n int, err error) {
+	if r.obj != nil {
+		return r.obj.Body.Read(p)
+	}
+	if err := r.reset(); err != nil {
+		return 0, fmt.Errorf("reset: %w", err)
+	}
+	return r.Read(p)
+}
 
 func (r *reader) Seek(offset int64, whence int) (int64, error) {
 	switch whence {
@@ -46,20 +50,20 @@ func (r *reader) Seek(offset int64, whence int) (int64, error) {
 	if offset < 0 {
 		return 0, errors.New("invalid offset")
 	}
-	r.offset = offset
-	if err := r.reset(); err != nil {
-		return 0, err
-	}
+	r.Close()
+	r.obj, r.offset = nil, offset
 	return offset, nil
 }
 
-func (r *reader) Close() error { return r.obj.Body.Close() }
+func (r *reader) Close() error {
+	if r.obj == nil {
+		return nil
+	}
+	return r.obj.Body.Close()
+}
 
 func (r *reader) reset() error {
-	if r.obj != nil {
-		r.Close()
-	}
-
+	r.Close()
 	in := &s3.GetObjectInput{Bucket: &r.bucket, Key: &r.name}
 	if r.offset > 0 {
 		in.Range = aws.String(fmt.Sprintf("bytes=%d-", r.offset))
