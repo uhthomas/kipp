@@ -23,7 +23,7 @@ const initQuery = `CREATE TABLE IF NOT EXISTS entries (
 	slug VARCHAR(16) NOT NULL,
 	name VARCHAR(255) NOT NULL,
 	sum varchar(87) NOT NULL, -- len(b64([64]byte))
-	size INTEGER NOT NULL,
+	size BIGINT NOT NULL,
 	lifetime TIMESTAMP,
 	timestamp TIMESTAMP NOT NULL
 );
