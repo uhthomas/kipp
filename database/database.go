@@ -18,6 +18,8 @@ type Database interface {
 	Remove(ctx context.Context, slug string) error
 	// Lookup looks up the named entry.
 	Lookup(ctx context.Context, slug string) (Entry, error)
+	// Ping pings the database.
+	Ping(ctx context.Context) error
 	// Close closes the database.
 	Close(ctx context.Context) error
 }

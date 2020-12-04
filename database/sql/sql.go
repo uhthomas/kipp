@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/uhthomas/kipp/database"
 )
@@ -31,11 +32,22 @@ const initQuery = `CREATE TABLE IF NOT EXISTS entries (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_slug ON entries (slug)`
 
 // Open opens a new sql database and prepares relevant statements.
-func Open(ctx context.Context, driver, name string) (*Database, error) {
+func Open(ctx context.Context, driver, name string) (_ *Database, err error) {
 	db, err := sql.Open(driver, name)
 	if err != nil {
 		return nil, fmt.Errorf("sql open: %w", err)
 	}
+	defer func() {
+		if err != nil {
+			db.Close()
+		}
+	}()
+
+	db.SetConnMaxIdleTime(5 * time.Minute)
+	db.SetConnMaxLifetime(5 * time.Minute)
+	db.SetMaxIdleConns(20)
+	db.SetMaxOpenConns(25)
+
 	if err := db.PingContext(ctx); err != nil {
 		return nil, fmt.Errorf("ping: %w", err)
 	}
@@ -113,6 +125,9 @@ func (db *Database) Lookup(ctx context.Context, slug string) (e database.Entry, 
 	}
 	return e, nil
 }
+
+// Ping pings the underlying db.
+func (db *Database) Ping(ctx context.Context) error { return db.db.PingContext(ctx) }
 
 // Close closes the underlying db.
 func (db *Database) Close(context.Context) error { return db.db.Close() }

@@ -61,5 +61,8 @@ func (db *Database) Lookup(_ context.Context, slug string) (e database.Entry, er
 	return e, gob.NewDecoder(bytes.NewReader(b)).Decode(&e)
 }
 
+// Ping pings the database.
+func (db *Database) Ping(context.Context) error { return nil }
+
 // Close closes the database.
-func (db *Database) Close(_ context.Context) error { return db.db.Close() }
+func (db *Database) Close(context.Context) error { return db.db.Close() }
