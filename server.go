@@ -1,11 +1,13 @@
 package kipp
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"mime"
 	"mime/multipart"
 	"net/http"
@@ -59,6 +61,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.URL.Path == "/healthz" {
+		s.Health(w, r)
 		return
 	}
 
@@ -143,6 +146,16 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		return &file{Reader: f, entry: e}, nil
 	})).ServeHTTP(w, r)
+}
+
+func (s Server) Health(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), time.Second)
+	defer cancel()
+
+	if err := s.Database.Ping(ctx); err != nil {
+		log.Printf("ping: %v", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 // UploadHandler write the contents of the "file" part to a filesystem.Reader,
