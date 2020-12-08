@@ -9,5 +9,5 @@ require (
 	github.com/gabriel-vasile/mimetype v1.1.2
 	github.com/lib/pq v1.9.0
 	github.com/zeebo/blake3 v0.1.0
-	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
+	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
 )
