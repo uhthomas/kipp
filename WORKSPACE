@@ -12,6 +12,13 @@ http_archive(
 )
 
 http_archive(
+    name = "com_github_bazelbuild_buildtools",
+    sha256 = "a02ba93b96a8151b5d8d3466580f6c1f7e77212c4eb181cba53eb2cae7752a23",
+    strip_prefix = "buildtools-3.5.0",
+    url = "https://github.com/bazelbuild/buildtools/archive/3.5.0.tar.gz",
+)
+
+http_archive(
     name = "rules_proto",
     sha256 = "3bce0e2fcf502619119c7cac03613fb52ce3034b2159dd3ae9d35f7339558aa3",
     strip_prefix = "rules_proto-84ba6ec814eebbf5312b2cc029256097ae0042c3",

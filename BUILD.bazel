@@ -1,8 +1,13 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 load("@bazel_gazelle//:def.bzl", "gazelle")
 
 # gazelle:prefix github.com/uhthomas/kipp
 gazelle(name = "gazelle")
+
+load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
+
+buildifier(name = "buildifier")
+
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
@@ -20,15 +25,15 @@ go_library(
     ],
 )
 
-filegroup(
-    name = "web",
-    srcs = glob(["web/**"]),
-    visibility = ["//visibility:public"],
-)
-
 go_test(
     name = "go_default_test",
     srcs = ["fs_test.go"],
     embed = [":go_default_library"],
     deps = ["//database:go_default_library"],
+)
+
+filegroup(
+    name = "web",
+    srcs = glob(["web/**"]),
+    visibility = ["//visibility:public"],
 )
