@@ -47,4 +47,7 @@ load("@io_bazel_rules_docker//contrib:push-all.bzl", "docker_push")
 docker_push(
     name = "push",
     bundle = "kipp_bundle",
+    # Pushing layers concurrently sometimes fails.
+    # See GitHub support ticket 885486.
+    sequential = True,
 )
