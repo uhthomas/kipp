@@ -24,11 +24,13 @@ http_archive(
     urls = ["https://github.com/bazelbuild/rules_python/releases/download/0.1.0/rules_python-0.1.0.tar.gz"],
 )
 
+# pin to f217d1367ae2a49f963f42495b32f489a6f7b17c, as sequential container_push
+# is not available in v0.15.0
 http_archive(
     name = "io_bazel_rules_docker",
-    sha256 = "1698624e878b0607052ae6131aa216d45ebb63871ec497f26c67455b34119c80",
-    strip_prefix = "rules_docker-0.15.0",
-    urls = ["https://github.com/bazelbuild/rules_docker/releases/download/v0.15.0/rules_docker-v0.15.0.tar.gz"],
+    sha256 = "a4b3dce129cc2f0978229fffa16bbe76984cb592ff5d2220ded6b342d46c78e4",
+    strip_prefix = "rules_docker-f217d1367ae2a49f963f42495b32f489a6f7b17c",
+    urls = ["https://github.com/bazelbuild/rules_docker/archive/f217d1367ae2a49f963f42495b32f489a6f7b17c.tar.gz"],
 )
 
 http_archive(
