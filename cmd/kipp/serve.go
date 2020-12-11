@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"time"
 
-	_ "github.com/jackc/pgx"
+	_ "github.com/jackc/pgx/stdlib"
 	"github.com/uhthomas/kipp"
 	"github.com/uhthomas/kipp/internal/databaseutil"
 	"github.com/uhthomas/kipp/internal/filesystemutil"
