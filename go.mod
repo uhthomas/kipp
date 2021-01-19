@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/alecthomas/units v0.0.0-20201120081800-1786d5ef83d4
-	github.com/aws/aws-sdk-go v1.36.28
+	github.com/aws/aws-sdk-go v1.36.29
 	github.com/cockroachdb/apd v1.1.0 // indirect
 	github.com/dgraph-io/badger/v2 v2.2007.2
 	github.com/gabriel-vasile/mimetype v1.1.2
