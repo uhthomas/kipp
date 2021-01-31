@@ -1,5 +1,5 @@
 # kipp
-[![GoDoc](https://godoc.org/github.com/uhthomas/kipp?status.svg)](https://godoc.org/github.com/uhthomas/kipp)
+[![Go Reference](https://pkg.go.dev/badge/github.com/uhthomas/kipp.svg)](https://pkg.go.dev/github.com/uhthomas/kipp)
 [![Go Report Card](https://goreportcard.com/badge/github.com/uhthomas/kipp)](https://goreportcard.com/report/github.com/uhthomas/kipp)
 
 ## Getting started
@@ -43,7 +43,7 @@ like a regular path such
 AWS S3 requires the `s3` scheme, and has the following syntax:
 
 ```
---filesystem s3://some-token:some-secet@some-region/some-bucket?endpoint=some-endpoint.
+--filesystem s3://some-token:some-secret@some-region/some-bucket?endpoint=some-endpoint.
 ```
 
 The `region` and `bucket` are required.
