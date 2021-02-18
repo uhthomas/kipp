@@ -1,4 +1,4 @@
 build --stamp
 build --workspace_status_command hack/workspace-status.sh
 
-run --incompatible_restrict_string_escapes=false
+test --test_output=errors
