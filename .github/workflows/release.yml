@@ -1,0 +1,21 @@
+name: Release
+on:
+  release:
+    types: [published]
+jobs:
+  push:
+    name: Push release tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install bazelisk
+        run: curl -L "https://github.com/bazelbuild/bazelisk/releases/download/v1.7.4/bazelisk-linux-amd64" | install -D /dev/stdin "${GITHUB_WORKSPACE}/bin/bazel"
+      - uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.CR_PAT }}
+      - run: bazel run //cmd/kipp:push
+        env:
+          GIT_COMMIT: ${{ github.sha }}
+          GIT_REF: ${{ github.event.release.tag_name }}
