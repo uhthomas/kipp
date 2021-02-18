@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -27,7 +26,7 @@ func New(dir string) (*FileSystem, error) {
 // Create writes r to a temporary file, and links it to a permanent location
 // upon success.
 func (fs FileSystem) Create(_ context.Context, name string, r io.Reader) error {
-	f, err := ioutil.TempFile(fs.tmp, "kipp")
+	f, err := os.CreateTemp(fs.tmp, "kipp")
 	if err != nil {
 		return fmt.Errorf("temp file: %w", err)
 	}
