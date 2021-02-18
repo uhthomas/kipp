@@ -14,9 +14,9 @@ go_register_toolchains(
     nogo = "@//:nogo",
 )
 
-load("//:go_deps.bzl", "go_dependencies")
+load("//:go_deps.bzl", "go_repositories")
 
-go_dependencies()
+go_repositories()
 
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
 
