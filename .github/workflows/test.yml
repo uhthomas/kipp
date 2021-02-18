@@ -10,7 +10,11 @@ jobs:
         run: curl -L "https://github.com/bazelbuild/bazelisk/releases/download/v1.7.4/bazelisk-linux-amd64" | install -D /dev/stdin "${GITHUB_WORKSPACE}/bin/bazel"
       - uses: docker/login-action@v1
         with:
+          username: uhthomas
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+      - uses: docker/login-action@v1
+        with:
           registry: ghcr.io
-          username: ${{ github.repository_owner }}
+          username: $GITHUB_ACTOR
           password: ${{ secrets.CR_PAT }}
       - run: bazel test //...
