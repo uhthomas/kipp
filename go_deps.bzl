@@ -78,6 +78,7 @@ def go_dependencies():
         importpath = "github.com/dgraph-io/badger/v2",
         sum = "h1:EjjK0KqwaFMlPin1ajhP943VPENHJdEz1KLIegjaI3k=",
         version = "v2.2007.2",
+        build_file_proto_mode = "disable_global",
     )
     go_repository(
         name = "com_github_dgraph_io_ristretto",
