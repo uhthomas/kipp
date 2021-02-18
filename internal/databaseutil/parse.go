@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"time"
 
 	"github.com/uhthomas/kipp/database"
 	"github.com/uhthomas/kipp/database/badger"
@@ -20,6 +21,8 @@ func Parse(ctx context.Context, s string) (database.Database, error) {
 	case "":
 		return badger.Open(u.Path)
 	case "psql", "postgres", "postgresql":
+		ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+		defer cancel()
 		return sql.Open(ctx, "pgx", u.String())
 	}
 	return nil, fmt.Errorf("invalid scheme: %s", u.Scheme)
