@@ -12,12 +12,9 @@ go_library(
     visibility = ["//visibility:private"],
     deps = [
         "//:go_default_library",
-        "//internal/databaseutil:go_default_library",
-        "//internal/filesystemutil:go_default_library",
-        "//internal/x/context:go_default_library",
+        "//internal/httputil:go_default_library",
         "@com_github_alecthomas_units//:go_default_library",
         "@com_github_jackc_pgx_v4//stdlib:go_default_library",
-        "@org_golang_x_sync//errgroup:go_default_library",
     ],
 )
 

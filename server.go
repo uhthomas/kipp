@@ -20,6 +20,8 @@ import (
 	"time"
 
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/uhthomas/kipp/database"
 	"github.com/uhthomas/kipp/filesystem"
 	"github.com/zeebo/blake3"
@@ -27,11 +29,27 @@ import (
 
 // Server acts as the HTTP server and configuration.
 type Server struct {
-	Database   database.Database
-	FileSystem filesystem.FileSystem
-	Lifetime   time.Duration
-	Limit      int64
-	PublicPath string
+	Database      database.Database
+	FileSystem    filesystem.FileSystem
+	Lifetime      time.Duration
+	Limit         int64
+	PublicPath    string
+	metricHandler http.Handler
+}
+
+func New(ctx context.Context, opts ...Option) (*Server, error) {
+	r := prometheus.NewRegistry()
+	s := &Server{
+		metricHandler: promhttp.InstrumentMetricHandler(
+			r, promhttp.HandlerFor(r, promhttp.HandlerOpts{}),
+		),
+	}
+	for _, opt := range opts {
+		if err := opt(ctx, s); err != nil {
+			return nil, err
+		}
+	}
+	return s, nil
 }
 
 // ServeHTTP will serve HTTP requests. It first tries to determine if the
@@ -60,8 +78,12 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.URL.Path == "/healthz" {
+	switch r.URL.Path {
+	case "/healthz":
 		s.Health(w, r)
+		return
+	case "/metrics":
+		s.metricHandler.ServeHTTP(w, r)
 		return
 	}
 
