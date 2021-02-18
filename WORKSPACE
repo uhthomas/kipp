@@ -1,4 +1,4 @@
-# gazelle:repository_macro go_deps.bzl%go_repositories
+# gazelle:repository_macro go_deps.bzl%go_dependencies
 workspace(name = "com_github_uhthomas_kipp")
 
 load("//:deps.bzl", "dependencies")
@@ -14,9 +14,9 @@ go_register_toolchains(
     nogo = "@//:nogo",
 )
 
-load("//:go_deps.bzl", "go_repositories")
+load("//:go_deps.bzl", "go_dependencies")
 
-go_repositories()
+go_dependencies()
 
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
 
