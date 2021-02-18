@@ -31,17 +31,11 @@ func Main(ctx context.Context) error {
 }
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
-
-	go func() {
-		c := make(chan os.Signal, 1)
-		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-		select {
-		case <-ctx.Done():
-		case <-c:
-		}
-		cancel()
-	}()
+	ctx, cancel := signal.NotifyContext(context.Background(),
+		os.Interrupt,
+		syscall.SIGTERM,
+	)
+	defer cancel()
 
 	if err := Main(ctx); err != nil {
 		log.Fatal(err)
