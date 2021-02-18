@@ -85,7 +85,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case "/healthz":
 		s.Health(w, r)
 		return
-	case "/metrics":
+	case "/varz":
 		s.metricHandler.ServeHTTP(w, r)
 		return
 	}
