@@ -39,6 +39,9 @@ type Server struct {
 
 func New(ctx context.Context, opts ...Option) (*Server, error) {
 	r := prometheus.NewRegistry()
+	if err := r.Register(prometheus.NewGoCollector()); err != nil {
+		return nil, fmt.Errorf("register go collector: %w", err)
+	}
 	s := &Server{
 		metricHandler: promhttp.InstrumentMetricHandler(
 			r, promhttp.HandlerFor(r, promhttp.HandlerOpts{}),
