@@ -31,9 +31,9 @@ def dependencies():
     # is not available in v0.15.0
     http_archive(
         name = "io_bazel_rules_docker",
-        sha256 = "9c104580ea36dc93c91e5b7d5544dacfc823a5dca9ae0f4bc2f677b5599913d5",
-        strip_prefix = "rules_docker-8c3a8110a0c519929a7e79c39ac345a0f8c74d04",
-        urls = ["https://github.com/bazelbuild/rules_docker/archive/8c3a8110a0c519929a7e79c39ac345a0f8c74d04.tar.gz"],
+        sha256 = "e9250a95b4813bf10fdb81bb78fdea27a59dd9893267818719e93f19313d3995",
+        strip_prefix = "rules_docker-08cddcccfde27e014a9fbc01f53edac50e17e899",
+        urls = ["https://github.com/bazelbuild/rules_docker/archive/08cddcccfde27e014a9fbc01f53edac50e17e899.tar.gz"],
     )
     http_archive(
         name = "io_bazel_rules_go",
