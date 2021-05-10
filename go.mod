@@ -7,7 +7,7 @@ require (
 	github.com/aws/aws-sdk-go v1.38.36
 	github.com/dgraph-io/badger/v2 v2.2007.2
 	github.com/dgraph-io/ristretto v0.0.4-0.20210122082011-bb5d392ed82d // indirect
-	github.com/gabriel-vasile/mimetype v1.2.0
+	github.com/gabriel-vasile/mimetype v1.3.0
 	github.com/google/go-containerregistry v0.5.0
 	github.com/jackc/pgx/v4 v4.11.0
 	github.com/prometheus/client_golang v1.10.0
