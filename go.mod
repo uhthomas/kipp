@@ -3,7 +3,7 @@ module github.com/uhthomas/kipp
 go 1.16
 
 require (
-	github.com/alecthomas/units v0.0.0-20210912230133-d1bdfacee922
+	github.com/alecthomas/units v0.0.0-20210927092405-e9b82f55b569
 	github.com/aws/aws-sdk-go v1.40.49
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/gabriel-vasile/mimetype v1.3.1
