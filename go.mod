@@ -10,7 +10,7 @@ require (
 	github.com/jackc/pgx/v4 v4.17.0
 	github.com/prometheus/client_golang v1.13.0
 	github.com/zeebo/blake3 v0.2.3
-	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4
+	golang.org/x/sync v0.0.0-20220819030929-7fc1605a5dde
 )
 
 require (
