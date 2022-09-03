@@ -7,7 +7,7 @@ require (
 	github.com/aws/aws-sdk-go v1.44.91
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/gabriel-vasile/mimetype v1.4.1
-	github.com/jackc/pgx/v4 v4.17.1
+	github.com/jackc/pgx/v4 v4.17.2
 	github.com/prometheus/client_golang v1.13.0
 	github.com/zeebo/blake3 v0.2.3
 	golang.org/x/sync v0.0.0-20220819030929-7fc1605a5dde
