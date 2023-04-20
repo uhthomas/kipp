@@ -37,6 +37,6 @@ def dependencies():
         sha256 = "7904dbecbaffd068651916dce77ff3437679f9d20e1a7956bff43826e7645fcc",
         urls = [
             "https://mirror.bazel.build/github.com/bazelbuild/rules_go/releases/download/v0.25.1/rules_go-v0.25.1.tar.gz",
-            "https://github.com/bazelbuild/rules_go/releases/download/v0.39.0/rules_go-v0.25.1.tar.gz",
+            "https://github.com/bazelbuild/rules_go/releases/download/v0.39.1/rules_go-v0.25.1.tar.gz",
         ],
     )
