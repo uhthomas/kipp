@@ -17,9 +17,9 @@ def dependencies():
     )
     http_archive(
         name = "rules_proto",
-        sha256 = "285d1ba620728c4f7288e33db06fc587715869ceca981260a37b45f2118fe569",
-        strip_prefix = "rules_proto-2d33f813c203e4a00ac61941cec83b4d9b56039b",
-        urls = ["https://github.com/bazelbuild/rules_proto/archive/2d33f813c203e4a00ac61941cec83b4d9b56039b.tar.gz"],
+        sha256 = "03ee6ce4ee3c828cf88e0e6cb02d1c4c92d5d36fef45120b20a07ace9f86d2a1",
+        strip_prefix = "rules_proto-34a8208267ae0a83e142e9a1b6a68fdf00c2a21e",
+        urls = ["https://github.com/bazelbuild/rules_proto/archive/34a8208267ae0a83e142e9a1b6a68fdf00c2a21e.tar.gz"],
     )
     http_archive(
         name = "rules_python",
