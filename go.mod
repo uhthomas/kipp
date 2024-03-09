@@ -7,7 +7,8 @@ require (
 	github.com/aws/aws-sdk-go v1.48.16
 	github.com/dgraph-io/badger/v2 v2.2007.4
 	github.com/gabriel-vasile/mimetype v1.4.3
-	github.com/jackc/pgx/v4 v4.18.1
+	github.com/jackc/pgx/v4 v4.12.1-0.20210724153913-640aa07df17c
+	github.com/jackc/pgx/v5 v5.5.5
 	github.com/prometheus/client_golang v1.17.0
 	github.com/zeebo/blake3 v0.2.3
 	golang.org/x/sync v0.5.0
@@ -37,9 +38,9 @@ require (
 	github.com/prometheus/client_model v0.4.1-0.20230718164431-9a2bf3000d16 // indirect
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.11.1 // indirect
-	golang.org/x/crypto v0.14.0 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/net v0.17.0 // indirect
-	golang.org/x/sys v0.13.0 // indirect
-	golang.org/x/text v0.13.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 )
