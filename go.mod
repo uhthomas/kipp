@@ -9,7 +9,7 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.3
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/prometheus/client_golang v1.17.0
-	github.com/zeebo/blake3 v0.2.3
+	github.com/zeebo/blake3 v0.2.4
 	golang.org/x/sync v0.5.0
 )
 
