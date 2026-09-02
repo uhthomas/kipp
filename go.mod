@@ -1,6 +1,6 @@
 module github.com/uhthomas/kipp
 
-go 1.19
+go 1.25.0
 
 require (
 	github.com/alecthomas/units v0.0.0-20231202071711-9a357b53e9c9
@@ -10,7 +10,7 @@ require (
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/prometheus/client_golang v1.17.0
 	github.com/zeebo/blake3 v0.2.3
-	golang.org/x/sync v0.5.0
+	golang.org/x/sync v0.22.0
 )
 
 require (
